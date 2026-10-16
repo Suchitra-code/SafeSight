@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Environment variables and secrets
+.env
+*.env
+!.env.example
+
+# Local SQLite databases
+*.db
+*.sqlite3
+database/*.db
+
+# Testing and cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# User uploads & processed outputs (keep directory structure via .gitkeep)
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+!outputs/snap_demo_*.jpg
+reports/*
+!reports/.gitkeep
+
+# Model weights (large binaries, user should train or download separately)
+models/*.pt
+models/*.onnx
+models/*.engine
+!models/.gitkeep
+
+# Operating System & IDE artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+.idea/

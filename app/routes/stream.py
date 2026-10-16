@@ -1,0 +1,163 @@
+"""
+Live Video Stream Route for SafeSight AI.
+Streams multipart/x-mixed-replace MJPEG feed with real-time YOLOv8 detections,
+safety rule analysis, visual bounding boxes, and rate-limited violation logging.
+"""
+import os
+import time
+import logging
+from flask import Blueprint, Response, request
+import cv2
+import numpy as np
+
+import config
+from app.db import execute_insert
+from app.services.detector import PPEDetector
+from app.services.safety_rules import analyze_safety
+from app.services.processor import annotate_frame, crop_person_snapshot
+
+logger = logging.getLogger(__name__)
+
+stream_bp = Blueprint("stream", __name__)
+
+
+def generate_mjpeg_stream(source_identifier: str):
+    """
+    Generator yielding JPEG frame buffers for multipart/x-mixed-replace streaming.
+    Handles webcam (source '0'), video file, or synthetic CCTV feed if camera unavailable.
+    """
+    detector = PPEDetector()
+
+    # Determine capture source
+    cap = None
+    is_synthetic = False
+
+    if source_identifier in ("0", "webcam", "default"):
+        cap = cv2.VideoCapture(0)
+        cam_name = "Cam 01 – Zone A"
+        location = "Zone A - Fabrication"
+    else:
+        # Check if source corresponds to a known camera or uploaded video
+        cam_name = f"Cam {source_identifier}"
+        location = "Facility Perimeter"
+        # Try finding a video file in uploads
+        matched_video = None
+        for f in os.listdir(config.UPLOAD_FOLDER) if os.path.exists(config.UPLOAD_FOLDER) else []:
+            if f.endswith((".mp4", ".avi")):
+                matched_video = os.path.join(config.UPLOAD_FOLDER, f)
+                break
+        if matched_video:
+            cap = cv2.VideoCapture(matched_video)
+        else:
+            is_synthetic = True
+
+    if cap and not cap.isOpened():
+        cap.release()
+        cap = None
+        is_synthetic = True
+
+    last_violation_log = {}  # violation_type -> unix_timestamp
+    frame_counter = 0
+
+    try:
+        while True:
+            frame = None
+            if not is_synthetic and cap:
+                ret, frame = cap.read()
+                if not ret:
+                    # Loop video if reached end
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    ret, frame = cap.read()
+                    if not ret:
+                        is_synthetic = True
+
+            if is_synthetic or frame is None:
+                # Generate a simulated CCTV camera frame
+                frame = np.zeros((480, 640, 3), dtype=np.uint8)
+                frame[:] = (30, 20, 15)  # dark slate navy
+
+                # Draw simulated CCTV timestamp and grid lines
+                t_str = time.strftime("%Y-%m-%d %H:%M:%S")
+                cv2.putText(frame, f"[CCTV] {cam_name} | {location}", (20, 35),
+                            cv2.FONT_HERSHEY_DUPLEX, 0.5, (200, 200, 200), 1)
+                cv2.putText(frame, f"REC {t_str}", (480, 35),
+                            cv2.FONT_HERSHEY_DUPLEX, 0.45, (68, 68, 239), 1)
+
+                # Simulated worker moving across frame
+                shift = int((time.time() * 30) % 350)
+                px1 = 120 + shift
+                py1 = 120
+                px2 = px1 + 90
+                py2 = py1 + 240
+
+                # Simulated person silhouette
+                cv2.ellipse(frame, (px1 + 45, py1 + 35), (25, 30), 0, 0, 360, (110, 100, 90), -1)
+                cv2.rectangle(frame, (px1 + 10, py1 + 65), (px2 - 10, py2), (75, 65, 55), -1)
+
+                # Simulate detections directly for demo
+                detections = [
+                    {"class_name": "Person", "confidence": 0.93, "bbox": [px1, py1, px2, py2]},
+                    {"class_name": "Safety Vest", "confidence": 0.91, "bbox": [px1 + 12, py1 + 75, px2 - 12, py1 + 180]}
+                    # No helmet -> violation
+                ]
+            else:
+                # Resize if needed
+                if frame.shape[1] > 960:
+                    scale = 960.0 / frame.shape[1]
+                    frame = cv2.resize(frame, (960, int(frame.shape[0] * scale)))
+
+                # Real detection inference
+                detections = detector.detect(frame, conf_threshold=0.40)
+
+            # Analyze safety compliance
+            analysis = analyze_safety(detections, enable_goggles=config.ENABLE_GOGGLES_CHECK)
+            annotated = annotate_frame(frame, analysis)
+
+            # Rate-limited violation logging (10-second cooldown per type)
+            current_time = time.time()
+            for v in analysis.get("violations", []):
+                v_type = v["violation_type"]
+                last_logged = last_violation_log.get(v_type, 0)
+                if (current_time - last_logged) >= config.VIOLATION_COOLDOWN_SECONDS:
+                    last_violation_log[v_type] = current_time
+                    try:
+                        snap_name = crop_person_snapshot(frame, v.get("person_bbox", [0, 0, 100, 100]))
+                        execute_insert(
+                            """
+                            INSERT INTO violations (upload_id, detection_id, violation_type, severity, confidence,
+                                                    snapshot_path, camera_name, location, status)
+                            VALUES (NULL, NULL, %s, %s, %s, %s, %s, %s, 'detected')
+                            """,
+                            (v_type, v["severity"], float(v.get("confidence", 0.9)),
+                             snap_name, cam_name, location)
+                        )
+                    except Exception as err:
+                        logger.warning(f"Error logging live stream violation: {err}")
+
+            # Encode as JPEG
+            ret, buffer = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 80])
+            if not ret:
+                continue
+
+            frame_bytes = buffer.tobytes()
+            yield (b"--frame\r\n"
+                   b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n")
+
+            frame_counter += 1
+            # Sleep slightly to throttle frame rate (~20 fps)
+            time.sleep(0.04)
+
+    except GeneratorExit:
+        pass
+    finally:
+        if cap:
+            cap.release()
+
+
+@stream_bp.route("/video_feed/<source>")
+def video_feed(source):
+    """Returns MJPEG multipart stream for live monitor."""
+    return Response(
+        generate_mjpeg_stream(source),
+        mimetype="multipart/x-mixed-replace; boundary=frame"
+    )

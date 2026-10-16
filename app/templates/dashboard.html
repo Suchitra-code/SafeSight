@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}SafeSight AI – BI Safety Analytics Dashboard{% endblock %}
+{% block breadcrumb %}BI Analytics Dashboard{% endblock %}
+
+{% block content %}
+<!-- Top Controls & Action Bar -->
+<div class="filter-bar">
+  <div class="filter-group">
+    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Facility / Camera:</label>
+    <select id="cameraFilter" class="form-control">
+      <option value="all">All Cameras & Zones</option>
+      {% for cam in cameras %}
+      <option value="{{ cam.name }}">{{ cam.name }}</option>
+      {% endfor %}
+    </select>
+
+    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Date Range:</label>
+    <input type="date" id="dateFrom" class="form-control">
+    <span style="color: var(--text-muted); font-size: 12px;">to</span>
+    <input type="date" id="dateTo" class="form-control">
+
+    <button id="applyFiltersBtn" class="btn btn-secondary btn-sm">Filter</button>
+  </div>
+
+  <div class="filter-group">
+    <button id="loadDemoDataBtn" class="btn btn-secondary btn-sm" title="Reload 53 Demo Incidents">
+      <span>🔄</span> Load Demo Data
+    </button>
+    <a href="/reports" class="btn btn-primary btn-sm">
+      <span>📄</span> Generate PDF Report
+    </a>
+  </div>
+</div>
+
+<!-- KPI Cards Row -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-icon people">👥</div>
+    <div class="kpi-info">
+      <p>Workers Detected</p>
+      <h3 id="kpiTotalPeople">{{ kpi.total_people }}</h3>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon safe">✅</div>
+    <div class="kpi-info">
+      <p>Compliant Personnel</p>
+      <h3 id="kpiSafe" style="color: var(--safe);">{{ kpi.safe_count }}</h3>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon unsafe">⚠️</div>
+    <div class="kpi-info">
+      <p>Unsafe Personnel</p>
+      <h3 id="kpiUnsafe" style="color: var(--danger);">{{ kpi.unsafe_count }}</h3>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon compliance">📊</div>
+    <div class="kpi-info">
+      <p>Safety Compliance</p>
+      <h3 id="kpiCompliance">{{ kpi.compliance_percent }}%</h3>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon violations">🚨</div>
+    <div class="kpi-info">
+      <p>Total Violations</p>
+      <h3 id="kpiViolations" style="color: var(--danger);">{{ kpi.total_violations }}</h3>
+    </div>
+  </div>
+</div>
+
+<!-- Top Analytics Row: Circular Safety Score + Timeseries Line Chart -->
+<div class="grid-dash-top">
+  <!-- Circular Safety Score Gauge -->
+  <div class="card safety-score-card">
+    <h3 class="card-title" style="margin-bottom: 4px;">Site Safety Score</h3>
+    <p class="card-subtitle" style="margin-bottom: 24px;">All facilities | This week</p>
+
+    <div id="safetyGauge" class="gauge-circle">
+      <div class="gauge-inner">
+        <span id="safetyGaugeVal" class="gauge-val">{{ safety_score.score }}%</span>
+        <span id="safetyGaugeStatus" class="gauge-caption" style="color: {{ safety_score.color }};">
+          {{ safety_score.status }}
+        </span>
+      </div>
+    </div>
+
+    <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; max-width: 240px;">
+      Calculated from worker PPE spatial compliance across all active cameras.
+    </div>
+  </div>
+
+  <!-- Events Timeseries Line Chart (Last 3 Weeks) -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3 class="card-title">PPE Events Timeseries</h3>
+        <p class="card-subtitle">Daily incidents recorded across the last 3 weeks</p>
+      </div>
+      <span class="badge-status status-detected">21-Day View</span>
+    </div>
+    <div style="height: 280px; position: relative;">
+      <canvas id="timeseriesChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Mid Row: Violations by Category + Peak Time Period Heatmap -->
+<div class="grid-2">
+  <!-- Violations Doughnut / Bar -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3 class="card-title">Violations by Category</h3>
+        <p class="card-subtitle">Incident volume by PPE equipment type (Total: <span id="vTotalCount">{{ v_by_type.total }}</span>)</p>
+      </div>
+    </div>
+    <div style="height: 280px; display: flex; align-items: center; justify-content: center;">
+      <canvas id="violationsTypeChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Peak Time Period Plotly Heatmap -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3 class="card-title">Peak Time Period Heatmap</h3>
+        <p class="card-subtitle">Infraction density across day of week and hour of day</p>
+      </div>
+    </div>
+    <div id="plotlyHeatmap" style="height: 280px; width: 100%;"></div>
+  </div>
+</div>
+
+<!-- Bottom Row: Compliance Trend + Latest Incident Card + Violations by Zone -->
+<div class="grid-3">
+  <!-- Compliance Trend Line -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Compliance Trend</h3>
+    </div>
+    <div style="height: 240px;">
+      <canvas id="complianceTrendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Violations by Zone Bar -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Violations by Zone</h3>
+    </div>
+    <div style="height: 240px;">
+      <canvas id="cameraZoneChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Latest Violation Alert Feature Card -->
+  <div class="latest-card">
+    <div class="latest-img-wrap">
+      {% if latest_violation and latest_violation.snapshot_path %}
+      <img id="latestImg" src="/outputs/{{ latest_violation.snapshot_path }}" alt="Violation Snapshot" onerror="this.src='/static/img/placeholder_worker.jpg'">
+      {% else %}
+      <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#94A3B8; font-size:12px;">No Snapshot Available</div>
+      {% endif %}
+      <div class="latest-alert-tag">
+        <span>🚨</span>
+        <span id="latestTypeTag">{{ latest_violation.violation_type | upper if latest_violation else 'PPE ALERT' }}</span>
+      </div>
+    </div>
+
+    <div class="latest-details">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span id="latestSeverity" class="pill pill-high">{{ latest_violation.severity if latest_violation else 'HIGH' }}</span>
+        <span id="latestDate" style="font-size: 11px; color: var(--text-muted);">
+          {{ latest_violation.detected_at if latest_violation else 'Recent' }}
+        </span>
+      </div>
+
+      <h4 id="latestTitle" style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
+        {{ latest_violation.camera_name if latest_violation else 'Cam 01 - Zone A' }}
+      </h4>
+      <p id="latestLocation" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+        {{ latest_violation.location if latest_violation else 'Fabrication Perimeter' }}
+      </p>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
+        <span style="font-size: 11px; color: var(--text-muted);">Incident Audit</span>
+        <a href="/events" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 11px;">View Event</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

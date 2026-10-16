@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}SafeSight AI – Compliance Reports & Audits{% endblock %}
+{% block breadcrumb %}Compliance Reports & Executive PDF Exports{% endblock %}
+
+{% block content %}
+<div class="grid-dash-top" style="grid-template-columns: 360px 1fr;">
+  <!-- Generate New Report Form Card -->
+  <div class="card" style="height: fit-content;">
+    <div class="card-header">
+      <div>
+        <h3 class="card-title">Generate PDF Audit Report</h3>
+        <p class="card-subtitle">Export publication-grade A4 safety audit document</p>
+      </div>
+    </div>
+
+    <form id="reportGenForm" style="display: flex; flex-direction: column; gap: 16px;">
+      <div>
+        <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px;">
+          Facility / Camera Filter
+        </label>
+        <select id="reportCamera" class="form-control" style="width: 100%;">
+          <option value="all">All Cameras & Facilities</option>
+          {% for cam in cameras %}
+          <option value="{{ cam.name }}">{{ cam.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px;">
+          Date Range (Optional)
+        </label>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="date" id="reportDateFrom" class="form-control" style="flex: 1;">
+          <span style="font-size: 12px; color: var(--text-muted);">to</span>
+          <input type="date" id="reportDateTo" class="form-control" style="flex: 1;">
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--bg-surface-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+        <input type="checkbox" id="includeCharts" checked style="accent-color: var(--accent); width: 16px; height: 16px;">
+        <label for="includeCharts" style="font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer;">
+          Embed statistical analytics charts
+        </label>
+      </div>
+
+      <button type="submit" id="genReportBtn" class="btn btn-primary" style="width: 100%;">
+        <span>📑</span> Generate Executive Report
+      </button>
+    </form>
+  </div>
+
+  <!-- Historical Generated Reports Archive -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3 class="card-title">Generated Report Archive</h3>
+        <p class="card-subtitle">PDF records stored on the server for compliance review</p>
+      </div>
+      <button id="refreshReportsBtn" class="btn btn-secondary btn-sm">Refresh List</button>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border-color); text-align: left; color: var(--text-muted);">
+            <th style="padding: 12px 16px;">Report Document</th>
+            <th style="padding: 12px 16px;">Generated At</th>
+            <th style="padding: 12px 16px;">File Size</th>
+            <th style="padding: 12px 16px; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="reportsTableBody">
+          <tr>
+            <td colspan="4" style="padding: 24px; text-align: center; color: var(--text-muted);">
+              Loading report archive...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    loadReportsList();
+
+    document.getElementById("refreshReportsBtn")?.addEventListener("click", loadReportsList);
+
+    document.getElementById("reportGenForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("genReportBtn");
+      btn.disabled = true;
+      btn.innerHTML = "<span>⏳</span> Compiling ReportLab Document...";
+
+      const camera = document.getElementById("reportCamera").value;
+      const dateFrom = document.getElementById("reportDateFrom").value;
+      const dateTo = document.getElementById("reportDateTo").value;
+      const includeCharts = document.getElementById("includeCharts").checked;
+
+      try {
+        const res = await fetch("/api/reports/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            camera: camera === "all" ? null : camera,
+            date_from: dateFrom || null,
+            date_to: dateTo || null,
+            include_charts: includeCharts
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to generate report");
+
+        showToast("Report generated successfully!", "success");
+        loadReportsList();
+        if (data.download_url) {
+          window.location.href = data.download_url;
+        }
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "<span>📑</span> Generate Executive Report";
+      }
+    });
+  });
+
+  async function loadReportsList() {
+    const tbody = document.getElementById("reportsTableBody");
+    if (!tbody) return;
+
+    try {
+      const res = await fetch("/api/reports");
+      const files = await res.json();
+
+      if (files.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="padding: 32px; text-align: center; color: var(--text-muted);">No PDF reports generated yet. Click 'Generate Executive Report' to create one.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = files.map(f => `
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 12px 16px; font-weight: 600; color: var(--text-main);">
+            📄 ${f.filename}
+          </td>
+          <td style="padding: 12px 16px; color: var(--text-muted);">
+            ${f.created_at}
+          </td>
+          <td style="padding: 12px 16px;">
+            <span class="pill pill-low">${f.size_kb} KB</span>
+          </td>
+          <td style="padding: 12px 16px; text-align: right;">
+            <a href="${f.download_url}" class="btn btn-primary btn-sm" style="padding: 4px 10px; font-size: 11px;">
+              Download PDF
+            </a>
+          </td>
+        </tr>
+      `).join("");
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="4" style="padding: 24px; text-align: center; color: var(--danger);">Failed to load archive: ${e}</td></tr>`;
+    }
+  }
+</script>
+{% endblock %}

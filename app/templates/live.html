@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}SafeSight AI – Real-time Multi-Camera Live Monitor{% endblock %}
+{% block breadcrumb %}Live Surveillance Monitor{% endblock %}
+{% block body_class %}{% endblock %}
+
+{% block content %}
+<div class="live-layout">
+  <!-- Left Column: Camera Channel Switcher -->
+  <div class="card" style="padding: 16px; background-color: var(--bg-surface);">
+    <div style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+      <span>CCTV CHANNELS</span>
+      <span class="pill pill-low">{{ cameras | length }} Active</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      {% for cam in cameras %}
+      <div class="camera-card {% if loop.first %}active{% endif %}" data-source="{{ cam.id }}" data-name="{{ cam.name }}" data-zone="{{ cam.zone }}"
+           style="padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); cursor: pointer; transition: var(--transition); background: var(--bg-surface-alt);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">{{ cam.name }}</span>
+          <span style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--safe);"></span>
+        </div>
+        <p style="font-size: 11px; color: var(--text-muted); margin: 0;">{{ cam.zone }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="margin-top: 24px; padding: 12px; background: rgba(59, 130, 246, 0.08); border-radius: var(--radius-sm); border: 1px solid rgba(59, 130, 246, 0.2);">
+      <p style="font-size: 11px; color: var(--text-muted); margin: 0;">
+        💡 <strong>Notice:</strong> Cam 01 streams your primary optical feed/webcam. Channels 02 & 03 cycle automated perimeter inspection simulations with YOLOv8 inference.
+      </p>
+    </div>
+  </div>
+
+  <!-- Center Column: Main MJPEG Live Feed Display -->
+  <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; background: #000;">
+    <div style="padding: 12px 18px; background: var(--navy-dark); color: #FFF; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="live-badge-overlay" style="position: static;">● LIVE</span>
+        <span id="activeCamHeader" style="font-size: 13px; font-weight: 700;">Cam 01 – Zone A</span>
+        <span id="activeZoneHeader" style="font-size: 12px; color: #94A3B8;">(Zone A - Fabrication)</span>
+      </div>
+      <div style="font-size: 12px; color: var(--safe); font-weight: 600;">
+        FPS: ~25 • Cooldown: 10s
+      </div>
+    </div>
+
+    <!-- Live Stream Video Image -->
+    <div class="live-player-container" style="flex-grow: 1; min-height: 480px;">
+      <img id="mjpegFeed" src="/video_feed/0" alt="Live Stream Feed" onerror="this.src='/static/img/stream_offline.jpg'">
+    </div>
+  </div>
+
+  <!-- Right Column: Live Telemetry & Recent Infractions -->
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <!-- Live Quick Counters -->
+    <div class="card" style="padding: 18px;">
+      <h4 style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 14px;">STREAM METRICS</h4>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+          <span style="color: var(--text-muted);">Compliance Rate:</span>
+          <span id="liveComplianceRate" style="font-weight: 700; color: var(--safe);">{{ kpi.compliance_percent }}%</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+          <span style="color: var(--text-muted);">Workers in Zone:</span>
+          <span id="liveWorkersCount" style="font-weight: 700;">{{ kpi.total_people }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+          <span style="color: var(--text-muted);">Active Violations:</span>
+          <span id="liveViolationsCount" style="font-weight: 700; color: var(--danger);">{{ kpi.total_violations }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Infractions Stream -->
+    <div class="card" style="padding: 18px; flex-grow: 1; display: flex; flex-direction: column;">
+      <h4 style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">INCIDENT STREAM</h4>
+      <div id="liveIncidentsList" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 380px;">
+        {% for v in recent_violations %}
+        <div style="display: flex; gap: 10px; align-items: center; padding: 8px; background: var(--bg-surface-alt); border-radius: 6px; border-left: 3px solid {% if v.severity == 'HIGH' %}var(--danger){% else %}var(--warning){% endif %};">
+          <div style="flex-grow: 1;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--text-main);">{{ v.violation_type | upper }}</span>
+              <span style="font-size: 10px; color: var(--text-muted);">{{ v.detected_at[11:16] if v.detected_at else '' }}</span>
+            </div>
+            <p style="font-size: 10px; color: var(--text-muted); margin: 0;">{{ v.camera_name }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/live.js') }}"></script>
+{% endblock %}

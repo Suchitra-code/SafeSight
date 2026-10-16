@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}SafeSight AI – Violation Event Audit Dashboard{% endblock %}
+{% block breadcrumb %}Violation Audit & Evidence Log{% endblock %}
+
+{% block content %}
+<!-- Top Header: Search & Export CSV -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <input type="text" id="searchInput" placeholder="Search zone, camera, notes..." class="form-control" style="width: 280px;">
+    <button id="searchBtn" class="btn btn-secondary btn-sm">Search</button>
+  </div>
+
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <select id="sortBy" class="form-control">
+      <option value="newest">Sort: Newest First</option>
+      <option value="oldest">Sort: Oldest First</option>
+      <option value="severity">Sort: Highest Severity</option>
+    </select>
+
+    <div style="display: flex; background: var(--bg-surface-alt); border-radius: 6px; border: 1px solid var(--border-color); overflow: hidden;">
+      <button id="viewGridBtn" class="btn btn-sm btn-secondary" style="border: none; border-radius: 0; background: var(--bg-surface);">⊞</button>
+      <button id="viewListBtn" class="btn btn-sm btn-secondary" style="border: none; border-radius: 0;">☰</button>
+    </div>
+
+    <button id="exportCsvBtn" class="btn btn-secondary btn-sm">
+      <span>📥</span> Export CSV
+    </button>
+  </div>
+</div>
+
+<!-- Tabs Bar -->
+<div style="display: flex; gap: 12px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px; padding-bottom: 8px;">
+  <button class="btn btn-sm btn-primary tab-btn active" data-tab="all">All Events</button>
+  <button class="btn btn-sm btn-secondary tab-btn" data-tab="helmet">Helmet Violations</button>
+  <button class="btn btn-sm btn-secondary tab-btn" data-tab="vest">Vest Violations</button>
+  <button class="btn btn-sm btn-secondary tab-btn" data-tab="goggles">Eye Protection</button>
+  <button class="btn btn-sm btn-secondary tab-btn" data-tab="other">Perimeter Trespass</button>
+</div>
+
+<!-- Main Events Layout: Filters on Left, Cards on Right -->
+<div class="events-layout">
+  <!-- Left Filter Panel -->
+  <div class="card" style="padding: 20px; height: fit-content;">
+    <h3 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 16px;">FILTERS</h3>
+
+    <!-- Rules / Types Filter -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">SAFETY RULES</label>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+        <label><input type="checkbox" class="filter-type" value="helmet" checked> Hardhat Missing</label>
+        <label><input type="checkbox" class="filter-type" value="vest" checked> Safety Vest Missing</label>
+        <label><input type="checkbox" class="filter-type" value="goggles" checked> Eye Protection</label>
+        <label><input type="checkbox" class="filter-type" value="other" checked> Restricted Zone</label>
+      </div>
+    </div>
+
+    <!-- Statuses Filter -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">AUDIT STATUS</label>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+        <label><input type="checkbox" class="filter-status" value="detected" checked> Detected</label>
+        <label><input type="checkbox" class="filter-status" value="pending review" checked> Pending Review</label>
+        <label><input type="checkbox" class="filter-status" value="confirmed" checked> Confirmed</label>
+        <label><input type="checkbox" class="filter-status" value="dismissed" checked> Dismissed</label>
+        <label><input type="checkbox" class="filter-status" value="resolved" checked> Resolved</label>
+      </div>
+    </div>
+
+    <!-- Cameras Filter -->
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">CAMERAS</label>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+        {% for cam in cameras %}
+        <label><input type="checkbox" class="filter-cam" value="{{ cam.name }}" checked> {{ cam.name }}</label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <button id="applyEventFiltersBtn" class="btn btn-secondary btn-sm" style="width: 100%;">Apply Filters</button>
+  </div>
+
+  <!-- Right Content Area: Event Cards -->
+  <div>
+    <div id="eventsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
+      <!-- Populated via events.js -->
+    </div>
+
+    <!-- Pagination Controls -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+      <span id="pageInfo" style="font-size: 12px; color: var(--text-muted);">Showing 1 to 15</span>
+      <div style="display: flex; gap: 8px;">
+        <button id="prevPageBtn" class="btn btn-secondary btn-sm" disabled>Previous</button>
+        <button id="nextPageBtn" class="btn btn-secondary btn-sm">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide-Out Side Drawer for Verification & Audit Notes -->
+<div id="drawerOverlay" class="drawer-overlay"></div>
+<div id="sideDrawer" class="side-drawer">
+  <div class="drawer-header">
+    <div>
+      <h3 id="drawerTitle" style="font-size: 16px; font-weight: 700; color: var(--text-main); margin: 0;">Violation Verification</h3>
+      <span id="drawerId" style="font-size: 12px; color: var(--text-muted);">Incident #--</span>
+    </div>
+    <button id="drawerCloseBtn" class="drawer-close">✕</button>
+  </div>
+
+  <div class="drawer-content">
+    <!-- Snapshot Crop or Annotated Image -->
+    <div style="background: #000; border-radius: 8px; overflow: hidden; height: 220px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+      <img id="drawerImg" src="" alt="Violation Evidence" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+    </div>
+
+    <!-- Telemetry Details Table -->
+    <div style="background: var(--bg-surface-alt); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; font-size: 12px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; justify-content: space-between;">
+        <span style="color: var(--text-muted);">Category:</span>
+        <strong id="drawerType" style="color: var(--text-main);">HELMET</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="color: var(--text-muted);">Severity:</span>
+        <span id="drawerSeverity" class="pill pill-high">HIGH</span>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="color: var(--text-muted);">Confidence Score:</span>
+        <strong id="drawerConfidence">94%</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="color: var(--text-muted);">Surveillance Camera:</span>
+        <span id="drawerCamera">Cam 01 – Zone A</span>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="color: var(--text-muted);">Facility Location:</span>
+        <span id="drawerLocation">Zone A - Entrance</span>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="color: var(--text-muted);">Timestamp:</span>
+        <span id="drawerTime">2024-05-10 14:22:01</span>
+      </div>
+    </div>
+
+    <!-- Status Change Workflow -->
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px;">
+        Change Audit Status
+      </label>
+      <select id="drawerStatusSelect" class="form-control" style="width: 100%;">
+        <option value="detected">Detected (Automated AI Finding)</option>
+        <option value="pending review">Pending Review</option>
+        <option value="confirmed">Confirmed (Action Required)</option>
+        <option value="dismissed">Dismissed (False Positive)</option>
+        <option value="resolved">Resolved (Corrective Measure Applied)</option>
+      </select>
+    </div>
+
+    <!-- Reviewer & Notes -->
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px;">
+        Auditor Name
+      </label>
+      <input type="text" id="drawerReviewer" placeholder="e.g. Safety Inspector Dave" class="form-control" style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <label style="display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px;">
+        Investigation Notes
+      </label>
+      <textarea id="drawerNotes" rows="3" placeholder="Enter findings or safety counsel details..." class="form-control" style="width: 100%; resize: vertical;"></textarea>
+    </div>
+
+    <button id="saveDrawerStatusBtn" class="btn btn-primary" style="width: 100%;">
+      Save Changes & Persist Status
+    </button>
+  </div>
+</div>
+
+<!-- Floating Live Violations Indicator Toast -->
+<div class="floating-live-toast">
+  <span style="font-size: 20px;">🚨</span>
+  <div>
+    <h5 id="floatingLiveText" style="font-size: 12px; font-weight: 700; margin: 0; color: #FFFFFF;">
+      Currently there are 53 recorded infractions
+    </h5>
+    <a href="/live" style="font-size: 11px; color: var(--accent); text-decoration: underline; font-weight: 600;">
+      Show live video feeds →
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/events.js') }}"></script>
+{% endblock %}
