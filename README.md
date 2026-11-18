@@ -121,6 +121,10 @@ If `models/best.pt` is not present, SafeSight AI **never crashes**. It automatic
 | **Live Surveillance Monitor** | Multi-channel CCTV switcher with 25 FPS MJPEG streaming, real-time worker bounding boxes, and rate-limited violation logging. |
 | **Violation Audit & Evidence Log** | Searchable audit ledger with interactive slide-out side drawer for changing verification statuses (`Detected` → `Confirmed` → `Resolved`). |
 | **Executive PDF Reports** | ReportLab-generated A4 audit reports with embedded Matplotlib charts, executive summaries, and itemized violation logs. |
+| **Mission Control Center (M4)** | Real-time LangGraph multi-agent pipeline monitoring, telemetry trends, interactive site zone status, and voice briefing. |
+| **SafeSight Copilot (M4)** | Multi-modal RAG Copilot synthesizing visual event detections and safety manuals with real-time trust scoring. |
+| **Sunrise Garden Design System (M5)** | Strict, high-contrast light theme with 0 blue and 0 black colors; animated micro-interactions, universal palette enforcer, and `Ctrl+K` command palette. |
+| **UI Kit Showcase (M5)** | Dedicated component gallery accessible at `/ui-kit` demonstrating standardized buttons, pills, cards, and animations. |
 
 ---
 

@@ -25,13 +25,13 @@ logger = logging.getLogger(__name__)
 # In-memory progress tracking for asynchronous video processing jobs
 video_progress_store: Dict[int, Dict[str, Any]] = {}
 
-# BGR color palette
-COLOR_SAFE = (94, 197, 34)       # #22C55E Green
-COLOR_DANGER = (68, 68, 239)     # #EF4444 Red
-COLOR_WARNING = (11, 158, 245)   # #F59E0B Amber
-COLOR_PANEL_BG = (63, 27, 11)    # #0B1B3F Dark Navy
+# BGR color palette (Sunrise Garden — Strictly NO blue, NO black)
+COLOR_SAFE = (115, 181, 34)       # #22B573 Mint
+COLOR_DANGER = (80, 57, 229)      # #E53950 Red
+COLOR_WARNING = (60, 201, 255)    # #FFC93C Sun
+COLOR_PANEL_BG = (47, 29, 74)     # #4A1D2F Warm Plum Container
 COLOR_WHITE = (255, 255, 255)
-COLOR_TEXT_DIM = (180, 180, 180)
+COLOR_TEXT_DIM = (126, 107, 154)  # #9A6B7E Warm Soft Text
 
 
 def draw_rounded_rectangle(img, pt1, pt2, color, thickness=2, radius=8):
@@ -91,7 +91,7 @@ def draw_stats_overlay(img, total, safe, unsafe, compliance):
     # Draw navy rounded container with subtle border
     overlay = img.copy()
     cv2.rectangle(overlay, (bx1, by1), (bx2, by2), COLOR_PANEL_BG, -1)
-    cv2.rectangle(overlay, (bx1, by1), (bx2, by2), (100, 100, 100), 1)
+    cv2.rectangle(overlay, (bx1, by1), (bx2, by2), (207, 217, 243), 1)
     cv2.addWeighted(overlay, 0.88, img, 0.12, 0, img)
 
     # Determine status color dot

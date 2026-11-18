@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}SafeSight AI – UI Component Kit (Sunrise Garden){% endblock %}
+{% block breadcrumb %}UI Kit Showcase{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px;">
+
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--border); padding-bottom: 16px;">
+    <div>
+      <span class="pill pill-berry" style="margin-bottom: 8px;">Milestone 5 Design System</span>
+      <h1 style="margin: 4px 0 0 0;">🌸 "Sunrise Garden" Component Showcase</h1>
+      <p style="margin: 4px 0 0 0; color: var(--text-soft); font-size: 0.95rem;">
+        100% warm cream, coral, sun, mint, and berry palette.
+      </p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn btn-secondary btn-sm" onclick="showToast('Sample success toast message!', 'success')">Trigger Toast</button>
+      <button class="btn btn-berry btn-sm" onclick="import('/static/js/ui.js').then(m => m.triggerConfetti())">Trigger Confetti 🎉</button>
+    </div>
+  </div>
+
+  <!-- Color Palette Swatches -->
+  <div class="card">
+    <div class="card-title">🎨 Allowed Color Tokens (Strict Compliance)</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 12px;">
+      <div style="background: var(--coral); color: white; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; text-align: center;">
+        Coral<br>#FF6B4A
+      </div>
+      <div style="background: var(--orange); color: white; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; text-align: center;">
+        Orange<br>#FF9F1C
+      </div>
+      <div style="background: var(--sun); color: #4A1D2F; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; text-align: center;">
+        Sun<br>#FFC93C
+      </div>
+      <div style="background: var(--mint); color: white; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; text-align: center;">
+        Mint (Safe)<br>#22B573
+      </div>
+      <div style="background: var(--pink); color: white; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; text-align: center;">
+        Pink<br>#FF4D8D
+      </div>
+      <div style="background: var(--magenta); color: white; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; text-align: center;">
+        Magenta<br>#D6247F
+      </div>
+      <div style="background: var(--berry); color: white; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; text-align: center;">
+        Berry (AI)<br>#B5179E
+      </div>
+      <div style="background: var(--red); color: white; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; text-align: center;">
+        Red (Unsafe)<br>#E53950
+      </div>
+      <div style="background: var(--text-strong); color: white; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; text-align: center;">
+        Plum Text<br>#4A1D2F
+      </div>
+      <div style="background: var(--bg-soft-peach); color: #4A1D2F; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; text-align: center; border: 1px solid var(--border);">
+        Peach Tint<br>#FFE3D3
+      </div>
+    </div>
+  </div>
+
+  <!-- Buttons & Badges -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="card">
+      <div class="card-title">🔘 Interactive Buttons</div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px;">
+        <button class="btn btn-primary">Primary Sunrise</button>
+        <button class="btn btn-secondary">Secondary Warm</button>
+        <button class="btn btn-success">Success Mint</button>
+        <button class="btn btn-danger">Danger Alert</button>
+        <button class="btn btn-berry">Berry LangGraph</button>
+        <button class="btn btn-ghost">Ghost Link</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏷️ Status Pills & Indicators</div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+        <span class="pill pill-safe">✅ Safe Compliant</span>
+        <span class="pill pill-unsafe">⚠️ Violation Detected</span>
+        <span class="pill pill-warning">⏳ Pending Review</span>
+        <span class="pill pill-confirmed">🎯 Confirmed</span>
+        <span class="pill pill-berry">🤖 LangGraph Node</span>
+        <span class="pill pill-dismissed">Dismissed</span>
+        <span class="badge-demo">DEMO SIMULATION</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards with Count-Up -->
+  <div>
+    <h3 style="margin-bottom: 14px;">📈 Telemetry & KPI Cards</h3>
+    <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px;">
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Site Safety Score</div>
+          <div class="kpi-value" id="kpiSafetyScore">94.8%</div>
+          <div class="kpi-trend trend-up-good">▲ +2.4% vs last shift</div>
+        </div>
+        <div class="kpi-icon-box kpi-icon-mint">🛡️</div>
+      </div>
+
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Active Violations</div>
+          <div class="kpi-value" id="kpiActiveViolations">6</div>
+          <div class="kpi-trend trend-down-good">▼ -15% reduction</div>
+        </div>
+        <div class="kpi-icon-box kpi-icon-coral">⚠️</div>
+      </div>
+
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Total Workers</div>
+          <div class="kpi-value" id="kpiWorkers">68</div>
+          <div class="kpi-trend">● Across 3 Zones</div>
+        </div>
+        <div class="kpi-icon-box kpi-icon-sun">👷</div>
+      </div>
+
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">AI Investigations</div>
+          <div class="kpi-value" id="kpiInvestigations">12</div>
+          <div class="kpi-trend trend-up-good">100% validated</div>
+        </div>
+        <div class="kpi-icon-box kpi-icon-berry">🔍</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LangGraph Pipeline Demonstration -->
+  <div class="card">
+    <div class="card-title">⚡ LangGraph Pipeline Execution State Animation</div>
+    <p style="color: var(--text-soft); font-size: 0.85rem; margin-bottom: 16px;">
+      Interactive preview of active node glowing, finished green tick, and error states.
+    </p>
+    <div style="display: flex; gap: 12px; align-items: center; overflow-x: auto; padding: 12px 0;">
+      <div class="pipeline-node completed" style="padding: 10px 18px; border-radius: 999px; border: 1.5px solid var(--mint); background: var(--bg-soft-mint); font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+        <span>✓</span> 1. Intake
+      </div>
+      <span style="color: var(--coral); font-weight: 800;">➔</span>
+      <div class="pipeline-node completed" style="padding: 10px 18px; border-radius: 999px; border: 1.5px solid var(--mint); background: var(--bg-soft-mint); font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+        <span>✓</span> 2. Visual Evidence
+      </div>
+      <span style="color: var(--coral); font-weight: 800;">➔</span>
+      <div class="pipeline-node active" style="padding: 10px 18px; border-radius: 999px; background: var(--grad-sunrise); color: white; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+        <span class="pulsing-dot" style="background: white;"></span> 3. Document Retrieval
+      </div>
+      <span style="color: var(--coral); font-weight: 800;">➔</span>
+      <div class="pipeline-node" style="padding: 10px 18px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text-soft); font-weight: 700; font-size: 0.8rem;">
+        4. Risk Scoring
+      </div>
+      <span style="color: var(--border); font-weight: 800;">➔</span>
+      <div class="pipeline-node" style="padding: 10px 18px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text-soft); font-weight: 700; font-size: 0.8rem;">
+        5. Human Review (Interrupt)
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

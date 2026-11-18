@@ -14,15 +14,15 @@ export async function renderHeatmap() {
     let html = `<div style="display: grid; grid-template-columns: 35px repeat(24, 1fr); gap: 2px; font-size: 9px; align-items: center;">`;
     html += `<div></div>`;
     for (let h = 0; h < 24; h += 3) {
-      html += `<div style="grid-column: span 3; text-align: center; color: #64748b;">${h}:00</div>`;
+      html += `<div style="grid-column: span 3; text-align: center; color: #9A6B7E;">${h}:00</div>`;
     }
 
     days.forEach(day => {
-      html += `<div style="font-weight: 700; color: #94a3b8;">${day}</div>`;
+      html += `<div style="font-weight: 700; color: #6B3A4D;">${day}</div>`;
       for (let h = 0; h < 24; h++) {
         const item = matrix.find(m => m.day === day && m.hour === h) || { count: 0 };
-        const opacity = Math.min(1.0, item.count * 0.35 + 0.08);
-        const col = item.count > 0 ? `rgba(245, 158, 11, ${opacity})` : 'rgba(30, 41, 59, 0.4)';
+        const opacity = Math.min(1.0, item.count * 0.35 + 0.15);
+        const col = item.count > 0 ? `rgba(255, 107, 74, ${opacity})` : 'rgba(255, 227, 211, 0.5)';
         html += `<div style="height: 12px; background: ${col}; border-radius: 2px;" title="${day} ${h}:00 - ${item.count} violation(s)"></div>`;
       }
     });

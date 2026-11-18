@@ -1,0 +1,146 @@
+/* ==========================================================================
+   SafeSight AI — "Sunrise Garden" Theme System (Milestone 5)
+   
+   STRICT RULES:
+   - NO black or near-black (lightness < 18%)
+   - NO blue family (hue 175°–275°, saturation > 12%)
+   - Every colour in this file only. Never hardcode elsewhere.
+   ========================================================================== */
+
+:root {
+  /* ── Backgrounds (bright and warm) ── */
+  --bg-page:        #FFF7EE;   /* warm cream */
+  --bg-page-2:      #FFEAF2;   /* blush pink */
+  --bg-card:        #FFFFFF;
+  --bg-soft-peach:  #FFE3D3;
+  --bg-soft-mint:   #DDF7E8;
+  --bg-soft-sun:    #FFF1B8;
+  --bg-soft-berry:  #F8DDF0;
+
+  /* ── Brand colours ── */
+  --coral:    #FF6B4A;   /* primary buttons, main highlights */
+  --orange:   #FF9F1C;
+  --sun:      #FFC93C;   /* warnings, highlights */
+  --lime:     #8CC63F;
+  --mint:     #22B573;   /* safe / compliant / resolved / success */
+  --pink:     #FF4D8D;
+  --magenta:  #D6247F;   /* confirmed */
+  --berry:    #B5179E;   /* AI / LangGraph / Copilot features */
+  --red:      #E53950;   /* unsafe / violation / critical / error */
+
+  /* ── Text (dark but NOT black — deep plum-maroon family) ── */
+  --text-strong:  #4A1D2F;   /* darkest colour allowed (~L=25%) */
+  --text-main:    #6B3A4D;
+  --text-soft:    #9A6B7E;
+  --text-on-color: #FFFFFF;
+
+  /* ── Lines, borders, shadows (warm tinted) ── */
+  --border:       #F3D9CF;
+  --border-strong: #E8C4B8;
+  --shadow-soft:  0 8px 24px rgba(255, 107, 74, 0.12);
+  --shadow-pop:   0 14px 36px rgba(214, 36, 127, 0.18);
+  --shadow-sm:    0 2px 8px rgba(255, 107, 74, 0.08);
+  --shadow-md:    0 6px 16px rgba(255, 107, 74, 0.10);
+  --shadow-lg:    0 12px 32px rgba(255, 107, 74, 0.14);
+
+  /* ── Gradients ── */
+  --grad-sunrise: linear-gradient(135deg, #FF6B4A 0%, #FF4D8D 55%, #FFC93C 100%);
+  --grad-garden:  linear-gradient(135deg, #22B573 0%, #8CC63F 100%);
+  --grad-berry:   linear-gradient(135deg, #D6247F 0%, #B5179E 100%);
+  --grad-candy:   linear-gradient(135deg, #FFC93C 0%, #FF9F1C 50%, #FF6B4A 100%);
+  --grad-soft:    linear-gradient(135deg, #FFF7EE 0%, #FFEAF2 100%);
+
+  /* ── Layout ── */
+  --sidebar-w:          240px;
+  --sidebar-collapsed-w: 68px;
+  --header-h:           64px;
+  --radius-xl:          20px;
+  --radius-lg:          16px;
+  --radius-md:          12px;
+  --radius-sm:          8px;
+  --radius-pill:        9999px;
+
+  /* ── Typography ── */
+  --font-heading: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* ── Spacing scale (8px grid) ── */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-7:  28px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* ── Transitions ── */
+  --transition-fast:  all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition:       all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:  all 0.4s  cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Chart colours (NO blue!) ── */
+  --chart-1: #FF6B4A;  /* coral */
+  --chart-2: #FFC93C;  /* sun */
+  --chart-3: #FF4D8D;  /* pink */
+  --chart-4: #22B573;  /* mint */
+  --chart-5: #FF9F1C;  /* orange */
+  --chart-6: #B5179E;  /* berry */
+  --chart-7: #8CC63F;  /* lime */
+  --chart-8: #D6247F;  /* magenta */
+  --chart-9: #E53950;  /* red */
+
+  /* ── Form controls ── */
+  accent-color: var(--coral);
+}
+
+/* ── Selection highlight ── */
+::selection {
+  background: rgba(255, 107, 74, 0.25);
+  color: var(--text-strong);
+}
+
+/* ── Focus ring (never blue!) ── */
+:focus-visible {
+  outline: 3px solid var(--pink);
+  outline-offset: 2px;
+}
+
+/* ── Links (never blue!) ── */
+a {
+  color: var(--coral);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+a:hover {
+  color: var(--magenta);
+}
+a:visited {
+  color: var(--berry);
+}
+
+/* ── Scrollbar (warm tinted, never grey-black) ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-page);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* ── Modal backdrop (warm translucent plum, NOT black) ── */
+.modal-backdrop,
+.drawer-backdrop {
+  background: rgba(74, 29, 47, 0.35) !important;
+}

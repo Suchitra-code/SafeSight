@@ -113,10 +113,10 @@ function showAnswerLoading(question) {
   const card = document.getElementById('copilotAnswerBox');
   if (card) {
     card.innerHTML = `
-      <div style="color: #38bdf8; font-size: 13px; font-weight: 700; margin-bottom: 6px;">
+      <div style="color: #FF6B4A; font-size: 13px; font-weight: 700; margin-bottom: 6px;">
         Executing LangGraph Pipeline...
       </div>
-      <div style="font-size: 12px; color: #94a3b8;">"${question}"</div>
+      <div style="font-size: 12px; color: #6B3A4D;">"${question}"</div>
     `;
   }
 }
@@ -124,7 +124,7 @@ function showAnswerLoading(question) {
 function showAnswerError(msg) {
   const card = document.getElementById('copilotAnswerBox');
   if (card) {
-    card.innerHTML = `<div style="color: #f87171; font-size: 12px;">${msg}</div>`;
+    card.innerHTML = `<div style="color: #E53950; font-size: 12px;">${msg}</div>`;
   }
 }
 
@@ -146,8 +146,8 @@ function renderFinalResponse(payload) {
     keyFactsHtml = `
       <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
         ${aCard.key_facts.map(f => `
-          <div style="background: #1e293b; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
-            <span style="color: #94a3b8;">${f.label}:</span> <strong style="color: #f8fafc;">${f.value}</strong>
+          <div style="background: #FFFDF9; border: 1px solid #F3D9CF; padding: 4px 8px; border-radius: 6px; font-size: 11px;">
+            <span style="color: #6B3A4D;">${f.label}:</span> <strong style="color: #4A1D2F;">${f.value}</strong>
           </div>
         `).join('')}
       </div>
@@ -157,9 +157,9 @@ function renderFinalResponse(payload) {
   let actionsHtml = '';
   if (aCard.recommended_actions && aCard.recommended_actions.length > 0) {
     actionsHtml = `
-      <div style="margin-top: 10px; border-top: 1px solid #1e293b; padding-top: 8px;">
-        <span style="font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase;">Recommended Actions:</span>
-        <ul style="margin: 4px 0 0 16px; padding: 0; font-size: 12px; color: #cbd5e1;">
+      <div style="margin-top: 10px; border-top: 1px solid #F3D9CF; padding-top: 8px;">
+        <span style="font-size: 11px; font-weight: 700; color: #FF6B4A; text-transform: uppercase;">Recommended Actions:</span>
+        <ul style="margin: 4px 0 0 16px; padding: 0; font-size: 12px; color: #4A1D2F;">
           ${aCard.recommended_actions.map(act => `<li>${act.action}</li>`).join('')}
         </ul>
       </div>
@@ -171,8 +171,8 @@ function renderFinalResponse(payload) {
   const followUps = aCard.follow_up_questions || payload.follow_up_questions || [];
   if (followUps.length > 0) {
     followUpHtml = `
-      <div style="margin-top: 10px; border-top: 1px solid #1e293b; padding-top: 8px;">
-        <span style="font-size: 11px; font-weight: 700; color: #a78bfa; text-transform: uppercase;">Follow-up Questions:</span>
+      <div style="margin-top: 10px; border-top: 1px solid #F3D9CF; padding-top: 8px;">
+        <span style="font-size: 11px; font-weight: 700; color: #B5179E; text-transform: uppercase;">Follow-up Questions:</span>
         <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
           ${followUps.map(q => `
             <button class="btn btn-secondary btn-sm follow-up-chip"

@@ -101,6 +101,12 @@ function fetchSystemHealth() {
         lgVal.innerText = `v${comps.langgraph.version} (${comps.langgraph.checkpointer})`;
         lgVal.style.color = 'var(--safe)';
       }
+
+      const themeVal = document.getElementById('healthThemeVal');
+      if (themeVal && comps.theme_colors) {
+        themeVal.innerText = comps.theme_colors.ok ? 'Sunrise Garden (0 violations)' : `${comps.theme_colors.violations_count} color flags`;
+        themeVal.style.color = comps.theme_colors.ok ? 'var(--mint)' : 'var(--danger)';
+      }
     })
     .catch(err => {
       console.warn('Failed to load system health:', err);
@@ -193,8 +199,8 @@ function renderTimeseriesChart(ts) {
         {
           label: "Helmet",
           data: ts.helmet,
-          borderColor: "#EF4444",
-          backgroundColor: "rgba(239, 68, 68, 0.1)",
+          borderColor: "#E53950",
+          backgroundColor: "rgba(229, 57, 80, 0.1)",
           tension: 0.35,
           borderWidth: 2,
           fill: true
@@ -202,7 +208,7 @@ function renderTimeseriesChart(ts) {
         {
           label: "Vest",
           data: ts.vest,
-          borderColor: "#F59E0B",
+          borderColor: "#FFC93C",
           backgroundColor: "transparent",
           tension: 0.35,
           borderWidth: 2
@@ -210,7 +216,7 @@ function renderTimeseriesChart(ts) {
         {
           label: "Goggles",
           data: ts.goggles,
-          borderColor: "#3B82F6",
+          borderColor: "#FF4D8D",
           backgroundColor: "transparent",
           tension: 0.35,
           borderWidth: 2
@@ -218,7 +224,7 @@ function renderTimeseriesChart(ts) {
         {
           label: "Other",
           data: ts.other,
-          borderColor: "#8B5CF6",
+          borderColor: "#B5179E",
           backgroundColor: "transparent",
           tension: 0.35,
           borderWidth: 2
@@ -233,7 +239,7 @@ function renderTimeseriesChart(ts) {
         tooltip: { mode: "index", intersect: false }
       },
       scales: {
-        y: { beginAtZero: true, grid: { color: "rgba(100, 116, 139, 0.1)" }, ticks: { precision: 0 } },
+        y: { beginAtZero: true, grid: { color: "rgba(255, 107, 74, 0.1)" }, ticks: { precision: 0 } },
         x: { grid: { display: false } }
       }
     }
@@ -263,9 +269,9 @@ function renderViolationsTypeChart(typesData) {
             typesData.goggles || 0,
             typesData.other || 0
           ],
-          backgroundColor: ["#EF4444", "#F59E0B", "#3B82F6", "#8B5CF6"],
+          backgroundColor: ["#E53950", "#FFC93C", "#FF4D8D", "#B5179E"],
           borderWidth: 2,
-          borderColor: "var(--bg-surface)"
+          borderColor: "#FFFFFF"
         }
       ]
     },
@@ -274,7 +280,7 @@ function renderViolationsTypeChart(typesData) {
       maintainAspectRatio: false,
       cutout: "68%",
       plugins: {
-        legend: { position: "bottom", labels: { font: { family: "Inter", size: 11 } } }
+        legend: { position: "bottom", labels: { font: { family: "Inter", size: 11 }, color: "#6B3A4D" } }
       }
     }
   });
@@ -291,11 +297,11 @@ function renderPlotlyHeatmap(hData) {
       y: hData.y,
       type: "heatmap",
       colorscale: [
-        [0, "#F8FAFC"],
-        [0.2, "#DBEAFE"],
-        [0.5, "#60A5FA"],
-        [0.8, "#2563EB"],
-        [1.0, "#0B1B3F"]
+        [0, "#FFE3D3"],
+        [0.3, "#FFF1B8"],
+        [0.6, "#FF9F1C"],
+        [0.8, "#FF6B4A"],
+        [1.0, "#E53950"]
       ],
       showscale: false
     }
@@ -305,9 +311,10 @@ function renderPlotlyHeatmap(hData) {
     margin: { t: 10, r: 10, b: 35, l: 40 },
     paper_bgcolor: "transparent",
     plot_bgcolor: "transparent",
-    font: { family: "Inter", size: 10, color: "#64748B" },
+    font: { family: "Inter", size: 10, color: "#6B3A4D" },
     xaxis: { tickangle: -45, nticks: 12 },
-    yaxis: { autorange: "reversed" }
+    yaxis: { autorange: "reversed" },
+    colorway: ["#FF6B4A", "#FFC93C", "#FF4D8D", "#22B573", "#B5179E"]
   };
 
   const config = { responsive: true, displayModeBar: false };
@@ -344,7 +351,7 @@ function renderComplianceTrend(trend) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { min: 70, max: 100, grid: { color: "rgba(100, 116, 139, 0.1)" } },
+        y: { min: 70, max: 100, grid: { color: "rgba(255, 107, 74, 0.1)" } },
         x: { grid: { display: false } }
       }
     }
@@ -367,8 +374,8 @@ function renderCameraZoneChart(data) {
         {
           label: "Violations",
           data: data.counts,
-          backgroundColor: "#F97316",
-          borderRadius: 6
+          backgroundColor: "#FF6B4A",
+          borderRadius: 8
         }
       ]
     },
@@ -377,8 +384,8 @@ function renderCameraZoneChart(data) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { beginAtZero: true, grid: { color: "rgba(100, 116, 139, 0.1)" } },
-        x: { grid: { display: false } }
+        y: { beginAtZero: true, grid: { color: "rgba(255, 107, 74, 0.1)" }, ticks: { precision: 0, color: "#6B3A4D" } },
+        x: { grid: { display: false }, ticks: { color: "#6B3A4D" } }
       }
     }
   });

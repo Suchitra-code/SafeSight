@@ -13,10 +13,10 @@ export async function initPipelineViz() {
 
     container.innerHTML = cachedNodes.map(n => `
       <div id="pnode_${n.id}" class="pipeline-node" title="${n.description}">
-        <span class="pnode-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #64748b;"></span>
+        <span class="pnode-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #9A6B7E;"></span>
         <span>${n.label}</span>
       </div>
-    `).join('<span style="color: #334155; font-size: 10px;">➔</span>');
+    `).join('<span style="color: #FF6B4A; font-size: 10px; font-weight: 800;">➔</span>');
   } catch (err) {
     console.error('Failed to init pipeline viz:', err);
   }

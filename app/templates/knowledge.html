@@ -13,7 +13,7 @@
       <p style="color: var(--text-muted); font-size: 14px;">Semantic vector search, keyword matching, and citations-grounded question answering across all uploaded site documents.</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center;">
-      <span style="font-size: 12px; padding: 4px 10px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--info); font-weight: 600;">
+      <span style="font-size: 12px; padding: 4px 10px; border-radius: 12px; background: var(--bg-soft-berry); color: var(--berry); border: 1px solid rgba(181, 23, 158, 0.3); font-weight: 600;">
         {% if embedder_status.is_neural %}
           Index: Neural Vector Search (FAISS) ({{ embedder_status.chunk_count }} chunks)
         {% else %}

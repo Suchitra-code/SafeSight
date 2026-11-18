@@ -5,24 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}SafeSight AI – PPE Safety Analytics Platform{% endblock %}</title>
 
-  <!-- Google Font: Inter -->
+  <!-- Google Fonts: Inter & Poppins (with local system-ui fallbacks) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 
   <!-- Chart.js & Plotly.js & Mermaid.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
   <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
-  <script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+          primaryColor: '#FFE3D3',
+          primaryTextColor: '#4A1D2F',
+          primaryBorderColor: '#FF6B4A',
+          lineColor: '#FF6B4A',
+          secondaryColor: '#FFF1B8',
+          tertiaryColor: '#DDF7E8'
+        }
+      });
+    }
+  </script>
 
-  <!-- SafeSight UI Stylesheet -->
+  <!-- SafeSight "Sunrise Garden" UI Stylesheets (Strictly NO blue, NO black) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
 
-  <div class="app-container">
+  <!-- Floating Warm Background Ambient Blobs -->
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
+
+  <div class="app-container" style="position: relative; z-index: 1;">
     <!-- Slim Left Navigation Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-brand">
@@ -34,9 +57,9 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a href="/command-center" class="nav-link {% if active_page == 'command_center' %}active{% endif %}" style="background: rgba(59, 130, 246, 0.12); border-left: 3px solid #3b82f6;">
+        <a href="/command-center" class="nav-link {% if active_page == 'command_center' %}active{% endif %}">
           <span class="nav-icon">🛡️</span>
-          <span class="nav-label" style="font-weight: 700; color: #60a5fa;">Mission Control</span>
+          <span class="nav-label" style="font-weight: 700;">Mission Control</span>
         </a>
         <a href="/" class="nav-link {% if active_page == 'home' %}active{% endif %}">
           <span class="nav-icon">🏠</span>
@@ -85,11 +108,11 @@
       </nav>
 
       <div class="sidebar-footer">
-        <button id="themeToggle" class="theme-toggle-btn" title="Toggle Light / Dark mode">
-          <span id="themeIcon">🌙</span>
-          <span>Theme</span>
-        </button>
-        <a href="/logout" class="logout-link" title="Sign out">
+        <a href="/ui-kit" class="btn btn-ghost btn-sm" style="font-size: 11px; padding: 4px 8px;" title="UI Component Showcase">
+          <span>🌸</span>
+          <span>UI Kit</span>
+        </a>
+        <a href="/logout" class="logout-link" title="Sign out" style="color: var(--text-soft); font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
           <span>🚪</span>
           <span>Logout</span>
         </a>
@@ -107,17 +130,21 @@
         </div>
 
         <div class="top-bar-actions">
+          <button class="btn btn-secondary btn-sm" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {ctrlKey:true, key:'k'}))" title="Quick Search (Ctrl+K)" style="font-size: 11px; padding: 4px 10px;">
+            <span>🔍</span> <span style="font-weight: 700;">Ctrl+K</span>
+          </button>
+
           <div class="live-indicator-pill">
             <span class="pulsing-dot"></span>
             <span>Vision Engine Active</span>
           </div>
 
-          <a href="/events" class="bell-btn" title="Live Violations">
+          <a href="/events" class="bell-btn" title="Live Violations" style="width: 36px; height: 36px; border-radius: var(--radius-pill); background: var(--bg-soft-peach); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; position: relative;">
             <span>🔔</span>
-            <span id="globalBellBadge" class="bell-badge" style="display:none;">0</span>
+            <span id="globalBellBadge" class="bell-badge" style="display:none; position: absolute; top: -4px; right: -4px; background: var(--red); color: white; font-size: 10px; font-weight: 800; border-radius: 999px; padding: 1px 5px;">0</span>
           </a>
 
-          <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;" id="clockDisplay">
+          <div style="font-size: 13px; color: var(--text-soft); font-weight: 600;" id="clockDisplay">
             --:--
           </div>
         </div>
@@ -125,9 +152,9 @@
 
       <!-- Demo Mode Banner (Shown if best.pt is missing) -->
       {% if demo_mode %}
-      <div class="demo-banner">
-        <span>⚠️ <strong>DEMO MODE:</strong> YOLOv8 weights file (models/best.pt) not detected. The platform is running in high-fidelity simulation mode with demo benchmarks.</span>
-        <button onclick="fetch('/api/seed-demo', {method:'POST'}).then(r=>r.json()).then(d=>{showToast(d.message, 'success'); setTimeout(()=>location.reload(), 800);})" class="btn btn-sm btn-secondary" style="padding: 3px 8px; font-size: 11px;">Reload Demo Data</button>
+      <div class="demo-banner" style="background: var(--bg-soft-sun); border-bottom: 1.5px solid var(--sun); color: var(--text-strong); padding: 8px 24px; font-size: 0.825rem; display: flex; align-items: center; justify-content: space-between;">
+        <span>⚠️ <strong>DEMO MODE:</strong> YOLOv8 weights file not detected. The platform is running in high-fidelity simulation mode with demo benchmarks.</span>
+        <button onclick="fetch('/api/seed-demo', {method:'POST'}).then(r=>r.json()).then(d=>{showToast(d.message, 'success'); setTimeout(()=>location.reload(), 800);})" class="btn btn-sm btn-secondary" style="padding: 3px 10px; font-size: 11px;">Reload Demo Data</button>
       </div>
       {% endif %}
 
@@ -139,7 +166,10 @@
   </div>
 
   <!-- Global Toast Notification Container -->
-  <div id="toastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px;"></div>
+  <div id="toastContainer"></div>
+
+  <!-- Global UI & Automation Engine -->
+  <script type="module" src="{{ url_for('static', filename='js/ui.js') }}"></script>
 
   <!-- Global Script Utilities -->
   <script>
@@ -151,48 +181,6 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
-
-    // Theme Toggle
-    const themeBtn = document.getElementById('themeToggle');
-    const themeIcon = document.getElementById('themeIcon');
-    const savedTheme = localStorage.getItem('safesight-theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    if (themeIcon) themeIcon.innerText = savedTheme === 'dark' ? '☀️' : '🌙';
-
-    if (themeBtn) {
-      themeBtn.addEventListener('click', () => {
-        const cur = document.documentElement.getAttribute('data-theme');
-        const nxt = cur === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', nxt);
-        localStorage.setItem('safesight-theme', nxt);
-        themeIcon.innerText = nxt === 'dark' ? '☀️' : '🌙';
-      });
-    }
-
-    // Global Toast Function
-    function showToast(msg, type = 'info') {
-      const c = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      const colors = {
-        success: '#22C55E',
-        error: '#EF4444',
-        warning: '#F59E0B',
-        info: '#3B82F6'
-      };
-      toast.style.cssText = `
-        background: #0B1B3F; color: #FFFFFF; padding: 12px 18px; border-radius: 8px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-size: 13px; font-weight: 500;
-        border-left: 4px solid ${colors[type] || colors.info}; transition: all 0.3s ease;
-        display: flex; align-items: center; gap: 10px; max-width: 360px;
-      `;
-      toast.innerHTML = `<span>${type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️')}</span><span>${msg}</span>`;
-      c.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(10px)';
-        setTimeout(() => toast.remove(), 300);
-      }, 4000);
-    }
 
     // Periodically fetch live violations count for bell badge
     function refreshBellBadge() {

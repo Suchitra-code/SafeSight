@@ -22,7 +22,8 @@ def get_system_health():
     """
     status = {
         "overall": "healthy",
-        "milestone": "4.0",
+        "milestone": "5.0",
+        "theme": "Sunrise Garden",
         "copilot": "enabled",
         "components": {}
     }
@@ -136,5 +137,18 @@ def get_system_health():
             "error": str(e),
             "ok": False
         }
+
+    # 8. Color System Check (Milestone 5)
+    try:
+        from tools.check_colors import check_all_colors
+        violations = check_all_colors()
+        status["components"]["theme_colors"] = {
+            "status": "compliant" if len(violations) == 0 else "violations_found",
+            "violations_count": len(violations),
+            "theme": "Sunrise Garden (Strict No-Black No-Blue)",
+            "ok": len(violations) == 0
+        }
+    except Exception as e:
+        status["components"]["theme_colors"] = {"status": "error", "error": str(e), "ok": False}
 
     return jsonify(status), 200

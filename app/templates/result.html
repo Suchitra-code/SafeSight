@@ -76,7 +76,7 @@
       <div style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px;">
         1. Original Media Feed
       </div>
-      <div style="background: #000; border-radius: var(--radius-md); overflow: hidden; height: 380px; display: flex; align-items: center; justify-content: center;">
+      <div style="background: var(--bg-soft-peach); border: 1px solid var(--border-soft); border-radius: var(--radius-md); overflow: hidden; height: 380px; display: flex; align-items: center; justify-content: center;">
         {% if upload.file_type == 'image' %}
         <img src="/uploads/{{ upload.filename }}" alt="Original Feed" style="max-width: 100%; max-height: 100%; object-fit: contain;">
         {% else %}
@@ -93,7 +93,7 @@
         <span>2. YOLOv8 Annotated Stream</span>
         <span style="color: var(--safe); font-weight: 700;">● Model Inferred</span>
       </div>
-      <div style="background: #000; border-radius: var(--radius-md); overflow: hidden; height: 380px; display: flex; align-items: center; justify-content: center; position: relative;">
+      <div style="background: var(--bg-soft-peach); border: 1px solid var(--border-soft); border-radius: var(--radius-md); overflow: hidden; height: 380px; display: flex; align-items: center; justify-content: center; position: relative;">
         {% if upload.file_type == 'image' %}
         <img src="/outputs/{{ upload.output_path }}" alt="Annotated Output" style="max-width: 100%; max-height: 100%; object-fit: contain;">
         {% else %}
@@ -132,7 +132,7 @@
         <tr style="border-bottom: 1px solid var(--border-color);">
           <td style="padding: 12px 16px;">
             {% if v.snapshot_path %}
-            <img src="/outputs/{{ v.snapshot_path }}" alt="Crop" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: #0B1B3F;">
+            <img src="/outputs/{{ v.snapshot_path }}" alt="Crop" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: var(--bg-soft-peach);">
             {% else %}
             <div style="width: 48px; height: 48px; background: var(--bg-surface-alt); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 18px;">⚠️</div>
             {% endif %}

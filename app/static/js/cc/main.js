@@ -103,7 +103,7 @@ function renderChipBar() {
   if (f.severity) active.push({ key: 'severity', label: `Severity: ${f.severity}` });
 
   if (active.length === 0) {
-    container.innerHTML = `<span style="color: #64748b; font-size: 11px;">No active filters. Click zones or metrics to filter.</span>`;
+    container.innerHTML = `<span style="color: #9A6B7E; font-size: 11px;">No active filters. Click zones or metrics to filter.</span>`;
     return;
   }
 

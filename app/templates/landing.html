@@ -5,18 +5,21 @@
 
 {% block content %}
 <style>
-  /* Landing Specific Hero Theme (Navy gradient) */
+  /* Landing Specific Hero Theme (Sunrise Garden) */
   .hero-container {
-    background: linear-gradient(135deg, #0B1B3F 0%, #13306B 100%);
+    background: linear-gradient(135deg, var(--bg-soft-peach) 0%, var(--bg-soft-sun) 55%, #FFEAF2 100%);
+    border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: 48px;
-    color: #FFFFFF;
+    color: var(--text-strong);
     display: grid;
     grid-template-columns: 1fr 1.05fr;
     gap: 40px;
     align-items: center;
-    box-shadow: 0 20px 40px rgba(11, 27, 63, 0.25);
+    box-shadow: var(--shadow-card);
     margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
   }
 
   .badge-milestone {
@@ -24,9 +27,9 @@
     align-items: center;
     gap: 6px;
     padding: 6px 14px;
-    background: rgba(249, 115, 22, 0.15);
-    border: 1px solid var(--accent);
-    color: var(--accent);
+    background: rgba(255, 107, 74, 0.12);
+    border: 1px solid var(--coral);
+    color: var(--coral);
     border-radius: 20px;
     font-size: 11px;
     font-weight: 700;
@@ -40,11 +43,12 @@
     line-height: 1.15;
     letter-spacing: -0.5px;
     margin-bottom: 16px;
+    color: var(--text-strong);
   }
 
   .hero-desc {
     font-size: 15px;
-    color: #CBD5E1;
+    color: var(--text-main);
     line-height: 1.6;
     margin-bottom: 24px;
   }
@@ -61,46 +65,49 @@
     align-items: center;
     gap: 10px;
     font-size: 14px;
-    font-weight: 500;
-    color: #F8FAFC;
+    font-weight: 600;
+    color: var(--text-strong);
   }
 
   .check-icon {
     width: 22px;
     height: 22px;
-    background-color: rgba(34, 197, 94, 0.2);
-    border: 1px solid var(--safe);
-    color: var(--safe);
+    background-color: rgba(34, 181, 115, 0.15);
+    border: 1px solid var(--mint);
+    color: var(--mint);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
+    font-weight: 800;
   }
 
   .hero-stats-badge {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
     padding: 12px 18px;
     border-radius: var(--radius-sm);
     display: inline-flex;
     align-items: center;
     gap: 14px;
     margin-bottom: 28px;
+    box-shadow: var(--shadow-sm);
   }
 
   .hero-stats-badge h4 {
     font-size: 24px;
     font-weight: 800;
-    color: var(--safe);
+    color: var(--mint);
     margin: 0;
   }
 
   .hero-stats-badge p {
     font-size: 11px;
-    color: #94A3B8;
+    color: var(--text-muted);
     text-transform: uppercase;
     margin: 0;
+    font-weight: 600;
   }
 
   .hero-actions {
@@ -111,26 +118,26 @@
 
   /* Monitor Window Mockup */
   .monitor-window {
-    background: #071026;
+    background: var(--bg-card);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-card);
     overflow: hidden;
   }
 
   .monitor-header {
-    background: #0E1D3E;
+    background: var(--bg-surface-alt);
     padding: 10px 16px;
     display: flex;
     align-items: center;
     gap: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--border-soft);
   }
 
   .dot { width: 10px; height: 10px; border-radius: 50%; }
-  .dot-red { background: #EF4444; }
-  .dot-yellow { background: #F59E0B; }
-  .dot-green { background: #22C55E; }
+  .dot-red { background: var(--danger); }
+  .dot-yellow { background: var(--sun); }
+  .dot-green { background: var(--mint); }
 
   .monitor-body {
     padding: 20px;
@@ -143,10 +150,10 @@
     grid-column: 1 / -1;
     position: relative;
     height: 190px;
-    background: #020617;
+    background: var(--bg-soft-peach);
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px dashed var(--border-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -156,19 +163,20 @@
     width: 90px;
     height: 150px;
     position: relative;
-    background: rgba(255,255,255,0.04);
-    border: 2px solid var(--safe);
+    background: rgba(255, 255, 255, 0.7);
+    border: 2px solid var(--mint);
     border-radius: 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-around;
+    box-shadow: var(--shadow-sm);
   }
 
   .monitor-tag {
     position: absolute;
     top: -12px;
-    background: var(--safe);
+    background: var(--mint);
     color: #FFFFFF;
     font-size: 10px;
     font-weight: 700;
@@ -182,7 +190,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    background: rgba(255,255,255,0.03);
+    background: var(--bg-surface-alt);
     padding: 10px;
     border-radius: 8px;
   }
@@ -194,19 +202,21 @@
   .mini-stat-item h5 {
     font-size: 16px;
     font-weight: 700;
-    color: #FFFFFF;
+    color: var(--text-strong);
     margin: 0;
   }
 
   .mini-stat-item span {
     font-size: 10px;
-    color: #94A3B8;
+    color: var(--text-muted);
+    font-weight: 600;
   }
 
   .cams-list, .incidents-list {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-surface-alt);
     border-radius: 8px;
     padding: 12px;
+    border: 1px solid var(--border-soft);
   }
 
   .feed-item {
@@ -215,7 +225,7 @@
     justify-content: space-between;
     font-size: 12px;
     padding: 6px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--border-soft);
   }
 
   .feed-item:last-child { border: none; }
@@ -249,7 +259,7 @@
       <h4>{{ accuracy }}%</h4>
       <div>
         <p>Model Evaluation</p>
-        <span style="font-size: 12px; color: #E2E8F0; font-weight: 600;">Detection Accuracy</span>
+        <span style="font-size: 12px; color: var(--text-strong); font-weight: 700;">Detection Accuracy</span>
       </div>
     </div>
 
@@ -257,7 +267,7 @@
       <a href="/dashboard" class="btn btn-primary">
         <span>📊</span> Open Dashboard
       </a>
-      <a href="/upload" class="btn btn-outline-white">
+      <a href="/upload" class="btn btn-secondary">
         <span>📤</span> Upload Image/Video
       </a>
     </div>
@@ -270,7 +280,7 @@
         <span class="dot dot-red"></span>
         <span class="dot dot-yellow"></span>
         <span class="dot dot-green"></span>
-        <span style="font-size: 11px; color: #94A3B8; margin-left: 8px; font-weight: 600;">SafeSight Vision Terminal v2.4</span>
+        <span style="font-size: 11px; color: var(--text-muted); margin-left: 8px; font-weight: 600;">SafeSight Vision Terminal v2.4</span>
       </div>
 
       <div class="monitor-body">
@@ -279,10 +289,10 @@
           <div class="simulated-worker">
             <span class="monitor-tag">PPE Helmet 98%</span>
             <div style="font-size: 26px;">👷</div>
-            <div style="background: rgba(34, 197, 94, 0.2); padding: 2px 6px; border-radius: 4px; font-size: 9px; color: var(--safe); font-weight: 700;">VEST 94%</div>
+            <div style="background: rgba(34, 181, 115, 0.2); padding: 2px 6px; border-radius: 4px; font-size: 9px; color: var(--mint); font-weight: 700;">VEST 94%</div>
           </div>
-          <div style="position: absolute; bottom: 8px; right: 12px; font-size: 11px; color: #94A3B8;">
-            <span style="color: var(--safe);">●</span> AI Inference 24ms
+          <div style="position: absolute; bottom: 8px; right: 12px; font-size: 11px; color: var(--text-muted);">
+            <span style="color: var(--mint);">●</span> AI Inference 24ms
           </div>
         </div>
 
@@ -304,31 +314,31 @@
 
         <!-- Live Feeds List -->
         <div class="cams-list">
-          <div style="font-size: 11px; font-weight: 700; color: #94A3B8; margin-bottom: 8px;">LIVE FEEDS</div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">LIVE FEEDS</div>
           <div class="feed-item">
-            <span>Cam 01 – Zone A</span>
-            <span style="color: var(--safe); font-weight: 700; font-size: 10px;">● ONLINE</span>
+            <span style="color: var(--text-strong); font-weight: 600;">Cam 01 – Zone A</span>
+            <span style="color: var(--mint); font-weight: 700; font-size: 10px;">● ONLINE</span>
           </div>
           <div class="feed-item">
-            <span>Cam 02 – Zone B</span>
-            <span style="color: var(--safe); font-weight: 700; font-size: 10px;">● ONLINE</span>
+            <span style="color: var(--text-strong); font-weight: 600;">Cam 02 – Zone B</span>
+            <span style="color: var(--mint); font-weight: 700; font-size: 10px;">● ONLINE</span>
           </div>
           <div class="feed-item">
-            <span>Cam 03 – Exit</span>
-            <span style="color: var(--safe); font-weight: 700; font-size: 10px;">● ONLINE</span>
+            <span style="color: var(--text-strong); font-weight: 600;">Cam 03 – Exit</span>
+            <span style="color: var(--mint); font-weight: 700; font-size: 10px;">● ONLINE</span>
           </div>
         </div>
 
         <!-- Recent Violations List -->
         <div class="incidents-list">
-          <div style="font-size: 11px; font-weight: 700; color: #94A3B8; margin-bottom: 8px;">RECENT INCIDENTS</div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">RECENT INCIDENTS</div>
           {% for v in recent_violations[:3] %}
           <div class="feed-item">
-            <span style="color: #F8FAFC;">{{ v.violation_type | title }}</span>
-            <span style="color: var(--danger); font-size: 10px;">{{ v.detected_at[11:16] if v.detected_at else '12:05' }}</span>
+            <span style="color: var(--text-strong);">{{ v.violation_type | title }}</span>
+            <span style="color: var(--danger); font-size: 10px; font-weight: 700;">{{ v.detected_at[11:16] if v.detected_at else '12:05' }}</span>
           </div>
           {% else %}
-          <div class="feed-item"><span style="color: #94A3B8;">No recent infractions</span></div>
+          <div class="feed-item"><span style="color: var(--text-muted);">No recent infractions</span></div>
           {% endfor %}
         </div>
       </div>

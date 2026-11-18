@@ -46,7 +46,7 @@
 
         <div style="text-align: right;">
           <div style="margin-bottom: 4px;">
-            <span class="badge-status" style="background: {% if run.risk_level == 'CRITICAL' %}#4C0519; color:#FDA4AF{% elif run.risk_level == 'HIGH' %}var(--danger-light); color:var(--danger){% elif run.risk_level == 'MEDIUM' %}var(--warning-light); color:var(--warning){% else %}var(--safe-light); color:var(--safe){% endif %}; font-weight: 700; padding: 4px 10px; border-radius: 12px; font-size: 11px;">
+            <span class="badge-status" style="background: {% if run.risk_level == 'CRITICAL' %}#FFE2E6; color:var(--red){% elif run.risk_level == 'HIGH' %}var(--danger-light); color:var(--danger){% elif run.risk_level == 'MEDIUM' %}var(--warning-light); color:var(--warning){% else %}var(--safe-light); color:var(--safe){% endif %}; font-weight: 700; padding: 4px 10px; border-radius: 12px; font-size: 11px;">
               {{ run.risk_level }} RISK (Score: {{ run.risk_score }})
             </span>
           </div>
@@ -139,7 +139,7 @@ flowchart LR
     <!-- Camera Violation Snapshot -->
     <div class="card" style="padding: 16px;">
       <h4 style="font-size: 13px; font-weight: 700; color: var(--text-main); margin: 0 0 10px 0;">Visual Evidence Snapshot</h4>
-      <div style="width: 100%; height: 220px; background: #000; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+      <div style="width: 100%; height: 220px; background: var(--bg-soft-peach); border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
         <img src="/api/violations/{{ run.violation_id }}/snapshot" alt="Incident Snapshot" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.src='/static/img/placeholder_worker.jpg'" />
       </div>
       <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; justify-content: space-between;">

@@ -132,6 +132,13 @@
         <div style="font-size: 11px; color: var(--text-muted);" id="healthLanggraphVal">--</div>
       </div>
     </div>
+    <div class="health-chip" id="healthTheme" style="background: var(--bg-surface-alt); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 16px;">🎨</span>
+      <div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Design System</div>
+        <div style="font-size: 11px; color: var(--text-muted);" id="healthThemeVal">Sunrise Garden</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -226,7 +233,7 @@
       {% if latest_violation and latest_violation.snapshot_path %}
       <img id="latestImg" src="/outputs/{{ latest_violation.snapshot_path }}" alt="Violation Snapshot" onerror="this.src='/static/img/placeholder_worker.jpg'">
       {% else %}
-      <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#94A3B8; font-size:12px;">No Snapshot Available</div>
+      <div style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--text-soft); font-size:12px;">No Snapshot Available</div>
       {% endif %}
       <div class="latest-alert-tag">
         <span>🚨</span>

@@ -167,6 +167,12 @@ def investigation_detail_page(run_id):
     )
 
 
+@pages_bp.route("/ui-kit")
+def ui_kit():
+    """Sunrise Garden UI Design System Component Showcase (Milestone 5)."""
+    return render_template("ui_kit.html", active_page="ui_kit")
+
+
 @pages_bp.route("/outputs/<path:filename>")
 def serve_output(filename):
     """Serves annotated assets, snapshots, and processed media."""

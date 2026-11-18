@@ -118,7 +118,7 @@
             </div>
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
               {% if f.is_edited %}
-              <span style="font-size: 10px; background: rgba(59, 130, 246, 0.15); color: var(--info); padding: 2px 6px; border-radius: 4px; font-weight: 600;">Edited</span>
+              <span style="font-size: 10px; background: var(--bg-soft-berry); color: var(--berry); padding: 2px 6px; border-radius: 4px; font-weight: 600;">Edited</span>
               {% endif %}
               <span style="font-size: 11px; color: var(--text-muted);">Conf: {{ (f.confidence * 100) | round(0) }}% (p.{{ f.page_no }})</span>
               <button onclick="saveFieldEdit({{ doc.id }}, {{ f.id }})" class="btn btn-secondary" style="font-size: 11px; padding: 3px 8px;">Save</button>

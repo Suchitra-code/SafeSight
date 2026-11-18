@@ -58,7 +58,7 @@ def generate_report(run_id: str) -> Optional[str]:
             parent=styles["Heading1"],
             fontSize=18,
             leading=22,
-            textColor=colors.HexColor("#0B1B3F"),
+            textColor=colors.HexColor("#FF6B4A"),
             spaceAfter=10
         )
         subtitle_style = ParagraphStyle(
@@ -66,7 +66,7 @@ def generate_report(run_id: str) -> Optional[str]:
             parent=styles["Normal"],
             fontSize=11,
             leading=14,
-            textColor=colors.HexColor("#64748B"),
+            textColor=colors.HexColor("#9A6B7E"),
             spaceAfter=15
         )
         h2_style = ParagraphStyle(
@@ -74,7 +74,7 @@ def generate_report(run_id: str) -> Optional[str]:
             parent=styles["Heading2"],
             fontSize=13,
             leading=16,
-            textColor=colors.HexColor("#0B1B3F"),
+            textColor=colors.HexColor("#4A1D2F"),
             spaceBefore=12,
             spaceAfter=6
         )
@@ -83,7 +83,7 @@ def generate_report(run_id: str) -> Optional[str]:
             parent=styles["Normal"],
             fontSize=10,
             leading=14,
-            textColor=colors.HexColor("#1E293B")
+            textColor=colors.HexColor("#4A1D2F")
         )
 
         elements = []
@@ -110,13 +110,13 @@ def generate_report(run_id: str) -> Optional[str]:
 
         t_overview = Table(overview_data, colWidths=[160, 340])
         t_overview.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor("#F1F5F9")),
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor("#1E293B")),
+            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor("#FFE3D3")),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor("#4A1D2F")),
             ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
             ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E1")),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#F3D9CF")),
         ]))
         elements.append(t_overview)
         elements.append(Spacer(1, 15))

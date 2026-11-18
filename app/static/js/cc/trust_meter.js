@@ -8,8 +8,8 @@ export function renderTrustMeter(valReport) {
 
   let html = `
     <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 11px;">
-      <span style="font-weight: 700; color: #94a3b8;">TRUST METER</span>
-      <strong style="color: ${score >= 80 ? '#34d399' : (score >= 50 ? '#fcd34d' : '#f87171')}; font-size: 13px;">
+      <span style="font-weight: 700; color: #6B3A4D;">TRUST METER</span>
+      <strong style="color: ${score >= 80 ? '#22B573' : (score >= 50 ? '#FF9F1C' : '#E53950')}; font-size: 13px; font-weight: 800;">
         ${score}% (${verdict.toUpperCase()})
       </strong>
     </div>
@@ -21,7 +21,7 @@ export function renderTrustMeter(valReport) {
 
   checks.forEach(c => {
     html += `
-      <div style="display: flex; justify-content: space-between; font-size: 10px; color: ${c.passed ? '#cbd5e1' : '#fca5a5'};">
+      <div style="display: flex; justify-content: space-between; font-size: 10px; color: ${c.passed ? '#4A1D2F' : '#E53950'}; font-weight: ${c.passed ? '500' : '700'};">
         <span>${c.passed ? '✓' : '✗'} ${c.name}</span>
         <span>${c.score}%</span>
       </div>

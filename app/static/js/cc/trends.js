@@ -23,8 +23,8 @@ export async function renderTrends() {
           {
             label: 'Compliance %',
             data: data.compliance,
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderColor: '#22B573',
+            backgroundColor: 'rgba(34, 181, 115, 0.15)',
             tension: 0.3,
             fill: true,
             yAxisID: 'y'
@@ -32,7 +32,8 @@ export async function renderTrends() {
           {
             label: 'Violations',
             data: data.violations,
-            borderColor: '#f59e0b',
+            borderColor: '#FF6B4A',
+            backgroundColor: 'rgba(255, 107, 74, 0.1)',
             borderDash: [4, 4],
             tension: 0.2,
             yAxisID: 'y1'
@@ -43,12 +44,12 @@ export async function renderTrends() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { labels: { color: '#94a3b8', font: { size: 10 } } }
+          legend: { labels: { color: '#6B3A4D', font: { size: 10, weight: 600 } } }
         },
         scales: {
-          x: { ticks: { color: '#64748b', font: { size: 9 } }, grid: { display: false } },
-          y: { min: 70, max: 100, ticks: { color: '#64748b', font: { size: 9 } }, grid: { color: '#1e293b' } },
-          y1: { position: 'right', ticks: { color: '#64748b', font: { size: 9 } }, grid: { display: false } }
+          x: { ticks: { color: '#6B3A4D', font: { size: 9 } }, grid: { display: false } },
+          y: { min: 70, max: 100, ticks: { color: '#6B3A4D', font: { size: 9 } }, grid: { color: '#F3D9CF' } },
+          y1: { position: 'right', ticks: { color: '#6B3A4D', font: { size: 9 } }, grid: { display: false } }
         }
       }
     });

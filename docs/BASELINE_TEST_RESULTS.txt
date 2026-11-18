@@ -1,0 +1,56 @@
+SAFESIGHT AI — BASELINE TEST RESULTS (Before Milestone 5)
+==========================================================
+Date: 2026-11-18
+Git Commit: backup_before_milestone5
+
+PYTEST (63 tests):
+==================
+$ python -m pytest tests/ -q
+63 passed, 15 warnings in 34.66s
+(All warnings are deprecation warnings from matplotlib/reportlab, not errors)
+
+SMOKE TEST (33/33):
+===================
+Mission Control Center (M4)          | GET    | [PASS]     | /command-center
+Landing Page (M1)                    | GET    | [PASS]     | /
+BI Analytics Dashboard (M1)          | GET    | [PASS]     | /dashboard
+Upload & Media Page (M1)             | GET    | [PASS]     | /upload
+Live Multi-Camera Monitor (M1)       | GET    | [PASS]     | /live
+Violation Event Audit (M1)           | GET    | [PASS]     | /events
+Compliance Reports (M1)              | GET    | [PASS]     | /reports
+Documents Library (M2)               | GET    | [PASS]     | /documents
+Searchable Knowledge Base (M2)       | GET    | [PASS]     | /knowledge
+Knowledge Repositories (M2)          | GET    | [PASS]     | /repositories
+AI Safety Assistant RAG (M3)         | GET    | [PASS]     | /assistant
+Incident Investigations (M3)         | GET    | [PASS]     | /investigations
+System Health Check (M3)             | GET    | [PASS]     | /api/health
+Top KPI Metrics (M1)                 | GET    | [PASS]     | /api/analytics/kpi
+Site Safety Score (M1)               | GET    | [PASS]     | /api/analytics/safety-score
+Violations by Type (M1)              | GET    | [PASS]     | /api/analytics/violations-by-type
+Timeseries Data (M1)                 | GET    | [PASS]     | /api/analytics/timeseries
+Hourly Heatmap Matrix (M1)           | GET    | [PASS]     | /api/analytics/heatmap
+Violations Audit API (M1)            | GET    | [PASS]     | /api/violations
+Document Management API (M2)         | GET    | [PASS]     | /api/documents
+Repositories API (M2)                | GET    | [PASS]     | /api/repositories
+Investigation Registry API (M3)      | GET    | [PASS]     | /api/investigations/
+Mission Control KPIs (M4)            | GET    | [PASS]     | /api/command-center/kpis
+Hourly Violations Matrix (M4)        | GET    | [PASS]     | /api/command-center/heatmap
+14-Day Compliance Trends (M4)        | GET    | [PASS]     | /api/command-center/trends
+Live Events Feed (M4)                | GET    | [PASS]     | /api/command-center/feed
+Site Map Zones Status (M4)           | GET    | [PASS]     | /api/command-center/zones
+Copilot LangGraph Pipeline (M4)      | GET    | [PASS]     | /api/copilot/graph
+Dynamic Copilot Prompts (M4)         | GET    | [PASS]     | /api/copilot/suggestions
+Copilot Runs History (M4)            | GET    | [PASS]     | /api/copilot/history
+RAG Q&A Synthesis with Citations     | POST   | [PASS]     | /api/assistant/ask
+LangGraph Copilot Execution (M4)     | POST   | [PASS]     | /api/copilot/ask
+End-to-End Investigation Workflow    | POST   | [PASS]     | /api/investigations/approve
+ALL PAGES, REST APIS, AND AGENT WORKFLOWS PASSED VERIFICATION!
+
+EVAL COPILOT (5/5):
+===================
+[Q1] Visual Telemetry         | [PASS] | Score: 90%
+[Q2] Document Policy          | [PASS] | Score: 90%
+[Q3] Multi-Modal Synthesis    | [PASS] | Score: 90%
+[Q4] Smalltalk Guard          | [PASS] | Score: 90%
+[Q5] Out of Scope Guard       | [PASS] | Score: 90%
+100% Accuracy

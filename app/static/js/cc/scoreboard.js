@@ -125,9 +125,9 @@ function _render() {
    * @param {number} score
    */
   const trustColor = (score) => {
-    if (score >= 80) return '#22c55e';
-    if (score >= 50) return '#f59e0b';
-    return '#ef4444';
+    if (score >= 80) return '#22B573';
+    if (score >= 50) return '#FF9F1C';
+    return '#E53950';
   };
 
   const rows = sorted
@@ -139,7 +139,7 @@ function _render() {
       const nodes    = run.nodes_visited ?? '—';
       const time     = run.created_at ? _fmtTime(run.created_at) : '—';
       const runId    = _esc(run.run_id ?? '');
-      const color    = typeof trust === 'number' ? trustColor(trust) : '#8899bb';
+      const color    = typeof trust === 'number' ? trustColor(trust) : '#9A6B7E';
       const trustBadge =
         typeof trust === 'number'
           ? `<span style="color:${color};font-weight:700">${trust}</span>`
