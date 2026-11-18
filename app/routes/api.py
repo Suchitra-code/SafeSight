@@ -291,6 +291,32 @@ def get_latest_violation():
     return jsonify(v or {})
 
 
+@api_bp.route("/analytics/latest-detections", methods=["GET"])
+def get_latest_detections_api():
+    """Returns list of recent annotated media detections for carousel preview."""
+    limit = int(request.args.get("limit", 6))
+    items = analytics.get_latest_detections(limit=limit)
+    return jsonify(items)
+
+
+@api_bp.route("/analytics/ppe-summary", methods=["GET"])
+def get_ppe_summary_api():
+    """Returns summary counts of compliant vs unsafe personnel and categories."""
+    return jsonify(analytics.get_ppe_detection_summary())
+
+
+@api_bp.route("/analytics/compliance-target-trends", methods=["GET"])
+def get_compliance_target_trends_api():
+    """Returns achieved compliance trends vs configured target."""
+    return jsonify(analytics.get_compliance_target_trends())
+
+
+@api_bp.route("/analytics/monthly-performance", methods=["GET"])
+def get_monthly_performance_api():
+    """Returns monthly safety comparison or empty state indicator."""
+    return jsonify(analytics.get_monthly_performance())
+
+
 @api_bp.route("/export/violations-csv", methods=["GET"])
 def export_csv():
     """Exports violations as CSV download."""

@@ -47,73 +47,101 @@
 
   <div class="app-container" style="position: relative; z-index: 1;">
     <!-- Slim Left Navigation Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <div class="brand-icon">🛡️</div>
+    <aside class="sidebar" style="background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF9 50%, #FFF3EC 100%); border-right: 1.5px solid var(--border-soft); box-shadow: 4px 0 24px rgba(255, 107, 74, 0.05);">
+      <div class="sidebar-brand" style="background: transparent; border-bottom: 1.5px solid var(--border-soft);">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
         <div class="brand-text">
-          <h1>SafeSight AI</h1>
-          <p>PPE Analytics</p>
+          <h1 style="font-size: 1.15rem; font-weight: 800; color: var(--text-strong); margin: 0; line-height: 1.2;">SafeSight AI</h1>
+          <p style="font-size: 0.72rem; color: var(--coral); font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.6px;">PPE Analytics</p>
         </div>
       </div>
 
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav" style="display: flex; flex-direction: column; gap: 6px; padding: 14px 10px;">
         <a href="/command-center" class="nav-link {% if active_page == 'command_center' %}active{% endif %}">
-          <span class="nav-icon">🛡️</span>
+          <span class="nav-icon" style="background: rgba(255, 107, 74, 0.12); color: var(--coral);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </span>
           <span class="nav-label" style="font-weight: 700;">Mission Control</span>
         </a>
         <a href="/" class="nav-link {% if active_page == 'home' %}active{% endif %}">
-          <span class="nav-icon">🏠</span>
+          <span class="nav-icon" style="background: rgba(255, 159, 28, 0.12); color: var(--orange);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </span>
           <span class="nav-label">Home</span>
         </a>
         <a href="/dashboard" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
-          <span class="nav-icon">📊</span>
+          <span class="nav-icon" style="background: rgba(34, 181, 115, 0.12); color: var(--mint);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </span>
           <span class="nav-label">Dashboard</span>
         </a>
         <a href="/upload" class="nav-link {% if active_page == 'upload' %}active{% endif %}">
-          <span class="nav-icon">📤</span>
+          <span class="nav-icon" style="background: rgba(255, 77, 141, 0.12); color: var(--pink);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </span>
           <span class="nav-label">Upload</span>
         </a>
         <a href="/live" class="nav-link {% if active_page == 'live' %}active{% endif %}">
-          <span class="nav-icon">📹</span>
+          <span class="nav-icon" style="background: rgba(229, 57, 80, 0.12); color: var(--danger);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </span>
           <span class="nav-label">Live Monitor</span>
         </a>
         <a href="/events" class="nav-link {% if active_page == 'events' %}active{% endif %}">
-          <span class="nav-icon">📋</span>
+          <span class="nav-icon" style="background: rgba(255, 201, 60, 0.2); color: #C28E00;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          </span>
           <span class="nav-label">Events & Audit</span>
         </a>
         <a href="/documents" class="nav-link {% if active_page == 'documents' %}active{% endif %}">
-          <span class="nav-icon">📂</span>
+          <span class="nav-icon" style="background: rgba(181, 23, 158, 0.12); color: var(--berry);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </span>
           <span class="nav-label">Documents</span>
         </a>
         <a href="/knowledge" class="nav-link {% if active_page == 'knowledge' %}active{% endif %}">
-          <span class="nav-icon">🧠</span>
+          <span class="nav-icon" style="background: rgba(255, 107, 74, 0.12); color: var(--coral);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </span>
           <span class="nav-label">Knowledge Base</span>
         </a>
         <a href="/repositories" class="nav-link {% if active_page == 'repositories' %}active{% endif %}">
-          <span class="nav-icon">📚</span>
+          <span class="nav-icon" style="background: rgba(34, 181, 115, 0.12); color: var(--mint);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </span>
           <span class="nav-label">Repositories</span>
         </a>
         <a href="/reports" class="nav-link {% if active_page == 'reports' %}active{% endif %}">
-          <span class="nav-icon">📑</span>
+          <span class="nav-icon" style="background: rgba(255, 159, 28, 0.12); color: var(--orange);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </span>
           <span class="nav-label">Reports</span>
         </a>
         <a href="/assistant" class="nav-link {% if active_page == 'assistant' %}active{% endif %}">
-          <span class="nav-icon">🤖</span>
+          <span class="nav-icon" style="background: rgba(181, 23, 158, 0.12); color: var(--berry);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+          </span>
           <span class="nav-label">AI Assistant</span>
         </a>
         <a href="/investigations" class="nav-link {% if active_page == 'investigations' %}active{% endif %}">
-          <span class="nav-icon">🔍</span>
+          <span class="nav-icon" style="background: rgba(255, 77, 141, 0.12); color: var(--pink);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
           <span class="nav-label">Investigations</span>
         </a>
       </nav>
 
-      <div class="sidebar-footer">
-        <a href="/ui-kit" class="btn btn-ghost btn-sm" style="font-size: 11px; padding: 4px 8px;" title="UI Component Showcase">
+      <div class="sidebar-footer" style="background: transparent; border-top: 1.5px solid var(--border-soft); padding: 12px 14px;">
+        <a href="/ui-kit" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 5px 10px; font-weight: 700;" title="UI Component Showcase">
           <span>🌸</span>
           <span>UI Kit</span>
         </a>
-        <a href="/logout" class="logout-link" title="Sign out" style="color: var(--text-soft); font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
-          <span>🚪</span>
+        <a href="/logout" class="logout-link" title="Sign out" style="color: var(--text-muted); font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; text-decoration: none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           <span>Logout</span>
         </a>
       </div>
@@ -134,9 +162,9 @@
             <span>🔍</span> <span style="font-weight: 700;">Ctrl+K</span>
           </button>
 
-          <div class="live-indicator-pill">
-            <span class="pulsing-dot"></span>
-            <span>Vision Engine Active</span>
+          <div class="live-indicator-pill" id="visionEnginePill" title="YOLOv8 Detection Engine" style="background: rgba(255, 107, 74, 0.08); border: 1px solid var(--border-soft);">
+            <span class="pulsing-dot" id="visionEngineDot" style="background: {% if demo_mode %}var(--sun){% else %}var(--mint){% endif %};"></span>
+            <span id="visionEngineText" style="font-weight: 700; color: var(--text-strong);">{{ 'Vision Engine (Demo)' if demo_mode else 'Vision Engine Active' }}</span>
           </div>
 
           <a href="/events" class="bell-btn" title="Live Violations" style="width: 36px; height: 36px; border-radius: var(--radius-pill); background: var(--bg-soft-peach); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; position: relative;">

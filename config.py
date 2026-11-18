@@ -98,6 +98,7 @@ CLASS_MAP = {
 ENABLE_GOGGLES_CHECK = os.getenv("ENABLE_GOGGLES_CHECK", "true").lower() in ("true", "1", "yes")
 VIOLATION_COOLDOWN_SECONDS = int(os.getenv("VIOLATION_COOLDOWN_SECONDS", "10"))
 DETECTION_ACCURACY = float(os.getenv("DETECTION_ACCURACY", "94.5"))
+COMPLIANCE_TARGET = float(os.getenv("COMPLIANCE_TARGET", "95.0"))
 
 # Milestone 4 Copilot & Mission Control Configuration
 COPILOT_MAX_RETRIES = int(os.getenv("COPILOT_MAX_RETRIES", "2"))
