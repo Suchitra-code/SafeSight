@@ -253,6 +253,12 @@ def init_db():
                 is_active INTEGER DEFAULT 1,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
             INSERT OR IGNORE INTO cameras (id, name, zone, source, is_active) VALUES
             (1, 'Cam 01 – Zone A', 'Zone A', '0', 1),
             (2, 'Cam 02 – Zone B', 'Zone B', 'sample_zone_b.mp4', 1),
@@ -261,7 +267,344 @@ def init_db():
         conn.commit()
         conn.close()
         logger.info(f"SQLite fallback database initialized at {_sqlite_db_path}")
+
+        # Auto-run Milestone 2 schema migrations
+        init_db_milestone2()
+        # Auto-run Milestone 3 schema migrations
+        init_db_milestone3()
+        # Auto-run Milestone 4 schema migrations
+        init_db_milestone4()
         return True
     except Exception as e:
         logger.error(f"Failed to initialize SQLite fallback: {e}")
+        return False
+
+
+def init_db_milestone3():
+    """
+    Auto-initializes Milestone 3 Multi-modal RAG & Agentic Workflow tables.
+    Works for both MySQL and SQLite fallback cleanly using CREATE TABLE IF NOT EXISTS.
+    """
+    global _use_sqlite_fallback
+    m3_schema = os.path.join(config.BASE_DIR, "database", "schema_milestone3.sql")
+    pool = _get_mysql_pool()
+
+    if not _use_sqlite_fallback and pool and os.path.exists(m3_schema):
+        try:
+            with open(m3_schema, "r", encoding="utf-8") as f:
+                content = f.read()
+            conn = pool.get_connection()
+            cur = conn.cursor()
+            for stmt in content.split(";"):
+                s = stmt.strip()
+                if s and not s.upper().startswith("CREATE DATABASE") and not s.upper().startswith("USE"):
+                    try:
+                        cur.execute(s)
+                    except Exception as sqle:
+                        logger.warning(f"MySQL M3 statement warning: {sqle}")
+            conn.commit()
+            cur.close()
+            conn.close()
+            logger.info("MySQL Milestone 3 tables initialized successfully.")
+            return True
+        except Exception as e:
+            logger.error(f"Failed MySQL M3 init ({e}), using SQLite fallback.")
+
+    # SQLite Fallback M3 DDL
+    try:
+        conn = sqlite3.connect(_sqlite_db_path)
+        cur = conn.cursor()
+        cur.executescript("""
+            CREATE TABLE IF NOT EXISTS visual_chunks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                violation_id INTEGER NOT NULL UNIQUE,
+                text TEXT NOT NULL,
+                camera TEXT,
+                zone TEXT,
+                violation_type TEXT,
+                severity TEXT,
+                event_time TIMESTAMP,
+                snapshot_path TEXT,
+                source_file TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (violation_id) REFERENCES violations(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS chat_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                mode_used TEXT DEFAULT 'extractive',
+                confidence TEXT DEFAULT 'Medium',
+                latency_ms REAL DEFAULT 0.0,
+                sources_json TEXT,
+                feedback INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS investigation_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id TEXT UNIQUE NOT NULL,
+                violation_id INTEGER NOT NULL,
+                status TEXT DEFAULT 'pending',
+                risk_level TEXT DEFAULT 'LOW',
+                risk_score INTEGER DEFAULT 1,
+                summary TEXT,
+                recommendations TEXT,
+                approval_status TEXT DEFAULT 'pending',
+                supervisor_notes TEXT,
+                report_path TEXT,
+                current_node TEXT DEFAULT 'load_event',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (violation_id) REFERENCES violations(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS agent_steps (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id TEXT NOT NULL,
+                node_name TEXT NOT NULL,
+                input_summary TEXT,
+                output_summary TEXT,
+                status TEXT DEFAULT 'completed',
+                duration_ms REAL DEFAULT 0.0,
+                error_message TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        conn.commit()
+        conn.close()
+        logger.info(f"SQLite Milestone 3 tables initialized successfully at {_sqlite_db_path}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to initialize SQLite Milestone 3 tables: {e}")
+        return False
+
+
+def init_db_milestone2():
+    """
+    Auto-initializes Milestone 2 Document Intelligence & Knowledge Base tables.
+    Works for both MySQL and SQLite fallback cleanly using CREATE TABLE IF NOT EXISTS.
+    """
+    global _use_sqlite_fallback
+    m2_schema = os.path.join(config.BASE_DIR, "database", "schema_milestone2.sql")
+    pool = _get_mysql_pool()
+
+    if not _use_sqlite_fallback and pool and os.path.exists(m2_schema):
+        try:
+            with open(m2_schema, "r", encoding="utf-8") as f:
+                content = f.read()
+            conn = pool.get_connection()
+            cur = conn.cursor()
+            for stmt in content.split(";"):
+                s = stmt.strip()
+                if s and not s.upper().startswith("CREATE DATABASE") and not s.upper().startswith("USE"):
+                    try:
+                        cur.execute(s)
+                    except Exception as sqle:
+                        logger.warning(f"MySQL M2 statement warning: {sqle}")
+            conn.commit()
+            cur.close()
+            conn.close()
+            logger.info("MySQL Milestone 2 tables initialized successfully.")
+            return True
+        except Exception as e:
+            logger.error(f"Failed MySQL M2 init ({e}), using SQLite fallback.")
+
+    # SQLite Fallback M2 DDL
+    try:
+        conn = sqlite3.connect(_sqlite_db_path)
+        cur = conn.cursor()
+        cur.executescript("""
+            CREATE TABLE IF NOT EXISTS repositories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS documents (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                repository_id INTEGER,
+                original_name TEXT NOT NULL,
+                stored_name TEXT NOT NULL,
+                file_type TEXT NOT NULL,
+                file_size INTEGER DEFAULT 0,
+                doc_type TEXT DEFAULT 'other',
+                title TEXT,
+                page_count INTEGER DEFAULT 1,
+                status TEXT DEFAULT 'uploaded',
+                progress_percent INTEGER DEFAULT 0,
+                error_message TEXT,
+                avg_confidence REAL DEFAULT 0.0,
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                processed_at TIMESTAMP,
+                FOREIGN KEY (repository_id) REFERENCES repositories(id) ON DELETE SET NULL
+            );
+            CREATE TABLE IF NOT EXISTS document_pages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                page_no INTEGER NOT NULL,
+                text TEXT,
+                used_ocr INTEGER DEFAULT 0,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS doc_sections (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                parent_id INTEGER DEFAULT NULL,
+                title TEXT NOT NULL,
+                level INTEGER DEFAULT 1,
+                page_start INTEGER DEFAULT 1,
+                page_end INTEGER DEFAULT 1,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS doc_chunks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                repository_id INTEGER,
+                section_id INTEGER DEFAULT NULL,
+                page_no INTEGER DEFAULT 1,
+                chunk_index INTEGER DEFAULT 0,
+                text TEXT NOT NULL,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS report_fields (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                field_name TEXT NOT NULL,
+                field_value TEXT,
+                confidence REAL DEFAULT 1.0,
+                page_no INTEGER DEFAULT 1,
+                is_edited INTEGER DEFAULT 0,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS report_findings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                description TEXT NOT NULL,
+                category TEXT DEFAULT 'other',
+                severity TEXT DEFAULT 'LOW',
+                location TEXT,
+                corrective_action TEXT,
+                responsible_person TEXT,
+                due_date TEXT,
+                status TEXT DEFAULT 'open',
+                confidence REAL DEFAULT 1.0,
+                page_no INTEGER DEFAULT 1,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS manual_rules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                section_id INTEGER DEFAULT NULL,
+                rule_text TEXT NOT NULL,
+                ppe_type TEXT DEFAULT 'other',
+                page_no INTEGER DEFAULT 1,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS manual_procedures (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                section_id INTEGER DEFAULT NULL,
+                title TEXT NOT NULL,
+                steps TEXT,
+                page_no INTEGER DEFAULT 1,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS search_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                query TEXT NOT NULL,
+                mode TEXT DEFAULT 'hybrid',
+                result_count INTEGER DEFAULT 0,
+                took_ms REAL DEFAULT 0.0,
+                searched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            INSERT OR IGNORE INTO repositories (id, name, description) VALUES
+            (1, 'Inspection Reports', 'Official safety audit and site compliance inspection logs'),
+            (2, 'Safety Manuals', 'Comprehensive corporate and site PPE safety handbooks'),
+            (3, 'SOPs', 'Standard Operating Procedures for equipment and hazardous operations');
+        """)
+        conn.commit()
+        conn.close()
+        logger.info(f"SQLite Milestone 2 tables initialized successfully at {_sqlite_db_path}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to initialize SQLite Milestone 2 tables: {e}")
+        return False
+
+
+def init_db_milestone4():
+    """
+    Auto-initializes Milestone 4 SafeSight Copilot & Mission Control tables.
+    Works for both MySQL and SQLite fallback cleanly using CREATE TABLE IF NOT EXISTS.
+    """
+    global _use_sqlite_fallback
+    m4_schema = os.path.join(config.BASE_DIR, "database", "schema_milestone4.sql")
+    pool = _get_mysql_pool()
+
+    if not _use_sqlite_fallback and pool and os.path.exists(m4_schema):
+        try:
+            with open(m4_schema, "r", encoding="utf-8") as f:
+                content = f.read()
+            conn = pool.get_connection()
+            cur = conn.cursor()
+            for stmt in content.split(";"):
+                s = stmt.strip()
+                if s and not s.upper().startswith("CREATE DATABASE") and not s.upper().startswith("USE"):
+                    try:
+                        cur.execute(s)
+                    except Exception as sqle:
+                        logger.warning(f"MySQL M4 statement warning: {sqle}")
+            conn.commit()
+            cur.close()
+            conn.close()
+            logger.info("MySQL Milestone 4 tables initialized successfully.")
+            return True
+        except Exception as e:
+            logger.error(f"Failed MySQL M4 init ({e}), using SQLite fallback.")
+
+    # SQLite Fallback M4 DDL
+    try:
+        conn = sqlite3.connect(_sqlite_db_path)
+        cur = conn.cursor()
+        cur.executescript("""
+            CREATE TABLE IF NOT EXISTS copilot_runs (
+                run_id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                question TEXT NOT NULL,
+                mode TEXT DEFAULT 'offline',
+                intent TEXT,
+                route TEXT,
+                validation_score INTEGER DEFAULT 0,
+                validation_verdict TEXT,
+                answer_headline TEXT,
+                answer_text TEXT,
+                key_facts TEXT,
+                actions TEXT,
+                total_duration_ms REAL DEFAULT 0.0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS copilot_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                node_name TEXT,
+                duration_ms REAL DEFAULT 0.0,
+                summary TEXT,
+                payload TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS site_zones (
+                zone_id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                description TEXT,
+                risk_level TEXT DEFAULT 'LOW',
+                svg_coords TEXT
+            );
+        """)
+        conn.commit()
+        conn.close()
+        logger.info(f"SQLite Milestone 4 tables initialized successfully at {_sqlite_db_path}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to initialize SQLite Milestone 4 tables: {e}")
         return False

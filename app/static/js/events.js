@@ -264,5 +264,76 @@ async function openDrawer(violationId) {
 function closeDrawer() {
   document.getElementById("sideDrawer")?.classList.remove("open");
   document.getElementById("drawerOverlay")?.classList.remove("open");
+  const explainBox = document.getElementById("drawerExplainBox");
+  if (explainBox) explainBox.style.display = "none";
   activeViolationId = null;
+}
+
+async function explainActiveViolation() {
+  if (!activeViolationId) return;
+  const btn = document.getElementById("explainViolationBtn");
+  const box = document.getElementById("drawerExplainBox");
+  const content = document.getElementById("drawerExplainContent");
+
+  btn.disabled = true;
+  btn.innerText = "Analyzing safety policies...";
+
+  try {
+    const res = await fetch(`/api/violations/${activeViolationId}/explain`);
+    const data = await res.json();
+    btn.disabled = false;
+    btn.innerText = "🤖 Explain Violation with Safety Manuals";
+
+    if (data.error) {
+      showToast(data.error, "error");
+      return;
+    }
+
+    const vType = data.event?.type || data.violation_type || "PPE";
+    const narrative = data.narrative || data.what_happened || data.explanation || "No summary available.";
+    const ruleSays = data.what_the_rule_says ? `\n\n<b>Policy Rule:</b> ${data.what_the_rule_says}` : "";
+    const action = data.recommended_action ? `\n\n<b>Recommended Action:</b> ${data.recommended_action}` : "";
+
+    let summaryText = `<b>Violation Type:</b> ${vType}\n<b>Explanation:</b> ${narrative}${ruleSays}${action}`;
+
+    const rules = data.rules || data.matched_rules || [];
+    if (rules.length > 0) {
+      summaryText += "\n\n<b>Relevant Safety Rules:</b>\n" + rules.map(r => `• [${r.title || 'Manual'}, p.${r.page || 1}] ${r.snippet ? r.snippet.slice(0, 140) + '...' : ''}`).join("\n");
+    }
+
+    content.innerHTML = summaryText.replace(/\n/g, "<br/>");
+    box.style.display = "block";
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerText = "🤖 Explain Violation with Safety Manuals";
+    showToast("Error explaining violation: " + err, "error");
+  }
+}
+
+async function startActiveInvestigation() {
+  if (!activeViolationId) return;
+  const btn = document.getElementById("investigateViolationBtn");
+  btn.disabled = true;
+  btn.innerText = "Starting LangGraph...";
+
+  try {
+    const res = await fetch(`/api/investigations/start/${activeViolationId}`, { method: "POST" });
+    const data = await res.json();
+    btn.disabled = false;
+    btn.innerText = "🔍 Launch LangGraph Investigation";
+
+    if (data.error) {
+      showToast(data.error, "error");
+      return;
+    }
+
+    showToast(data.message || "Investigation started!", "success");
+    if (data.run_id) {
+      window.location.href = `/investigations/${data.run_id}`;
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerText = "🔍 Launch LangGraph Investigation";
+    showToast("Error launching investigation: " + err, "error");
+  }
 }

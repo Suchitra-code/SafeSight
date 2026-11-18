@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Knowledge Base Search &amp; Q&amp;A – SafeSight AI{% endblock %}
+{% block breadcrumb %}Knowledge Base{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 24px;">
+
+  <!-- Status / Mode banner -->
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">Searchable Document Knowledge Base</h1>
+      <p style="color: var(--text-muted); font-size: 14px;">Semantic vector search, keyword matching, and citations-grounded question answering across all uploaded site documents.</p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <span style="font-size: 12px; padding: 4px 10px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--info); font-weight: 600;">
+        {% if embedder_status.is_neural %}
+          Index: Neural Vector Search (FAISS) ({{ embedder_status.chunk_count }} chunks)
+        {% else %}
+          Index: TF-IDF / Keyword Fallback (Offline Mode) ({{ embedder_status.chunk_count }} chunks)
+        {% endif %}
+      </span>
+      <button onclick="rebuildKnowledgeIndex()" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">Rebuild Index</button>
+    </div>
+  </div>
+
+  <!-- Search & Q&A Unified Card -->
+  <div class="card" style="padding: 28px;">
+    <!-- Mode tabs -->
+    <div style="display: flex; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 20px;">
+      <button id="tabBtnSearch" class="tab-btn active" onclick="setKnowledgeMode('search')">Document Search</button>
+      <button id="tabBtnAsk" class="tab-btn" onclick="setKnowledgeMode('ask')">Ask the Knowledge Base (Q&amp;A)</button>
+    </div>
+
+    <!-- Mode 1: Search Form -->
+    <div id="sectionSearch" style="display: block;">
+      <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+        <input type="text" id="knowledgeSearchInput" placeholder="Search safety rules, violations, equipment procedures, inspector notes..." onkeydown="if(event.key==='Enter') executeKnowledgeSearch()" style="flex: 1; padding: 12px 18px; border-radius: var(--radius-md); border: 1.5px solid var(--border-color); background: var(--bg-surface-alt); font-size: 14px; outline: none;">
+        <button class="btn btn-primary" onclick="executeKnowledgeSearch()" style="background: var(--accent); color: white; padding: 0 24px; font-weight: 700; border-radius: var(--radius-md);">Search</button>
+      </div>
+
+      <!-- Filters Row -->
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Mode:</span>
+          <select id="searchModeSelect" style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 12px; background: var(--bg-surface-alt);">
+            <option value="hybrid" selected>Hybrid (Vector + Keyword)</option>
+            <option value="semantic">Semantic (Neural / Vector)</option>
+            <option value="keyword">Keyword (Exact Match)</option>
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Repository:</span>
+          <select id="searchRepoSelect" style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 12px; background: var(--bg-surface-alt);">
+            <option value="">All Repositories</option>
+            {% for r in repositories %}
+            <option value="{{ r.id }}">{{ r.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">PPE Filter:</span>
+          <select id="searchPpeSelect" style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 12px; background: var(--bg-surface-alt);">
+            <option value="">Any PPE</option>
+            <option value="helmet">Helmet / Hardhat</option>
+            <option value="vest">Safety Vest</option>
+            <option value="goggles">Goggles / Eye</option>
+            <option value="gloves">Gloves</option>
+            <option value="footwear">Footwear</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode 2: Q&A Form -->
+    <div id="sectionAsk" style="display: none;">
+      <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+        <input type="text" id="askQuestionInput" placeholder="Ask a question (e.g., What PPE is required for welding? What are the open high severity findings?)..." onkeydown="if(event.key==='Enter') executeAskQuestion()" style="flex: 1; padding: 12px 18px; border-radius: var(--radius-md); border: 1.5px solid var(--border-color); background: var(--bg-surface-alt); font-size: 14px; outline: none;">
+        <button class="btn btn-primary" onclick="executeAskQuestion()" style="background: var(--accent); color: white; padding: 0 24px; font-weight: 700; border-radius: var(--radius-md);">Ask</button>
+      </div>
+
+      <!-- Example Question Chips -->
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+        <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Sample Queries:</span>
+        <button type="button" class="chip-btn" onclick="setQuery('What PPE is required for welding?')">What PPE is required for welding?</button>
+        <button type="button" class="chip-btn" onclick="setQuery('List all open HIGH severity findings')">List all open HIGH severity findings</button>
+        <button type="button" class="chip-btn" onclick="setQuery('What is the procedure for confined space entry?')">What is the procedure for confined space entry?</button>
+        <button type="button" class="chip-btn" onclick="setQuery('What are the hardhat requirements on construction sites?')">Hardhat requirements</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q&A Answer Card -->
+  <div id="qaAnswerCard" class="card" style="padding: 24px; display: none; border-left: 4px solid var(--accent); background: var(--bg-surface);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <h3 style="font-size: 16px; font-weight: 800; margin: 0; color: var(--accent);">Synthesized Safety Answer</h3>
+      <span id="qaModeBadge" style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(249, 115, 22, 0.1); color: var(--accent); font-weight: 700;">Extractive Mode</span>
+    </div>
+    <p id="qaAnswerText" style="font-size: 14px; line-height: 1.6; margin-bottom: 16px; font-weight: 500;"></p>
+
+    <!-- Citations List -->
+    <div id="qaCitationsContainer" style="border-top: 1px solid var(--border-color); padding-top: 12px;">
+      <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Verified Sources &amp; Citations:</span>
+      <div id="qaCitationsList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;"></div>
+    </div>
+  </div>
+
+  <!-- Search Results Container -->
+  <div id="searchResultsSection">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <h3 id="resultsHeader" style="font-size: 16px; font-weight: 700; margin: 0;">Search Results</h3>
+      <span id="resultsMeta" style="font-size: 12px; color: var(--text-muted);"></span>
+    </div>
+
+    <div id="resultsList" style="display: flex; flex-direction: column; gap: 14px;">
+      <!-- Friendly initial empty state -->
+      <div class="card" style="padding: 48px; text-align: center; color: var(--text-muted);">
+        <div style="font-size: 40px; margin-bottom: 12px;">🔍</div>
+        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">Search or ask questions across your documents</h4>
+        <p style="font-size: 13px; max-width: 480px; margin: 0 auto;">Type any safety term, procedure, or violation description above. Results rank by hybrid semantic similarity with highlighted snippets.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/knowledge.js') }}"></script>
+{% endblock %}

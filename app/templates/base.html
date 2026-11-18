@@ -10,9 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Chart.js & Plotly.js -->
+  <!-- Chart.js & Plotly.js & Mermaid.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
 
   <!-- SafeSight UI Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -32,6 +34,10 @@
       </div>
 
       <nav class="sidebar-nav">
+        <a href="/command-center" class="nav-link {% if active_page == 'command_center' %}active{% endif %}" style="background: rgba(59, 130, 246, 0.12); border-left: 3px solid #3b82f6;">
+          <span class="nav-icon">🛡️</span>
+          <span class="nav-label" style="font-weight: 700; color: #60a5fa;">Mission Control</span>
+        </a>
         <a href="/" class="nav-link {% if active_page == 'home' %}active{% endif %}">
           <span class="nav-icon">🏠</span>
           <span class="nav-label">Home</span>
@@ -52,9 +58,29 @@
           <span class="nav-icon">📋</span>
           <span class="nav-label">Events & Audit</span>
         </a>
+        <a href="/documents" class="nav-link {% if active_page == 'documents' %}active{% endif %}">
+          <span class="nav-icon">📂</span>
+          <span class="nav-label">Documents</span>
+        </a>
+        <a href="/knowledge" class="nav-link {% if active_page == 'knowledge' %}active{% endif %}">
+          <span class="nav-icon">🧠</span>
+          <span class="nav-label">Knowledge Base</span>
+        </a>
+        <a href="/repositories" class="nav-link {% if active_page == 'repositories' %}active{% endif %}">
+          <span class="nav-icon">📚</span>
+          <span class="nav-label">Repositories</span>
+        </a>
         <a href="/reports" class="nav-link {% if active_page == 'reports' %}active{% endif %}">
           <span class="nav-icon">📑</span>
           <span class="nav-label">Reports</span>
+        </a>
+        <a href="/assistant" class="nav-link {% if active_page == 'assistant' %}active{% endif %}">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-label">AI Assistant</span>
+        </a>
+        <a href="/investigations" class="nav-link {% if active_page == 'investigations' %}active{% endif %}">
+          <span class="nav-icon">🔍</span>
+          <span class="nav-label">Investigations</span>
         </a>
       </nav>
 
@@ -63,6 +89,10 @@
           <span id="themeIcon">🌙</span>
           <span>Theme</span>
         </button>
+        <a href="/logout" class="logout-link" title="Sign out">
+          <span>🚪</span>
+          <span>Logout</span>
+        </a>
       </div>
     </aside>
 

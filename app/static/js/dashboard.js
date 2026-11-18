@@ -52,6 +52,59 @@ function getFilterParams() {
 
 async function initDashboard() {
   await fetchAllAnalytics();
+  fetchSystemHealth();
+}
+
+function fetchSystemHealth() {
+  fetch('/api/health')
+    .then(r => r.json())
+    .then(data => {
+      const overall = document.getElementById('healthOverallBadge');
+      if (overall) {
+        overall.innerText = data.overall === 'healthy' ? '✅ All Systems Operational' : '⚠️ System Degraded';
+        overall.className = 'badge-status ' + (data.overall === 'healthy' ? 'status-safe' : 'status-detected');
+      }
+      const comps = data.components || {};
+
+      const dbVal = document.getElementById('healthDbVal');
+      if (dbVal && comps.database) {
+        dbVal.innerText = `${comps.database.type} (${comps.database.status})`;
+        dbVal.style.color = comps.database.ok ? 'var(--safe)' : 'var(--danger)';
+      }
+
+      const detVal = document.getElementById('healthDetectorVal');
+      if (detVal && comps.detector) {
+        detVal.innerText = comps.detector.demo_mode ? 'High-fidelity Demo' : 'Weights Active';
+        detVal.style.color = 'var(--info)';
+      }
+
+      const docVal = document.getElementById('healthDocIndexVal');
+      if (docVal && comps.document_index) {
+        docVal.innerText = `${comps.document_index.chunks_count} Chunks (${comps.document_index.backend})`;
+        docVal.style.color = 'var(--safe)';
+      }
+
+      const visVal = document.getElementById('healthVisualIndexVal');
+      if (visVal && comps.visual_index) {
+        visVal.innerText = `${comps.visual_index.indexed_events} Events Indexed`;
+        visVal.style.color = 'var(--safe)';
+      }
+
+      const llmVal = document.getElementById('healthLlmVal');
+      if (llmVal && comps.llm_provider) {
+        llmVal.innerText = comps.llm_provider.is_available ? `${comps.llm_provider.provider} (${comps.llm_provider.model})` : 'Offline Template Mode';
+        llmVal.style.color = comps.llm_provider.is_available ? 'var(--safe)' : 'var(--warning)';
+      }
+
+      const lgVal = document.getElementById('healthLanggraphVal');
+      if (lgVal && comps.langgraph) {
+        lgVal.innerText = `v${comps.langgraph.version} (${comps.langgraph.checkpointer})`;
+        lgVal.style.color = 'var(--safe)';
+      }
+    })
+    .catch(err => {
+      console.warn('Failed to load system health:', err);
+    });
 }
 
 async function fetchAllAnalytics() {

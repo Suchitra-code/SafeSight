@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}SafeSight AI – Investigation {{ run.run_id }}{% endblock %}
+{% block breadcrumb %}
+<a href="/investigations" style="color: var(--text-muted); text-decoration: none;">Investigations</a> / <span>{{ run.run_id }}</span>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <div>
+    <h2 style="font-size: 18px; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0;">
+      Incident Investigation: <span style="color: var(--info);">{{ run.run_id }}</span>
+    </h2>
+    <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+      Violation #{{ run.violation_id }} | Triggered: {{ run.created_at }}
+    </p>
+  </div>
+
+  <div style="display: flex; gap: 10px; align-items: center;">
+    {% if run.report_path %}
+    <a href="/api/investigations/{{ run.run_id }}/pdf" class="btn btn-secondary btn-sm" download>
+      <span>📑</span> Download Incident PDF
+    </a>
+    {% endif %}
+    <a href="/investigations" class="btn btn-secondary btn-sm">➔ Back to List</a>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 360px; gap: 24px;">
+
+  <!-- Left Column: Details, Workflow Graph & Trace -->
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+
+    <!-- Investigation Overview Card -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div>
+          <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Incident Classification</span>
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin: 4px 0;">
+            {{ run.violation.violation_type if run.violation else 'PPE Non-Compliance' }}
+          </h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+            Detected on <b>{{ run.violation.camera if run.violation else 'Camera' }}</b> ({{ run.violation.location if run.violation else 'Site' }}) at {{ run.violation.detected_at if run.violation else 'Recent' }}
+          </p>
+        </div>
+
+        <div style="text-align: right;">
+          <div style="margin-bottom: 4px;">
+            <span class="badge-status" style="background: {% if run.risk_level == 'CRITICAL' %}#4C0519; color:#FDA4AF{% elif run.risk_level == 'HIGH' %}var(--danger-light); color:var(--danger){% elif run.risk_level == 'MEDIUM' %}var(--warning-light); color:var(--warning){% else %}var(--safe-light); color:var(--safe){% endif %}; font-weight: 700; padding: 4px 10px; border-radius: 12px; font-size: 11px;">
+              {{ run.risk_level }} RISK (Score: {{ run.risk_score }})
+            </span>
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted);">
+            Status: <b>{{ run.status | upper }}</b>
+          </span>
+        </div>
+      </div>
+
+      <div style="background: var(--bg-surface-alt); border-radius: 8px; padding: 14px; border: 1px solid var(--border-color); margin-bottom: 16px;">
+        <h4 style="font-size: 12px; font-weight: 700; color: var(--text-main); margin: 0 0 6px 0;">Executive Summary</h4>
+        <p style="font-size: 13px; line-height: 1.5; color: var(--text-main); margin: 0;">
+          {{ run.summary or 'Automated investigation initiated based on computer vision alert.' }}
+        </p>
+      </div>
+
+      <div>
+        <h4 style="font-size: 12px; font-weight: 700; color: var(--text-main); margin: 0 0 6px 0;">AI Corrective Recommendations</h4>
+        <div style="font-size: 13px; line-height: 1.6; color: var(--text-main); white-space: pre-line; background: var(--bg-surface-alt); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+          {{ run.recommendations or 'Awaiting action generation node.' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- LangGraph Visual Architecture (Mermaid.js) -->
+    <div class="card">
+      <div class="card-header" style="margin-bottom: 12px;">
+        <h3 class="card-title" style="font-size: 14px;">LangGraph Workflow Execution Map</h3>
+        <span class="badge-status status-detected">Deterministic Agent StateGraph</span>
+      </div>
+
+      <div class="mermaid" style="display: flex; justify-content: center; background: var(--bg-surface-alt); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+flowchart LR
+    START([START]) --> load_event["load_event"]
+    load_event --> build_context["build_visual_context"]
+    build_context --> retrieve_rules["retrieve_rules"]
+    retrieve_rules --> find_similar["find_similar_events"]
+    find_similar --> find_findings["find_related_findings"]
+    find_findings --> assess_risk["assess_risk"]
+    assess_risk --> recommend["recommend_actions"]
+    recommend --> human_review{"human_review<br/>(Supervisor Interrupt)"}
+    human_review --> apply_decision["apply_decision"]
+    apply_decision --> generate_report["generate_report"]
+    generate_report --> finish["finish"]
+    finish --> END_NODE([END])
+
+    classDef active fill:#DCFCE7,stroke:#15803D,stroke-width:2px,color:#15803D;
+    classDef paused fill:#FEF3C7,stroke:#B45309,stroke-width:2px,color:#B45309;
+    class human_review paused;
+      </div>
+    </div>
+
+    <!-- Execution Trace Steps Timeline -->
+    <div class="card">
+      <h3 class="card-title" style="font-size: 14px; margin-bottom: 14px;">Agent Execution Trace Log</h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for s in run.steps %}
+        <div style="display: flex; gap: 14px; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+          <div style="background: var(--info-light); color: var(--info); font-weight: 700; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0;">
+            ✓
+          </div>
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">Node: <code>{{ s.node_name }}</code></span>
+              <span style="font-size: 11px; color: var(--text-muted);">{{ s.created_at }}</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-main); margin-bottom: 2px;">
+              <b>Result:</b> {{ s.output_summary }}
+            </div>
+            {% if s.input_summary %}
+            <div style="font-size: 11px; color: var(--text-muted);">
+              Input context: {{ s.input_summary }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 20px;">
+          No execution trace steps logged yet.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right Column: Snapshot & Human-In-The-Loop Approval Action Card -->
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+
+    <!-- Camera Violation Snapshot -->
+    <div class="card" style="padding: 16px;">
+      <h4 style="font-size: 13px; font-weight: 700; color: var(--text-main); margin: 0 0 10px 0;">Visual Evidence Snapshot</h4>
+      <div style="width: 100%; height: 220px; background: #000; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+        <img src="/api/violations/{{ run.violation_id }}/snapshot" alt="Incident Snapshot" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.src='/static/img/placeholder_worker.jpg'" />
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; justify-content: space-between;">
+        <span>Violation ID: #{{ run.violation_id }}</span>
+        <span>Cam: {{ run.violation.camera if run.violation else 'Cam' }}</span>
+      </div>
+    </div>
+
+    <!-- Supervisor Human Review Action Box -->
+    <div class="card" style="border: 2px solid {% if run.status == 'waiting_approval' %}var(--warning){% elif run.status == 'completed' %}var(--safe){% else %}var(--border-color){% endif %};">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+        <span style="font-size: 20px;">👤</span>
+        <div>
+          <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin: 0;">Supervisor Sign-off</h4>
+          <span style="font-size: 11px; color: var(--text-muted);">Human-in-the-loop governance gate</span>
+        </div>
+      </div>
+
+      {% if run.status == 'waiting_approval' %}
+      <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 14px;">
+        The workflow is currently paused at the <code>human_review</code> interrupt node. Review the recommended corrective actions and sign off below:
+      </p>
+
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Supervisor Notes & Directives:</label>
+        <textarea id="supervisorNotes" class="form-control" rows="3" placeholder="e.g., Mandatory briefing scheduled for tomorrow morning." style="width: 100%; font-size: 12px;">Confirmed infraction. Direct safety briefing scheduled with fabrication supervisor.</textarea>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button id="approveBtn" class="btn btn-primary" onclick="submitDecision('approve')" style="background: var(--safe); border-color: var(--safe); font-weight: 700;">
+          ✓ Approve Corrective Actions
+        </button>
+        <button id="rejectBtn" class="btn btn-secondary" onclick="submitDecision('reject')" style="color: var(--danger); font-weight: 600;">
+          ✕ Dismiss / False Positive
+        </button>
+      </div>
+
+      {% else %}
+      <div style="background: var(--bg-surface-alt); padding: 12px; border-radius: 6px; font-size: 12px;">
+        <div style="margin-bottom: 6px;">
+          <b>Decision:</b>
+          <span style="color: {% if run.approval_status == 'approved' %}var(--safe){% else %}var(--danger){% endif %}; font-weight: 700;">
+            {{ (run.approval_status or 'N/A') | upper }}
+          </span>
+        </div>
+        <div style="margin-bottom: 6px;">
+          <b>Supervisor Notes:</b> {{ run.supervisor_notes or 'None recorded.' }}
+        </div>
+        <div style="color: var(--text-muted); font-size: 11px;">
+          Workflow Status: {{ run.status | upper }}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function submitDecision(action) {
+  const notes = document.getElementById("supervisorNotes").value;
+  const endpoint = `/api/investigations/{{ run.run_id }}/${action}`;
+
+  const approveBtn = document.getElementById("approveBtn");
+  const rejectBtn = document.getElementById("rejectBtn");
+  if (approveBtn) approveBtn.disabled = true;
+  if (rejectBtn) rejectBtn.disabled = true;
+
+  fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ notes: notes })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) {
+      showToast("Error: " + data.error, "error");
+      if (approveBtn) approveBtn.disabled = false;
+      if (rejectBtn) rejectBtn.disabled = false;
+    } else {
+      showToast(data.message || "Decision recorded!", "success");
+      setTimeout(() => location.reload(), 800);
+    }
+  })
+  .catch(err => {
+    showToast("Network failure: " + err, "error");
+    if (approveBtn) approveBtn.disabled = false;
+    if (rejectBtn) rejectBtn.disabled = false;
+  });
+}
+</script>
+{% endblock %}

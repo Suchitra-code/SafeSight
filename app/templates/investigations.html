@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}SafeSight AI – Incident Investigations & Workflows{% endblock %}
+{% block breadcrumb %}Agentic Incident Investigations{% endblock %}
+
+{% block content %}
+<div class="filter-bar" style="margin-bottom: 20px;">
+  <div class="filter-group">
+    <span style="font-size: 14px; font-weight: 700; color: var(--text-main);">🔍 Incident Investigations</span>
+    <span style="font-size: 12px; color: var(--text-muted);">Multi-step LangGraph workflows with supervisor human approval</span>
+  </div>
+
+  <div class="filter-group">
+    <button class="btn btn-primary btn-sm" onclick="promptStartInvestigation()">
+      <span>+</span> Start Investigation
+    </button>
+  </div>
+</div>
+
+<div class="card" style="padding: 0; overflow: hidden;">
+  <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface-alt);">
+    <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-main);">Investigation Run Registry</h3>
+    <button class="btn btn-secondary btn-sm" onclick="loadInvestigations()">🔄 Refresh</button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <thead>
+        <tr style="background: var(--bg-surface); text-align: left; color: var(--text-muted); font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--border-color);">
+          <th style="padding: 12px 16px;">Run ID</th>
+          <th style="padding: 12px 16px;">Violation</th>
+          <th style="padding: 12px 16px;">Camera & Zone</th>
+          <th style="padding: 12px 16px;">Risk Level</th>
+          <th style="padding: 12px 16px;">Workflow Status</th>
+          <th style="padding: 12px 16px;">Supervisor Approval</th>
+          <th style="padding: 12px 16px;">Created At</th>
+          <th style="padding: 12px 16px; text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="investigationsTableBody">
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">
+            Loading investigations...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+.badge-risk-low { background: var(--safe-light); color: var(--safe); padding: 3px 8px; border-radius: 12px; font-weight: 700; font-size: 10px; }
+.badge-risk-medium { background: var(--warning-light); color: var(--warning); padding: 3px 8px; border-radius: 12px; font-weight: 700; font-size: 10px; }
+.badge-risk-high { background: var(--danger-light); color: var(--danger); padding: 3px 8px; border-radius: 12px; font-weight: 700; font-size: 10px; }
+.badge-risk-critical { background: #4C0519; color: #FDA4AF; padding: 3px 8px; border-radius: 12px; font-weight: 700; font-size: 10px; }
+
+.badge-status-waiting { background: #FEF3C7; color: #B45309; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 11px; }
+.badge-status-completed { background: #DCFCE7; color: #15803D; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 11px; }
+.badge-status-running { background: #DBEAFE; color: #1D4ED8; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 11px; }
+.badge-status-failed { background: #FEE2E2; color: #B91C1C; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 11px; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function loadInvestigations() {
+  fetch('/api/investigations/')
+    .then(r => r.json())
+    .then(data => {
+      const tbody = document.getElementById('investigationsTableBody');
+      const items = data.items || [];
+      if (items.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">
+              No investigations recorded yet. Click "Start Investigation" or trigger one from the Events audit table.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = items.map(run => {
+        const riskClass = 'badge-risk-' + (run.risk_level ? run.risk_level.toLowerCase() : 'low');
+        let statusBadge = '';
+        if (run.status === 'waiting_approval') {
+          statusBadge = '<span class="badge-status-waiting">⏳ Waiting Approval</span>';
+        } else if (run.status === 'completed') {
+          statusBadge = '<span class="badge-status-completed">✅ Completed</span>';
+        } else if (run.status === 'running') {
+          statusBadge = '<span class="badge-status-running">⚙️ Running</span>';
+        } else {
+          statusBadge = `<span class="badge-status-failed">${run.status}</span>`;
+        }
+
+        const approvalText = run.approval_status === 'approved' ? '✅ Approved' : (run.approval_status === 'rejected' ? '❌ Dismissed' : '⚠️ Pending');
+
+        return `
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 12px 16px; font-weight: 600;">
+              <a href="/investigations/${run.run_id}" style="color: var(--info); text-decoration: none;">
+                ${run.run_id}
+              </a>
+            </td>
+            <td style="padding: 12px 16px;">
+              <b>#${run.violation_id}</b> - ${escapeHtml(run.violation_type || 'Violation')}
+            </td>
+            <td style="padding: 12px 16px; color: var(--text-muted);">
+              ${escapeHtml(run.camera || 'Cam')} (${escapeHtml(run.location || 'Site')})
+            </td>
+            <td style="padding: 12px 16px;">
+              <span class="${riskClass}">${run.risk_level || 'LOW'} (Score: ${run.risk_score || 1})</span>
+            </td>
+            <td style="padding: 12px 16px;">
+              ${statusBadge}
+            </td>
+            <td style="padding: 12px 16px; font-size: 12px;">
+              ${approvalText}
+            </td>
+            <td style="padding: 12px 16px; color: var(--text-muted); font-size: 11px;">
+              ${run.created_at || 'Recent'}
+            </td>
+            <td style="padding: 12px 16px; text-align: right;">
+              <a href="/investigations/${run.run_id}" class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px;">
+                Inspect
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    })
+    .catch(err => {
+      document.getElementById('investigationsTableBody').innerHTML = `
+        <tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--danger);">Failed to load investigations.</td></tr>
+      `;
+    });
+}
+
+function promptStartInvestigation() {
+  const vid = prompt("Enter Violation ID to investigate (e.g., 421 or from Events page):");
+  if (!vid) return;
+
+  fetch(`/api/investigations/start/${parseInt(vid)}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        showToast("Error: " + data.error, "error");
+      } else {
+        showToast(data.message || "Investigation initiated!", "success");
+        if (data.run_id) {
+          window.location.href = `/investigations/${data.run_id}`;
+        } else {
+          loadInvestigations();
+        }
+      }
+    })
+    .catch(err => showToast("Request failed: " + err, "error"));
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+loadInvestigations();
+</script>
+{% endblock %}

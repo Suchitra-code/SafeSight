@@ -198,6 +198,34 @@ def update_status(violation_id):
         return jsonify({"error": str(e)}), 500
 
 
+@api_bp.route("/violations/<int:violation_id>/explain", methods=["GET"])
+def explain_violation_api(violation_id):
+    """Explains a visual violation using linked safety manuals and past inspection reports."""
+    try:
+        from app.rag.visual_linker import explain_violation
+        res = explain_violation(violation_id)
+        if not res:
+            return jsonify({"error": "Violation not found"}), 404
+        if "explanation" not in res:
+            res["explanation"] = res.get("narrative") or res.get("what_the_rule_says") or "Violation analyzed against safety manuals."
+        return jsonify(res)
+    except Exception as e:
+        logger.error(f"Error explaining violation {violation_id}: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route("/violations/<int:violation_id>/snapshot", methods=["GET"])
+def get_violation_snapshot(violation_id):
+    """Serves the snapshot image for a violation or placeholder if missing."""
+    v = violation_service.get_violation_by_id(violation_id)
+    if not v or not v.get("snapshot_path"):
+        return send_from_directory(os.path.join(config.BASE_DIR, "app", "static", "img"), "placeholder_worker.jpg")
+    snap_path = os.path.join(config.OUTPUT_FOLDER, v["snapshot_path"])
+    if not os.path.exists(snap_path):
+        return send_from_directory(os.path.join(config.BASE_DIR, "app", "static", "img"), "placeholder_worker.jpg")
+    return send_file(snap_path)
+
+
 @api_bp.route("/analytics/kpi", methods=["GET"])
 def get_kpi():
     """Returns top KPI summary."""

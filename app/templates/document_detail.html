@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}{{ doc.title }} – SafeSight AI{% endblock %}
+{% block breadcrumb %}<a href="/documents">Documents</a> / {{ doc.title }}{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 20px;">
+
+  <!-- Header Card with Actions -->
+  <div class="card" style="padding: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <span style="font-size: 22px;">{% if doc.doc_type == 'inspection_report' %}📋{% elif doc.doc_type == 'safety_manual' %}📖{% else %}📄{% endif %}</span>
+        <h1 style="font-size: 20px; font-weight: 800; margin: 0;">{{ doc.title }}</h1>
+        <span class="status-pill status-{{ doc.status | replace(' ', '-') }}" style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; text-transform: uppercase;">
+          {{ doc.status }}
+        </span>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+        Original: <strong>{{ doc.original_name }}</strong> &bull; {{ doc.file_type | upper }} &bull; {{ doc.page_count }} page(s) &bull; Confidence: <strong>{{ (doc.avg_confidence * 100) | round(1) }}%</strong>
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a href="/api/documents/{{ doc.id }}/file" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px;">Download Original</a>
+      <button onclick="reprocessDoc({{ doc.id }})" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px;">Reprocess</button>
+      <button onclick="verifyDoc({{ doc.id }})" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; background: rgba(34, 197, 94, 0.1); color: var(--safe); border-color: rgba(34, 197, 94, 0.3);">Mark as Verified</button>
+      <button onclick="deleteDoc({{ doc.id }})" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px; color: var(--danger);">Delete</button>
+    </div>
+  </div>
+
+  <!-- Two-Column Layout -->
+  <div style="display: grid; grid-template-columns: 1fr 1.25fr; gap: 20px; align-items: start;">
+
+    <!-- Left Column: Document Page Viewer -->
+    <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 14px; max-height: 800px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+        <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Page Viewer</h3>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 12px; color: var(--text-muted);">Page:</span>
+          <select id="pageSelect" onchange="renderSelectedPage()" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 12px; background: var(--bg-surface-alt);">
+            {% for p in pages %}
+            <option value="{{ p.page_no }}">Page {{ p.page_no }} {% if p.used_ocr %}(OCR){% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Page Content Display Box -->
+      <div id="pageContentDisplay" style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 16px; font-family: monospace; font-size: 12px; line-height: 1.6; white-space: pre-wrap; overflow-y: auto; height: 680px;">
+        {% if pages and pages[0].text %}
+        {{ pages[0].text }}
+        {% else %}
+        (No text found on this page)
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right Column: Tabs Container -->
+    <div class="card" style="padding: 20px;">
+      <!-- Tab Buttons -->
+      <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; overflow-x: auto;">
+        <button class="tab-btn active" onclick="switchDetailTab('summary', this)">Summary</button>
+        {% if doc.doc_type == 'inspection_report' %}
+        <button class="tab-btn" onclick="switchDetailTab('fields', this)">Header Fields</button>
+        <button class="tab-btn" onclick="switchDetailTab('findings', this)">Findings ({{ findings | length }})</button>
+        {% else %}
+        <button class="tab-btn" onclick="switchDetailTab('rules', this)">Safety Rules ({{ rules | length }})</button>
+        <button class="tab-btn" onclick="switchDetailTab('procedures', this)">Procedures ({{ procedures | length }})</button>
+        <button class="tab-btn" onclick="switchDetailTab('sections', this)">Sections</button>
+        {% endif %}
+      </div>
+
+      <!-- Tab: Summary -->
+      <div id="tabSummary" class="detail-tab-pane" style="display: block;">
+        <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
+          <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+            <span style="color: var(--text-muted); font-weight: 600;">Document Title:</span>
+            <span>{{ doc.title }}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+            <span style="color: var(--text-muted); font-weight: 600;">Classification:</span>
+            <span>{{ doc.doc_type | replace('_', ' ') | title }}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+            <span style="color: var(--text-muted); font-weight: 600;">Repository:</span>
+            <span>
+              <select id="repoChangeSelect" onchange="changeDocRepo({{ doc.id }}, this.value)" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 12px; background: var(--bg-surface-alt);">
+                {% for r in repositories %}
+                <option value="{{ r.id }}" {% if r.id == doc.repository_id %}selected{% endif %}>{{ r.name }}</option>
+                {% endfor %}
+              </select>
+            </span>
+          </div>
+          <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+            <span style="color: var(--text-muted); font-weight: 600;">Status:</span>
+            <span>{{ doc.status }}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+            <span style="color: var(--text-muted); font-weight: 600;">Uploaded On:</span>
+            <span>{{ doc.uploaded_at }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Extracted Fields (Reports) -->
+      {% if doc.doc_type == 'inspection_report' %}
+      <div id="tabFields" class="detail-tab-pane" style="display: none;">
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Inline editable fields extracted from the inspection header. Click any field to update.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for f in fields %}
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+            <div style="flex: 1;">
+              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">{{ f.field_name | replace('_', ' ') }}</span>
+              <div style="margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+                <input type="text" id="fieldVal_{{ f.id }}" value="{{ f.field_value or '' }}" placeholder="Not found" style="width: 100%; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 13px; background: var(--bg-surface);">
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+              {% if f.is_edited %}
+              <span style="font-size: 10px; background: rgba(59, 130, 246, 0.15); color: var(--info); padding: 2px 6px; border-radius: 4px; font-weight: 600;">Edited</span>
+              {% endif %}
+              <span style="font-size: 11px; color: var(--text-muted);">Conf: {{ (f.confidence * 100) | round(0) }}% (p.{{ f.page_no }})</span>
+              <button onclick="saveFieldEdit({{ doc.id }}, {{ f.id }})" class="btn btn-secondary" style="font-size: 11px; padding: 3px 8px;">Save</button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Tab: Findings (Reports) -->
+      <div id="tabFindings" class="detail-tab-pane" style="display: none;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for fnd in findings %}
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="sev-badge sev-{{ fnd.severity | lower }}" style="font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px;">{{ fnd.severity }}</span>
+                <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted);">{{ fnd.category }}</span>
+              </div>
+              <span style="font-size: 12px; color: var(--text-muted);">Page {{ fnd.page_no }} &bull; Due: {{ fnd.due_date or 'N/A' }}</span>
+            </div>
+
+            <p style="font-size: 13px; font-weight: 500; margin: 0 0 8px 0;">{{ fnd.description }}</p>
+
+            {% if fnd.corrective_action %}
+            <div style="font-size: 12px; color: var(--text-muted); background: var(--bg-surface); padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+              <strong>Action:</strong> {{ fnd.corrective_action }}
+            </div>
+            {% endif %}
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 12px; color: var(--text-muted);">Status: <strong>{{ fnd.status | upper }}</strong></span>
+              <button onclick="toggleFindingStatus({{ doc.id }}, {{ fnd.id }}, '{{ fnd.status }}')" class="btn btn-secondary" style="font-size: 11px; padding: 3px 8px;">
+                {% if fnd.status == 'closed' %}Mark as Open{% else %}Resolve / Close{% endif %}
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+
+      <!-- Tab: Safety Rules (Manuals) -->
+      <div id="tabRules" class="detail-tab-pane" style="display: none;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for r in rules %}
+          <div style="background: var(--bg-surface-alt); border-left: 3px solid var(--accent); padding: 12px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--accent);">PPE: {{ r.ppe_type }}</span>
+              <span style="font-size: 11px; color: var(--text-muted);">Page {{ r.page_no }}</span>
+            </div>
+            <p style="margin: 0; line-height: 1.5;">{{ r.rule_text }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Tab: Procedures (Manuals) -->
+      <div id="tabProcedures" class="detail-tab-pane" style="display: none;">
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          {% for pr in procedures %}
+          <div style="background: var(--bg-surface-alt); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px;">
+            <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">{{ pr.title }} (Page {{ pr.page_no }})</h4>
+            <div class="procedure-steps-box" data-steps="{{ pr.steps }}"></div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Tab: Sections (Manuals) -->
+      <div id="tabSections" class="detail-tab-pane" style="display: none;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          {% for s in sections %}
+          <div onclick="jumpToPage({{ s.page_start }})" style="cursor: pointer; padding: 8px 12px; border-radius: 4px; background: var(--bg-surface-alt); font-size: 13px; display: flex; justify-content: space-between;">
+            <span style="font-weight: {% if s.level == 1 %}700{% else %}500{% endif %}; margin-left: {{ (s.level - 1) * 16 }}px;">
+              {{ s.title }}
+            </span>
+            <span style="font-size: 12px; color: var(--text-muted);">p.{{ s.page_start }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Inlined Page Data for Switching -->
+<script>
+  const PAGE_DATA = {{ pages | tojson }};
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/documents.js') }}"></script>
+{% endblock %}

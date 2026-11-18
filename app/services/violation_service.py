@@ -24,8 +24,16 @@ def create_violation(upload_id: int, detection_id: int, violation_type: str,
                                 snapshot_path, camera_name, location, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
-    return execute_insert(query, (upload_id, detection_id, violation_type, severity,
+    v_id = execute_insert(query, (upload_id, detection_id, violation_type, severity,
                                   confidence, snapshot_path, camera_name, location, status))
+    # Automatically index into visual_chunks for Milestone 3 multi-modal search
+    if v_id:
+        try:
+            from app.rag.visual_indexer import index_violation
+            index_violation(v_id)
+        except Exception as e:
+            logger.warning(f"Background visual indexer notice: {e}")
+    return v_id
 
 
 def get_violations(filters: Optional[Dict[str, Any]] = None,

@@ -76,6 +76,14 @@ CREATE TABLE IF NOT EXISTS cameras (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 5. Users table
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Default cameras
 INSERT IGNORE INTO cameras (id, name, zone, source, is_active) VALUES
 (1, 'Cam 01 – Zone A', 'Zone A', '0', 1),

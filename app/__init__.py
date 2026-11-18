@@ -56,10 +56,39 @@ def create_app():
     from app.routes.pages import pages_bp
     from app.routes.api import api_bp
     from app.routes.stream import stream_bp
+    from app.routes.auth import auth_bp
+    from app.routes.documents import documents_bp
+    from app.routes.knowledge import knowledge_bp
+    from app.routes.health import health_bp
+    from app.routes.assistant import assistant_bp
+    from app.routes.investigations import investigations_bp
+    from app.routes.copilot import copilot_bp
+    from app.routes.command_center import command_center_bp
 
     app.register_blueprint(pages_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(stream_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(documents_bp)
+    app.register_blueprint(knowledge_bp)
+    app.register_blueprint(health_bp)
+    app.register_blueprint(assistant_bp)
+    app.register_blueprint(investigations_bp)
+    app.register_blueprint(copilot_bp)
+    app.register_blueprint(command_center_bp)
+
+    @app.before_request
+    def require_login():
+        """
+        Enforce authentication globally:
+        If user is not logged in, redirect them to /login.
+        Public endpoints (login, register, health check, static assets) are excluded.
+        """
+        from flask import request, redirect, url_for, session
+        allowed_endpoints = {"auth.login", "auth.register", "health.get_system_health", "static"}
+        if request.endpoint and request.endpoint not in allowed_endpoints:
+            if not session.get("logged_in"):
+                return redirect(url_for("auth.login", next=request.url))
 
     @app.context_processor
     def inject_global_vars():

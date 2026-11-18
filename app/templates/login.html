@@ -1,0 +1,238 @@
+{% extends "login_base.html" %}
+
+{% block title %}Login – SafeSight AI{% endblock %}
+
+{% block content %}
+<div class="login-page">
+
+  <!-- Left panel — branding / illustration -->
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-brand-icon">🛡️</div>
+      <div>
+        <h1 class="login-brand-name">SafeSight AI</h1>
+        <p class="login-brand-tag">PPE Safety Analytics Platform</p>
+      </div>
+    </div>
+
+    <div class="login-tagline">
+      <h2>AI-Powered Workplace<br>Safety Intelligence</h2>
+      <p>Monitor PPE compliance, detect violations in real time, and generate actionable safety reports — all from one unified platform.</p>
+    </div>
+
+    <ul class="login-feature-list">
+      <li>
+        <span class="lf-icon">✅</span>
+        <span>YOLOv8 Real-Time PPE Detection</span>
+      </li>
+      <li>
+        <span class="lf-icon">📊</span>
+        <span>AI-Powered Analytics &amp; Dashboards</span>
+      </li>
+      <li>
+        <span class="lf-icon">📋</span>
+        <span>Automated Compliance Reports</span>
+      </li>
+      <li>
+        <span class="lf-icon">📹</span>
+        <span>Multi-Camera Live Monitoring</span>
+      </li>
+    </ul>
+
+    <div class="login-stat-row">
+      <div class="login-stat">
+        <span class="ls-value">94.5%</span>
+        <span class="ls-label">Detection Accuracy</span>
+      </div>
+      <div class="login-stat">
+        <span class="ls-value">Real-Time</span>
+        <span class="ls-label">Video Analysis</span>
+      </div>
+      <div class="login-stat">
+        <span class="ls-value">DEMO</span>
+        <span class="ls-label">Mode Active</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel — login form -->
+  <div class="login-right">
+    <div class="login-card">
+
+      <!-- Card header -->
+      <div class="login-card-header">
+        <div class="login-card-icon">🔐</div>
+        <h2 class="login-card-title">Welcome Back</h2>
+        <p class="login-card-sub">Sign in to your SafeSight AI account</p>
+      </div>
+
+      <!-- Error alert -->
+      {% if error %}
+      <div class="login-alert">
+        <span>⚠️</span>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Success alert -->
+      {% if success %}
+      <div class="login-alert" style="background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.4); color: var(--safe);">
+        <span>✅</span>
+        <span>{{ success }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Login form -->
+      <!-- autocomplete="off" prevents browser from offering saved credentials -->
+      <form class="login-form" method="POST"
+            action="{{ url_for('auth.login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}"
+            autocomplete="off"
+            novalidate
+            onsubmit="return validateLoginForm(event)">
+
+        <div class="login-field">
+          <label class="lf-label" for="username">Username</label>
+          <div class="lf-input-wrap">
+            <span class="lf-input-icon">👤</span>
+            <input
+              class="lf-input"
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Enter your username"
+              autocomplete="off"
+              autofocus
+            >
+          </div>
+          <!-- Inline validation message (hidden by default) -->
+          <span class="lf-error" id="usernameError" style="display:none;">⚠️ Please enter your username.</span>
+        </div>
+
+        <div class="login-field">
+          <label class="lf-label" for="password">Password</label>
+          <div class="lf-input-wrap">
+            <span class="lf-input-icon">🔒</span>
+            <input
+              class="lf-input"
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              autocomplete="new-password"
+            >
+            <button type="button" class="lf-eye-btn" onclick="togglePassword()" title="Show / hide password">
+              <span id="eyeIcon">👁️</span>
+            </button>
+          </div>
+          <!-- Inline validation message (hidden by default) -->
+          <span class="lf-error" id="passwordError" style="display:none;">⚠️ Please enter your password.</span>
+        </div>
+
+        <button type="submit" class="login-submit-btn">
+          <span>Sign In</span>
+          <span>→</span>
+        </button>
+
+      </form>
+
+      <div style="text-align: center; margin-top: 18px; font-size: 13px; color: var(--text-muted);">
+        Don't have an account?
+        <a href="{{ url_for('auth.register') }}" style="color: var(--accent); font-weight: 600; text-decoration: underline; margin-left: 4px;">Create Account</a>
+      </div>
+
+      <p class="login-footer-note">
+        © 2024 SafeSight AI. All rights reserved.
+      </p>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /* ------------------------------------------------------------------ */
+  /* 1. Clear both fields on every page load/refresh/back-button         */
+  /*    This guarantees no value can survive a navigation event.         */
+  /* ------------------------------------------------------------------ */
+  window.addEventListener('pageshow', function () {
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    // Reset eye icon in case page was restored from bfcache
+    document.getElementById('eyeIcon').textContent = '👁️';
+    document.getElementById('password').type = 'password';
+    // Hide any stale inline errors
+    document.getElementById('usernameError').style.display = 'none';
+    document.getElementById('passwordError').style.display = 'none';
+  });
+
+  /* ------------------------------------------------------------------ */
+  /* 2. Client-side validation — shows inline messages, blocks submit    */
+  /*    if either field is empty. No data is stored anywhere.            */
+  /* ------------------------------------------------------------------ */
+  function validateLoginForm(event) {
+    const usernameVal  = document.getElementById('username').value.trim();
+    const passwordVal  = document.getElementById('password').value;
+    const usernameErr  = document.getElementById('usernameError');
+    const passwordErr  = document.getElementById('passwordError');
+
+    let valid = true;
+
+    if (!usernameVal) {
+      usernameErr.style.display = 'block';
+      document.getElementById('username').classList.add('lf-input-error');
+      valid = false;
+    } else {
+      usernameErr.style.display = 'none';
+      document.getElementById('username').classList.remove('lf-input-error');
+    }
+
+    if (!passwordVal) {
+      passwordErr.style.display = 'block';
+      document.getElementById('password').classList.add('lf-input-error');
+      valid = false;
+    } else {
+      passwordErr.style.display = 'none';
+      document.getElementById('password').classList.remove('lf-input-error');
+    }
+
+    if (!valid) {
+      event.preventDefault();
+      return false;
+    }
+    return true;
+  }
+
+  /* Clear inline error when user starts typing */
+  document.getElementById('username').addEventListener('input', function () {
+    document.getElementById('usernameError').style.display = 'none';
+    this.classList.remove('lf-input-error');
+  });
+  document.getElementById('password').addEventListener('input', function () {
+    document.getElementById('passwordError').style.display = 'none';
+    this.classList.remove('lf-input-error');
+  });
+
+  /* ------------------------------------------------------------------ */
+  /* 3. Show / hide password toggle — keeps type="password" as default  */
+  /* ------------------------------------------------------------------ */
+  function togglePassword() {
+    const input = document.getElementById('password');
+    const icon  = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      icon.textContent = '👁️';
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 4. Shake animation on server-side auth error                        */
+  /* ------------------------------------------------------------------ */
+  {% if error %}
+  document.querySelector('.login-card').style.animation = 'loginShake 0.4s ease';
+  {% endif %}
+</script>
+{% endblock %}

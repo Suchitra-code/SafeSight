@@ -1,0 +1,54 @@
+{
+  "facility": "SafeSight Industrial Complex 01",
+  "dimensions": {
+    "width": 800,
+    "height": 500
+  },
+  "zones": [
+    {
+      "id": "zone_a",
+      "name": "Zone A",
+      "label": "Zone A – Fabrication & Heavy Machinery",
+      "polygon": "50,50 350,50 350,300 50,300",
+      "center": [200, 175],
+      "cameras": [
+        {
+          "id": "cam_01",
+          "name": "Cam 01 – Zone A",
+          "coords": [100, 80],
+          "type": "CCTV-PTZ"
+        }
+      ]
+    },
+    {
+      "id": "zone_b",
+      "name": "Zone B",
+      "label": "Zone B – Assembly & Staging",
+      "polygon": "400,50 750,50 750,300 400,300",
+      "center": [575, 175],
+      "cameras": [
+        {
+          "id": "cam_02",
+          "name": "Cam 02 – Zone B",
+          "coords": [450, 80],
+          "type": "CCTV-Fixed"
+        }
+      ]
+    },
+    {
+      "id": "exit_gate",
+      "name": "Exit Gate",
+      "label": "Exit Gate & Loading Dock",
+      "polygon": "150,350 650,350 650,470 150,470",
+      "center": [400, 410],
+      "cameras": [
+        {
+          "id": "cam_03",
+          "name": "Cam 03 – Exit",
+          "coords": [400, 370],
+          "type": "CCTV-Thermal"
+        }
+      ]
+    }
+  ]
+}

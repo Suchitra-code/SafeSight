@@ -1,8 +1,12 @@
 """
 SafeSight AI - PPE Safety Analytics Platform
 Main Execution Entrypoint.
-Starts the Flask server at http://127.0.0.1:5000 with threaded request handling.
+Starts the Flask server with threaded request handling.
+In production (Render), Gunicorn calls `run:app` directly and manages
+host/port binding via its own -b flag. The __main__ block is only used
+for local development (`python run.py`).
 """
+import os
 import sys
 import logging
 from app import create_app
@@ -14,11 +18,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger("safesight")
 
+# Module-level app object — Gunicorn imports this as `run:app`
 app = create_app()
 
 if __name__ == "__main__":
-    port = 5000
-    host = "127.0.0.1"
+    # In local development, HOST defaults to 127.0.0.1 (loopback).
+    # On Render / any container, set HOST=0.0.0.0 and PORT=<n> via env vars.
+    port = int(os.environ.get("PORT", 5000))
+    host = os.environ.get("HOST", "127.0.0.1")
     print("\n" + "=" * 65)
     print("  SAFESIGHT AI – PPE Safety Analytics Platform")
     print("  AI-Powered Visual Data Analytics & Business Intelligence")

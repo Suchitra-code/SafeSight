@@ -1,7 +1,10 @@
 # requirements for SafeSight AI
 ultralytics==8.2.15
-opencv-python==4.9.0.80
+# opencv-python-headless: same API as opencv-python but no X11/libGL dependency
+# Required for Linux server environments (Render, Docker, etc.)
+opencv-python-headless==4.9.0.80
 flask==3.0.3
+gunicorn==22.0.0
 python-dotenv==1.0.1
 mysql-connector-python==8.4.0
 SQLAlchemy==2.0.30

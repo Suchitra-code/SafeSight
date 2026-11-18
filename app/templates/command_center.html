@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}SafeSight AI – Mission Control Center{% endblock %}
+{% block breadcrumb %}Mission Control{% endblock %}
+
+{% block extra_head %}
+<!-- Mission Control Dark Control-Room Theme Stylesheet -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/command_center.css') }}">
+<script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="cc-container">
+
+  <!-- Top Action & Telemetry Bar -->
+  <div class="cc-topbar">
+    <div class="cc-title-group">
+      <h2 class="cc-title">🛡️ Mission Control</h2>
+      <span class="cc-badge-lg">Powered by LangGraph v{{ langgraph_version }}</span>
+      <div class="cc-health-pill health-ok" title="Database, FAISS Index, and Detector are nominal">
+        <span class="health-pulse-dot"></span>
+        <span>System Health: Nominal</span>
+      </div>
+    </div>
+
+    <div class="cc-action-btns">
+      <button id="briefing-btn" class="btn btn-secondary btn-sm" title="Auto-generate a shift safety briefing">
+        📋 Daily Briefing
+      </button>
+      <button id="demo-mode-btn" class="btn btn-secondary btn-sm" title="Cycle through demo scenarios automatically">
+        🎬 Demo Mode
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="window.open('/api/health', '_blank')">
+        🏥 System Health Card
+      </button>
+      <button id="fullscreenBtn" class="btn btn-secondary btn-sm" title="Toggle fullscreen">
+        ⛶ Fullscreen
+      </button>
+    </div>
+  </div>
+
+  <!-- Dynamic Active Filters Chip Bar -->
+  <div id="activeFiltersBar" class="cc-chip-bar">
+    <!-- Populated by main.js -->
+  </div>
+
+  <!-- 5-Metric Top KPI Strip -->
+  <div id="kpiStrip" class="cc-kpi-grid">
+    <!-- Populated by kpi.js -->
+  </div>
+
+  <!-- 3-Column Mission Control Center Layout -->
+  <div class="cc-main-grid">
+
+    <!-- Left Column: Interactive Site Map -->
+    <div class="cc-panel">
+      <div class="cc-panel-header">
+        <span>📍 Facility Site Map</span>
+        <span style="font-size: 11px; color: var(--cc-text-muted);">Click zone to filter</span>
+      </div>
+      <div class="cc-panel-body" style="padding: 10px;">
+        <div id="sitemapContainer" style="width: 100%;">
+          <!-- Populated by sitemap.js SVG -->
+        </div>
+
+        <div style="margin-top: 14px; border-top: 1px solid var(--cc-border); padding-top: 10px;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--cc-text-muted); text-transform: uppercase;">
+            Peak Hour Distribution
+          </span>
+          <div id="heatmapContainer" style="margin-top: 8px;">
+            <!-- Populated by heatmap.js -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Column: SafeSight AI Copilot (The Star) -->
+    <div class="cc-panel" style="border-color: #2563eb;">
+      <div class="cc-panel-header" style="background: rgba(37, 99, 235, 0.1);">
+        <span style="color: #60a5fa; display: flex; align-items: center; gap: 6px;">
+          🤖 SafeSight AI Copilot
+        </span>
+        <div id="copilotSuggestions" style="display: flex; gap: 6px; overflow-x: auto;">
+          <!-- Suggested question chips -->
+        </div>
+      </div>
+
+      <div class="cc-panel-body" style="display: flex; flex-direction: column; gap: 12px;">
+
+        <!-- Live LangGraph Execution Pipeline Visualization -->
+        <div class="pipeline-viz-container">
+          <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">
+            Active LangGraph Workflow Pipeline
+          </div>
+          <div id="pipelineNodesRow" class="pipeline-nodes-row">
+            <!-- Populated dynamically from /api/copilot/graph -->
+          </div>
+        </div>
+
+        <!-- Copilot Answer Output Box -->
+        <div id="copilotAnswerBox" class="answer-card-container">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <h3 class="answer-headline">SafeSight Copilot Ready</h3>
+            <span class="pill pill-low">STANDBY</span>
+          </div>
+          <div class="answer-text">
+            Ask any question combining real-time camera detections with corporate safety manuals.
+            Try clicking one of the suggested prompts above or enter a custom safety query.
+          </div>
+        </div>
+
+        <!-- Evidence & Citations Tab -->
+        <div style="background: #0f172a; border: 1px solid var(--cc-border); border-radius: 8px; padding: 12px;">
+          <div style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">
+            Retrieved Evidence & Policy Citations
+          </div>
+          <div id="evidenceContainer">
+            <div style="color: #64748b; font-size: 11px; text-align: center; padding: 12px;">
+              Evidence citations [V1..Vn, D1..Dn] will appear here upon execution.
+            </div>
+          </div>
+        </div>
+
+        <!-- Trust Meter Box -->
+        <div id="trustMeterBox" style="background: #0f172a; border: 1px solid var(--cc-border); border-radius: 8px; padding: 12px;">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
+            <span style="font-weight: 700;">TRUST METER</span>
+            <span>Standing by</span>
+          </div>
+          <div class="trust-meter-gauge">
+            <div class="trust-meter-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Copilot Input Prompt Bar -->
+        <div class="copilot-prompt-bar">
+          <input type="text" id="copilotInput" class="copilot-input" placeholder="Ask Copilot about camera violations, compliance, or safety manuals... (Ctrl+K)">
+          <button id="micBtn" class="btn btn-secondary btn-sm" title="Voice input" aria-pressed="false" style="font-size: 14px; padding: 4px 8px;">
+            🎤
+          </button>
+          <button id="copilotSendBtn" class="btn btn-primary btn-sm" style="font-weight: 700;">
+            Ask Copilot →
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Column: Live Event Feed & 14-Day Trends -->
+    <div class="cc-panel">
+      <div class="cc-panel-header">
+        <span>🚨 Real-Time Event Feed</span>
+        <a href="/events" style="font-size: 11px; color: var(--cc-accent-blue); text-decoration: none;">View All →</a>
+      </div>
+      <div class="cc-panel-body" style="padding: 10px; display: flex; flex-direction: column; gap: 12px;">
+
+        <!-- Live Feed Items Container -->
+        <div id="liveEventsFeed" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column;">
+          <!-- Populated by feed.js -->
+        </div>
+
+        <!-- 14-Day Historical Trend Canvas -->
+        <div style="border-top: 1px solid var(--cc-border); padding-top: 10px; flex: 1; min-height: 160px; position: relative;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--cc-text-muted); text-transform: uppercase; margin-bottom: 6px;">
+            14-Day Compliance Trend
+          </div>
+          <canvas id="trendChart" style="width: 100%; height: 140px;"></canvas>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Quality Scoreboard: Run History & Replay -->
+  <div class="cc-panel" style="margin-top: 16px;">
+    <div class="cc-panel-header">
+      <span>🏆 Quality Scoreboard — Recent Copilot Runs</span>
+      <span style="font-size: 11px; color: var(--cc-text-muted);">Click column headers to sort</span>
+    </div>
+    <div class="cc-panel-body" style="padding: 12px;">
+      <div id="scoreboard-panel">
+        <!-- Populated by scoreboard.js -->
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{{ url_for('static', filename='js/cc/main.js') }}"></script>
+{% endblock %}

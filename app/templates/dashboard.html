@@ -76,6 +76,65 @@
   </div>
 </div>
 
+<!-- System Health Monitoring (Milestone 3) -->
+<div class="card" style="margin-bottom: 24px; padding: 16px 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 18px;">🛡️</span>
+      <h3 class="card-title" style="margin: 0; font-size: 14px;">System Health & AI Engine Status</h3>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <span id="healthOverallBadge" class="badge-status status-safe" style="font-size: 11px;">Checking...</span>
+      <button class="btn btn-secondary btn-sm" onclick="fetchSystemHealth()" style="padding: 2px 8px; font-size: 11px;">Refresh</button>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+    <div class="health-chip" id="healthDb" style="background: var(--bg-surface-alt); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 16px;">💾</span>
+      <div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Database</div>
+        <div style="font-size: 11px; color: var(--text-muted);" id="healthDbVal">--</div>
+      </div>
+    </div>
+    <div class="health-chip" id="healthDetector" style="background: var(--bg-surface-alt); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 16px;">📹</span>
+      <div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">YOLOv8 Vision</div>
+        <div style="font-size: 11px; color: var(--text-muted);" id="healthDetectorVal">--</div>
+      </div>
+    </div>
+    <div class="health-chip" id="healthDocIndex" style="background: var(--bg-surface-alt); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 16px;">📚</span>
+      <div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Document Index</div>
+        <div style="font-size: 11px; color: var(--text-muted);" id="healthDocIndexVal">--</div>
+      </div>
+    </div>
+    <div class="health-chip" id="healthVisualIndex" style="background: var(--bg-surface-alt); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 16px;">🧠</span>
+      <div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Visual Index</div>
+        <div style="font-size: 11px; color: var(--text-muted);" id="healthVisualIndexVal">--</div>
+      </div>
+    </div>
+    <div class="health-chip" id="healthLlm" style="background: var(--bg-surface-alt); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 16px;">⚡</span>
+      <div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">LLM Provider</div>
+        <div style="font-size: 11px; color: var(--text-muted);" id="healthLlmVal">--</div>
+      </div>
+    </div>
+    <div class="health-chip" id="healthLanggraph" style="background: var(--bg-surface-alt); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 16px;">🔄</span>
+      <div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">LangGraph</div>
+        <div style="font-size: 11px; color: var(--text-muted);" id="healthLanggraphVal">--</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Top Analytics Row: Circular Safety Score + Timeseries Line Chart -->
 <div class="grid-dash-top">
   <!-- Circular Safety Score Gauge -->

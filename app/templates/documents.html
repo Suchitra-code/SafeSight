@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Document Library – SafeSight AI{% endblock %}
+{% block breadcrumb %}Document Library{% endblock %}
+
+{% block content %}
+<div class="documents-container" style="display: flex; flex-direction: column; gap: 24px;">
+
+  <!-- Fallback / Environment Notices -->
+  {% if not ocr_available %}
+  <div class="demo-banner" style="background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.4); color: #B45309;">
+    <span>⚠️ <strong>OCR Engine Notice:</strong> Tesseract OCR is not installed or not in system PATH. Scanned image PDFs will extract available metadata; text PDFs, DOCX, and TXT files are fully supported.</span>
+  </div>
+  {% endif %}
+
+  <!-- Top Action & Stat Row -->
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">Document Intelligence Library</h1>
+      <p style="color: var(--text-muted); font-size: 14px;">Processed site inspection reports, safety manuals, and standard operating procedures (SOPs).</p>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <button id="btnLoadDemoDocs" class="btn btn-secondary" onclick="loadDemoDocuments()" style="display: flex; align-items: center; gap: 8px;">
+        <span>📥</span>
+        <span>Load Demo Documents</span>
+      </button>
+      <a href="/api/documents/export?format=csv" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px;">
+        <span>📊</span>
+        <span>Export Findings (CSV)</span>
+      </a>
+      <a href="/documents/upload" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; background: var(--accent); color: white; padding: 10px 18px; border-radius: var(--radius-md); font-weight: 600;">
+        <span>📤</span>
+        <span>Upload Documents</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Metrics Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+    <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px;">
+      <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Documents</span>
+      <span id="kpiTotalDocs" style="font-size: 28px; font-weight: 800; color: var(--text-main);">0</span>
+      <span style="font-size: 12px; color: var(--safe);">Indexed in Knowledge Base</span>
+    </div>
+    <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px;">
+      <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Processed</span>
+      <span id="kpiProcessedDocs" style="font-size: 28px; font-weight: 800; color: var(--safe);">0</span>
+      <span style="font-size: 12px; color: var(--text-muted);">Verified &amp; Searchable</span>
+    </div>
+    <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px;">
+      <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Needs Review</span>
+      <span id="kpiReviewDocs" style="font-size: 28px; font-weight: 800; color: var(--warning);">0</span>
+      <span style="font-size: 12px; color: var(--text-muted);">Low confidence extractions</span>
+    </div>
+    <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 6px;">
+      <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Findings</span>
+      <span id="kpiFindings" style="font-size: 28px; font-weight: 800; color: var(--accent);">0</span>
+      <span style="font-size: 12px; color: var(--danger);" id="kpiOpenFindings">0 Open Infractions</span>
+    </div>
+  </div>
+
+  <!-- Filter & Search Bar -->
+  <div class="card" style="padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+      <div>
+        <select id="filterRepo" class="form-select" onchange="fetchDocuments()" style="padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface-alt); font-size: 13px;">
+          <option value="all">All Repositories</option>
+          {% for r in repositories %}
+          <option value="{{ r.id }}">{{ r.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <select id="filterType" class="form-select" onchange="fetchDocuments()" style="padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface-alt); font-size: 13px;">
+          <option value="all">All Document Types</option>
+          <option value="inspection_report">Inspection Reports</option>
+          <option value="safety_manual">Safety Manuals</option>
+          <option value="sop">SOPs</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div>
+        <select id="filterStatus" class="form-select" onchange="fetchDocuments()" style="padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface-alt); font-size: 13px;">
+          <option value="all">All Statuses</option>
+          <option value="processed">Processed</option>
+          <option value="verified">Verified</option>
+          <option value="needs review">Needs Review</option>
+          <option value="processing">Processing</option>
+          <option value="failed">Failed</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Search box -->
+    <div style="display: flex; gap: 8px; align-items: center; width: 300px;">
+      <input type="text" id="docSearchInput" placeholder="Filter by title..." oninput="debounceSearch()" style="width: 100%; padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface-alt); font-size: 13px;">
+    </div>
+  </div>
+
+  <!-- Documents Table -->
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+        <thead>
+          <tr style="background: var(--bg-surface-alt); border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-weight: 600;">
+            <th style="padding: 14px 20px;">Document Title</th>
+            <th style="padding: 14px 16px;">Type</th>
+            <th style="padding: 14px 16px;">Repository</th>
+            <th style="padding: 14px 16px;">Pages</th>
+            <th style="padding: 14px 16px;">Extracted Content</th>
+            <th style="padding: 14px 16px;">Status</th>
+            <th style="padding: 14px 16px;">Uploaded</th>
+            <th style="padding: 14px 20px; text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="docsTableBody">
+          <tr>
+            <td colspan="8" style="padding: 40px; text-align: center; color: var(--text-muted);">
+              Loading document library...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/documents.js') }}"></script>
+{% endblock %}

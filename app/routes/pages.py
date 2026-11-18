@@ -132,6 +132,41 @@ def reports():
     )
 
 
+@pages_bp.route("/assistant")
+def assistant_page():
+    """AI Safety Assistant & RAG Q&A Interface."""
+    return render_template(
+        "assistant.html",
+        active_page="assistant",
+        demo_mode=config.DEMO_MODE
+    )
+
+
+@pages_bp.route("/investigations")
+def investigations_page():
+    """Agentic Incident Investigations List."""
+    return render_template(
+        "investigations.html",
+        active_page="investigations",
+        demo_mode=config.DEMO_MODE
+    )
+
+
+@pages_bp.route("/investigations/<run_id>")
+def investigation_detail_page(run_id):
+    """Investigation detail with graph visualization and supervisor approval."""
+    from app.agents import runner
+    run_data = runner.get_run_status(run_id)
+    if not run_data:
+        abort(404, description=f"Investigation run '{run_id}' not found.")
+    return render_template(
+        "investigation_detail.html",
+        active_page="investigations",
+        run=run_data,
+        demo_mode=config.DEMO_MODE
+    )
+
+
 @pages_bp.route("/outputs/<path:filename>")
 def serve_output(filename):
     """Serves annotated assets, snapshots, and processed media."""

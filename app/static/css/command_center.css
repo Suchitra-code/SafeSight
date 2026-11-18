@@ -1,0 +1,437 @@
+/* Mission Control Command Center Stylesheet (Milestone 4) */
+:root {
+  --cc-bg-dark: #0a0f1d;
+  --cc-bg-card: #131b2e;
+  --cc-bg-card-hover: #1a253f;
+  --cc-border: #1f2c47;
+  --cc-accent-orange: #f59e0b;
+  --cc-accent-blue: #3b82f6;
+  --cc-success: #10b981;
+  --cc-warning: #f59e0b;
+  --cc-danger: #ef4444;
+  --cc-text-light: #f8fafc;
+  --cc-text-muted: #94a3b8;
+}
+
+.cc-container {
+  padding: 16px 20px;
+  background-color: var(--cc-bg-dark);
+  color: var(--cc-text-light);
+  min-height: calc(100vh - 65px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Top Action Bar */
+.cc-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cc-border);
+}
+
+.cc-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cc-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cc-badge-lg {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cc-health-pill {
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.health-ok {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+.health-pulse-dot {
+  width: 7px;
+  height: 7px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulseDot 1.6s infinite;
+}
+@keyframes pulseDot {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 6px #10b981; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+.cc-action-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Active Filters Chip Bar */
+.cc-chip-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.cc-chip {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  padding: 3px 10px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cc-chip-close {
+  cursor: pointer;
+  color: #94a3b8;
+  font-weight: bold;
+}
+.cc-chip-close:hover { color: #f87171; }
+
+/* 5 KPI Metric Strip */
+.cc-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.cc-kpi-card {
+  background: var(--cc-bg-card);
+  border: 1px solid var(--cc-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+.cc-kpi-card:hover {
+  background: var(--cc-bg-card-hover);
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+}
+.cc-kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cc-text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.cc-kpi-val-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.cc-kpi-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+}
+.cc-kpi-delta {
+  font-size: 12px;
+  font-weight: 700;
+  color: #34d399;
+}
+
+/* 3-Column Center Layout */
+.cc-main-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr 340px;
+  gap: 16px;
+  min-height: 580px;
+}
+
+@media (max-width: 1400px) {
+  .cc-main-grid {
+    grid-template-columns: 260px 1fr 300px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .cc-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Left Column: Interactive Site Map */
+.cc-panel {
+  background: var(--cc-bg-card);
+  border: 1px solid var(--cc-border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cc-panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cc-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.cc-panel-body {
+  padding: 14px 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Site Map SVG Styles */
+.sitemap-zone {
+  fill: rgba(30, 41, 59, 0.7);
+  stroke: #475569;
+  stroke-width: 2;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.sitemap-zone:hover {
+  fill: rgba(59, 130, 246, 0.25);
+  stroke: #60a5fa;
+}
+.zone-high-risk {
+  fill: rgba(239, 68, 68, 0.2) !important;
+  stroke: #ef4444 !important;
+}
+.zone-pulse {
+  animation: zoneGlow 1.8s infinite alternate;
+}
+@keyframes zoneGlow {
+  0% { stroke-width: 2; }
+  100% { stroke-width: 4; stroke: #f59e0b; }
+}
+
+/* Copilot Panel (Center Star) */
+.copilot-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.copilot-prompt-bar {
+  display: flex;
+  gap: 8px;
+  background: #1e293b;
+  border: 1px solid var(--cc-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.copilot-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 13px;
+  flex: 1;
+}
+
+/* Pipeline Live Execution Visualization */
+.pipeline-viz-container {
+  background: #0f172a;
+  border: 1px solid var(--cc-border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.pipeline-nodes-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+.pipeline-node {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+.pipeline-node.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #60a5fa;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+.pipeline-node.completed {
+  border-color: #10b981;
+  color: #34d399;
+}
+.pipeline-node.failed {
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+/* Copilot Answer Card */
+.answer-card-container {
+  background: #172033;
+  border: 1px solid #2d3d5f;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.answer-headline {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+.answer-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+.cite-tag {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin: 0 2px;
+  cursor: pointer;
+}
+
+/* Trust Meter */
+.trust-meter-gauge {
+  height: 8px;
+  background: #1e293b;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.trust-meter-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #10b981);
+  width: 0%;
+  transition: width 0.6s ease;
+}
+
+/* Live Event Feed Items */
+.feed-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  cursor: pointer;
+}
+.feed-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.feed-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #000;
+}
+
+
+/* Mic button active state */
+.mic-active {
+  background: #ef4444 !important;
+  color: white !important;
+  animation: mic-pulse 1s infinite;
+}
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+}
+
+/* Demo mode active state */
+.demo-active {
+  background: #22c55e !important;
+  color: white !important;
+}
+
+/* Scoreboard table */
+.scoreboard-table th {
+  padding: 8px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cc-text-muted);
+  text-transform: uppercase;
+  text-align: left;
+}
+.scoreboard-table td {
+  padding: 6px;
+  border-bottom: 1px solid var(--cc-border);
+  color: var(--cc-text-primary);
+}
+.scoreboard-table tr:hover td {
+  background: rgba(255,255,255,0.03);
+}
+.cc-btn-sm {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--cc-border);
+  background: var(--cc-bg-card);
+  color: var(--cc-text-primary);
+  cursor: pointer;
+}
+.cc-btn-sm:hover {
+  background: var(--cc-bg-card-hover);
+}
+
+/* Follow-up question chips */
+.follow-up-chip:hover {
+  border-color: #a78bfa !important;
+  color: #a78bfa !important;
+}
+
+/* Ctrl+K hint in input placeholder */
+.copilot-input::placeholder {
+  font-size: 12px;
+}

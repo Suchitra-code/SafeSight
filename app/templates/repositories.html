@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Document Repositories – SafeSight AI{% endblock %}
+{% block breadcrumb %}Document Repositories{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 24px;">
+
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">Document Repositories</h1>
+      <p style="color: var(--text-muted); font-size: 14px;">Organize and isolate site documents, manuals, and audit logs into dedicated searchable collections.</p>
+    </div>
+    <div>
+      <button class="btn btn-primary" onclick="openNewRepoModal()" style="background: var(--accent); color: white; padding: 10px 18px; font-weight: 600; border-radius: var(--radius-md);">
+        <span>➕</span>
+        <span>Create Repository</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Repositories Grid -->
+  <div id="repositoriesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+    <!-- Rendered via JS -->
+  </div>
+
+</div>
+
+<!-- New/Edit Repository Modal -->
+<div id="repoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center;">
+  <div class="card" style="width: 480px; padding: 28px;">
+    <h3 id="modalTitle" style="font-size: 18px; font-weight: 800; margin-bottom: 16px;">Create New Repository</h3>
+    <input type="hidden" id="editRepoId" value="">
+
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Repository Name</label>
+      <input type="text" id="repoNameInput" placeholder="e.g., Electrical Safety Audit 2026" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface-alt); font-size: 14px;">
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Description</label>
+      <textarea id="repoDescInput" rows="3" placeholder="Describe the scope and documents in this collection..." style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface-alt); font-size: 14px; resize: vertical;"></textarea>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+      <button class="btn btn-secondary" onclick="closeRepoModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRepository()" style="background: var(--accent); color: white; padding: 8px 18px; font-weight: 600;">Save Repository</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/documents.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchRepositoriesList();
+  });
+</script>
+{% endblock %}
