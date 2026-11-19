@@ -425,5 +425,47 @@
     "page_no": 1,
     "chunk_index": 0,
     "text": "SOP-042: Safe Operation of Portable Angle Grinders 1.0 PURPOSE AND PPE PREREQUISITES Operators must verify that the wheel guard is properly fitted and securely tightened before connecting power. Full face shield, safety goggles, leather gloves, and hearing protection must be worn at all times. 2.0 OPERATING PROCEDURE Step 1: Visually inspect grinding disc for cracks, chips, or excessive wear before startup. Step 2: Clamp workpiece firmly to workbench; holding workpieces by hand is prohibited. Step 3: Allow the grinder to reach full operating speed before contacting the material. Step 4: Maintain two-handed grip on grinder body and auxiliary handle throughout cutting."
+  },
+  {
+    "document_id": 58,
+    "repository_id": 1,
+    "page_no": 1,
+    "chunk_index": 0,
+    "text": "SafeSight Inspection Report: Site A Monthly Audit Report ID: SAF-2026-0881 Inspection Date: 2026-04-12 Site Location: Sector 4 Metro Extension Area / Zone: Zone A - Fabrication Yard Inspector Name: Marcus Vance Supervisor Name: Elena Rostova Company: Apex Structural Engineering Shift: Day Shift Weather: Clear, 28C Inspection Findings & Observed Infractions ID Finding Description Category Severity Corrective Action Responsible Due Date Status F-01 Two scaffolding riggers observed without hardhats near hoist helmet HIGH Immediate halt, issue hardhats with chin straps M. Vance 2026-04-14 open F-02 Worker operating angle grinder without protective goggles goggles HIGH Provide ANSI Z87.1 face shield and eye protection E. Rostova 2026-04-13 open F-03 Worn and soiled reflective vest lacking retro-reflective tape vest LOW Issue replacement Class 2 hi-vis safety vest Site Store 2026-04-20 closed F-04 Heavy lifting carried out with damaged fabric gloves gloves MEDIUM Replace with EN388 heavy-duty grip gloves Foreman Dave 2026-04-16 open Summary: Site overall compliance rating is 82%. Corrective actions must be verified within 48 hours."
+  },
+  {
+    "document_id": 59,
+    "repository_id": 1,
+    "page_no": 1,
+    "chunk_index": 0,
+    "text": "Site Walkthrough Observation Report Report No: AUD-PPE-402 Date of Inspection: 2026-04-18 Facility: Main Structural Warehouse Zone: Zone B Loading Bay Inspected By: Sarah Jenkins Supervisor: David Miller Shift: Night Shift Observations and Corrective Actions Finding 1: Forklift operator observed driving without safety vest in high traffic transit lane. Severity: HIGH. Action: Issue reprimand and mandate high-visibility clothing. Due: 2026-04-20. Status: open. Finding 2: Chemical decanting area workers missing neoprene chemical gloves. Severity: CRITICAL. Action: Immediate supply of chemical hazard protection gear. Due: 2026-04-19. Status: open. Finding 3: Tripping hazard due to unsecured hydraulic hose near entry ramp. Severity: LOW. Action: Secure cables with rubber ramp covers. Status: closed."
+  },
+  {
+    "document_id": 60,
+    "repository_id": 1,
+    "page_no": 1,
+    "chunk_index": 0,
+    "text": "Heavy Equipment & Crane Zone Safety Audit Report ID: CRN-2026-119 Inspection Date: 2026-04-25 Location: Tower Crane Pad #2 Inspector Name: Frank Castle Supervisor: Elena Rostova Company: SafeSight Construction Partners Audit Findings Finding 1: Subcontractor personnel entered the active crane swing radius without hardhat and steel-toed boots. Severity: HIGH. Category: helmet. Corrective Action: Restrict gate access and enforce mandatory hardhat rule before entry. Due Date: 2026-04-27. Status: open. Finding 2: Rigger signalman wearing non-compliant vest with faded reflective strips. Category: vest. Severity: MEDIUM. Corrective Action: Replace with fluorescent green EN ISO 20471 class 3 vest. Status: in progress."
+  },
+  {
+    "document_id": 61,
+    "repository_id": 2,
+    "page_no": 1,
+    "chunk_index": 0,
+    "text": "SafeSight AI: Corporate PPE Safety Manual (v4.2) 1.0 SCOPE AND MANDATORY REQUIREMENTS All employees, contractors, and site visitors must wear approved Type 1 Class E industrial hardhats at all times while present inside designated active construction and fabrication zones. High-visibility safety vests with reflective striping must be worn by all personnel working within 15 meters of vehicle traffic or heavy mechanical plant. Safety glasses or goggles complying with ANSI Z87.1 standard are strictly mandatory in areas where cutting, grinding, or chemical splashing hazards exist. Puncture-resistant, steel-toed safety boots are required across the entire industrial perimeter. Sneakers or open-toed footwear are strictly prohibited. 2.0 PPE CARE AND INSPECTION Workers shall inspect all personal protective equipment daily prior to commencement of work. Any hardhat subjected to severe impact must be immediately decommissioned and discarded."
+  },
+  {
+    "document_id": 62,
+    "repository_id": 2,
+    "page_no": 1,
+    "chunk_index": 0,
+    "text": "Industrial Hot Work & Welding Safety Handbook 1.0 PPE REQUIREMENTS FOR WELDING OPERATIONS What PPE is required for welding: Operators must wear shade 10-12 welding helmets with auto-darkening filters, flame-retardant split cowhide leather welding jackets or aprons, heat-resistant welding gloves, and safety goggles underneath the helmet at all times. Synthetic clothing like polyester or nylon is prohibited near open arc welding due to severe melting hazards. 2.0 PROCEDURE FOR CONFINED SPACE ENTRY Step 1: Obtain a valid Confined Space Entry Permit signed by the appointed Safety Officer. Step 2: Test atmospheric conditions for oxygen levels (19.5% to 23.5%), flammable gases ( 10% LEL), and toxic contaminants. Step 3: Establish continuous forced mechanical ventilation throughout the work period. Step 4: Wear a full body harness connected to a mechanical retrieval tripod system. Step 5: Maintain a dedicated standby attendant outside the entrance at all times."
+  },
+  {
+    "document_id": 63,
+    "repository_id": 3,
+    "page_no": 1,
+    "chunk_index": 0,
+    "text": "SOP-042: Safe Operation of Portable Angle Grinders 1.0 PURPOSE AND PPE PREREQUISITES Operators must verify that the wheel guard is properly fitted and securely tightened before connecting power. Full face shield, safety goggles, leather gloves, and hearing protection must be worn at all times. 2.0 OPERATING PROCEDURE Step 1: Visually inspect grinding disc for cracks, chips, or excessive wear before startup. Step 2: Clamp workpiece firmly to workbench; holding workpieces by hand is prohibited. Step 3: Allow the grinder to reach full operating speed before contacting the material. Step 4: Maintain two-handed grip on grinder body and auxiliary handle throughout cutting."
   }
 ]
