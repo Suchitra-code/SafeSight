@@ -77,6 +77,7 @@ def run_smoke_test():
         ("/api/copilot/graph", "Copilot LangGraph Pipeline (M4)"),
         ("/api/copilot/suggestions", "Dynamic Copilot Prompts (M4)"),
         ("/api/copilot/history", "Copilot Runs History (M4)"),
+        ("/api/kpis/workplace-safety", "Workplace Safety KPIs (M5)"),
     ]
 
     for url, desc in apis:

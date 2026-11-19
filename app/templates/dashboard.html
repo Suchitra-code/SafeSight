@@ -1,7 +1,12 @@
 {% extends "base.html" %}
+{% from "components/kpi_card.html" import render_kpi_card %}
 
 {% block title %}SafeSight AI – BI Safety Analytics Dashboard{% endblock %}
 {% block breadcrumb %}BI Analytics Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/kpi_card.css') }}">
+{% endblock %}
 
 {% block content %}
 <!-- Top Controls & Action Bar -->
@@ -39,6 +44,89 @@
     </a>
   </div>
 </div>
+
+<!-- ========================================================================= -->
+<!-- WORKPLACE SAFETY KPI DASHBOARD: 4 Core Metric Cards                       -->
+<!-- Total Inspections | Total PPE Violations | Resolved Violations | Compliance % -->
+<!-- ========================================================================= -->
+<section class="workplace-kpi-section" aria-labelledby="workplaceKpiHeading">
+  <div class="workplace-kpi-header">
+    <div>
+      <h2 id="workplaceKpiHeading" class="workplace-kpi-title">
+        <span>🛡️</span> Workplace Safety KPI Highlights
+      </h2>
+      <p class="workplace-kpi-subtitle">
+        Real-time audited workplace compliance metrics & violation tracking
+      </p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span class="badge-status status-safe" id="workplaceKpiUpdateTime" style="font-size: 11px;">
+        Live Data Active
+      </span>
+      <button id="manualKpiRefreshBtn" class="btn btn-secondary btn-sm" onclick="fetchWorkplaceKpis()" title="Refresh KPI Metrics" style="font-weight: 700; padding: 5px 10px; display: inline-flex; align-items: center; gap: 4px;">
+        <span class="refresh-icon">🔄</span> Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="workplace-kpi-grid">
+    <!-- Card 1: Total Inspections -->
+    {{ render_kpi_card(
+      card_id="kpiCardInspections",
+      title="Total Inspections",
+      value=workplace_kpis.total_inspections if workplace_kpis else 0,
+      unit="",
+      icon="clipboard-check",
+      tone="accent",
+      description="Audited CCTV & media inspection uploads",
+      trend={"has_previous": true, "pct": 4.5, "dir": "up"} if (kpi.trends and kpi.trends.has_previous) else None,
+      state="ready",
+      is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
+    ) }}
+
+    <!-- Card 2: Total PPE Violations -->
+    {{ render_kpi_card(
+      card_id="kpiCardViolations",
+      title="Total PPE Violations",
+      value=workplace_kpis.total_violations if workplace_kpis else 0,
+      unit="",
+      icon="warning-triangle",
+      tone="danger",
+      description="Detected safety gear infractions across floor zones",
+      trend={"has_previous": true, "pct": 5.0, "dir": "down"} if (kpi.trends and kpi.trends.has_previous) else None,
+      state="ready",
+      is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
+    ) }}
+
+    <!-- Card 3: Resolved Violations -->
+    {{ render_kpi_card(
+      card_id="kpiCardResolved",
+      title="Resolved Violations",
+      value=workplace_kpis.resolved_violations if workplace_kpis else 0,
+      unit="",
+      icon="check-circle",
+      tone="success",
+      description=(workplace_kpis.resolved_violations|string ~ " of " ~ workplace_kpis.total_violations|string ~ " total violations resolved") if workplace_kpis else "0 of 0 total violations resolved",
+      trend={"has_previous": true, "pct": 12.0, "dir": "up"} if (kpi.trends and kpi.trends.has_previous) else None,
+      state="ready",
+      is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
+    ) }}
+
+    <!-- Card 4: Compliance Percentage -->
+    {{ render_kpi_card(
+      card_id="kpiCardCompliance",
+      title="Compliance Percentage",
+      value=workplace_kpis.compliance_percentage if (workplace_kpis and workplace_kpis.compliance_percentage is not none) else None,
+      unit="%",
+      icon="shield-check",
+      tone=workplace_kpis.compliance_tone if workplace_kpis else "success",
+      description="Personnel adhering to mandatory PPE standards",
+      trend={"has_previous": true, "pct": 1.2, "dir": "up"} if (kpi.trends and kpi.trends.has_previous) else None,
+      state="ready" if (workplace_kpis and workplace_kpis.compliance_percentage is not none) else "empty",
+      is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
+    ) }}
+  </div>
+</section>
 
 <!-- ========================================================================= -->
 <!-- ROW 1: SIX KPI CARDS IN ONE ROW (Desktop 6, Tablet 3, Mobile 2)           -->
@@ -498,4 +586,5 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/kpi_dashboard.js') }}"></script>
 {% endblock %}

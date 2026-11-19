@@ -1,0 +1,82 @@
+{# =========================================================================
+   SafeSight AI — Reusable KpiCard Jinja Macro Component
+   Props:
+     card_id: Unique DOM ID for JS targeting
+     title: Card title (e.g., 'Total Inspections')
+     value: Primary numeric value
+     unit: Optional suffix unit (e.g., '%')
+     icon: 'clipboard-check' | 'warning-triangle' | 'check-circle' | 'shield-check'
+     tone: 'accent' | 'danger' | 'success' | 'warning'
+     description: Explanatory subtitle
+     trend: Optional dict { 'diff': n, 'pct': x, 'dir': 'up'|'down' }
+     state: 'ready' | 'loading' | 'error' | 'empty'
+     is_demo: Boolean indicating whether metric is simulated
+   ========================================================================= #}
+
+{% macro render_kpi_card(card_id, title, value, unit='', icon='clipboard-check', tone='accent', description='', trend=None, state='ready', is_demo=False) %}
+<div class="kpi-card-box kpi-tone-{{ tone }} kpi-state-{{ state }}" id="{{ card_id }}" role="group" aria-label="{{ title }}: {{ value if value is not none else 'No data' }}{{ unit if unit else '' }}" tabindex="0">
+  
+  {% if is_demo %}
+  <span class="kpi-demo-badge">DEMO</span>
+  {% endif %}
+
+  <div class="kpi-card-top">
+    <div class="kpi-badge kpi-badge-{{ tone }}">
+      {% if icon == 'clipboard-check' %}
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><polyline points="9 14 11 16 15 11"/></svg>
+      {% elif icon == 'warning-triangle' %}
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      {% elif icon == 'check-circle' %}
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      {% elif icon == 'shield-check' %}
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+      {% else %}
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      {% endif %}
+    </div>
+
+    {% if trend and trend.has_previous %}
+    <span class="kpi-trend kpi-trend-{{ trend.dir }}">
+      {{ '↑' if trend.dir == 'up' else '↓' }} {{ trend.pct }}%
+    </span>
+    {% endif %}
+  </div>
+
+  <!-- State 1: Ready Content -->
+  <div class="kpi-content-ready">
+    <div class="kpi-num-wrap">
+      <span class="kpi-number" id="{{ card_id }}_val" data-val="{{ value if value is not none else 0 }}">{{ value if value is not none else 'No data' }}</span>
+      {% if unit %}
+      <span class="kpi-unit">{{ unit }}</span>
+      {% endif %}
+    </div>
+    <h4 class="kpi-title">{{ title }}</h4>
+    {% if description %}
+    <p class="kpi-desc" id="{{ card_id }}_desc">{{ description }}</p>
+    {% endif %}
+  </div>
+
+  <!-- State 2: Skeleton Shimmer Loading -->
+  <div class="kpi-skeleton-wrap" aria-hidden="true">
+    <div class="kpi-skeleton kpi-skeleton-num"></div>
+    <div class="kpi-skeleton kpi-skeleton-title"></div>
+    <div class="kpi-skeleton kpi-skeleton-desc"></div>
+  </div>
+
+  <!-- State 3: Error State with Retry Button -->
+  <div class="kpi-error-wrap" role="alert">
+    <span style="font-size: 18px;">⚠️</span>
+    <p class="kpi-error-msg">Failed to load metric.</p>
+    <button class="kpi-retry-btn" type="button" onclick="refreshWorkplaceKpiCard('{{ card_id }}')">
+      <span>🔄</span> Retry
+    </button>
+  </div>
+
+  <!-- State 4: Empty State -->
+  <div class="kpi-empty-wrap">
+    <span class="kpi-empty-val">No data yet</span>
+    <h4 class="kpi-title">{{ title }}</h4>
+    <p class="kpi-desc">No inspection events recorded.</p>
+  </div>
+</div>
+{% endmacro %}

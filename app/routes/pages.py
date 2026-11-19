@@ -8,7 +8,7 @@ from flask import Blueprint, render_template, abort, send_from_directory, curren
 
 import config
 from app.db import execute_query
-from app.services import analytics, violation_service
+from app.services import analytics, violation_service, kpi_service
 
 pages_bp = Blueprint("pages", __name__)
 
@@ -36,11 +36,13 @@ def dashboard():
     v_by_type = analytics.get_violations_by_type()
     cameras = execute_query("SELECT * FROM cameras WHERE is_active = 1") or []
     latest_v = analytics.get_latest_violation()
+    workplace_kpis = kpi_service.get_workplace_safety_kpis().get("data", {})
 
     return render_template(
         "dashboard.html",
         active_page="dashboard",
         kpi=kpi,
+        workplace_kpis=workplace_kpis,
         safety_score=safety_score,
         v_by_type=v_by_type,
         cameras=[dict(c) for c in cameras],

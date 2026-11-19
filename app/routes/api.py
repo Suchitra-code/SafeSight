@@ -11,7 +11,7 @@ from flask import Blueprint, request, jsonify, send_file, current_app, Response
 
 import config
 from app.db import execute_insert, execute_query
-from app.services import processor, violation_service, analytics, report_pdf
+from app.services import processor, violation_service, analytics, report_pdf, kpi_service
 from database.seed_demo import seed_demo_data
 
 logger = logging.getLogger(__name__)
@@ -224,6 +224,21 @@ def get_violation_snapshot(violation_id):
     if not os.path.exists(snap_path):
         return send_from_directory(os.path.join(config.BASE_DIR, "app", "static", "img"), "placeholder_worker.jpg")
     return send_file(snap_path)
+
+
+@api_bp.route("/kpis/workplace-safety", methods=["GET"])
+def get_workplace_safety_kpis():
+    """
+    Returns core workplace safety KPI metrics:
+    - total_inspections
+    - total_violations
+    - resolved_violations
+    - compliance_percentage
+    """
+    result = kpi_service.get_workplace_safety_kpis()
+    if not result.get("ok"):
+        return jsonify(result), 500
+    return jsonify(result), 200
 
 
 @api_bp.route("/analytics/kpi", methods=["GET"])
