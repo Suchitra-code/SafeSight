@@ -144,19 +144,28 @@ def get_results(upload_id):
 
 @api_bp.route("/violations", methods=["GET"])
 def list_violations():
-    """Returns filtered, paginated list of violations."""
+    """Returns filtered, paginated list of violations with summary counts."""
     try:
-        page = int(request.args.get("page", 1))
-        per_page = int(request.args.get("per_page", 15))
+        try:
+            page = max(1, int(request.args.get("page", 1)))
+        except (ValueError, TypeError):
+            return jsonify({"ok": False, "error": "Invalid page parameter: must be a positive integer"}), 400
+
+        try:
+            raw_size = request.args.get("page_size") or request.args.get("per_page") or 10
+            per_page = max(1, min(100, int(raw_size)))
+        except (ValueError, TypeError):
+            return jsonify({"ok": False, "error": "Invalid page_size parameter: must be an integer between 1 and 100"}), 400
 
         filters = {
-            "violation_type": request.args.getlist("type") or request.args.get("type"),
+            "type": request.args.getlist("type") or request.args.get("type"),
             "status": request.args.getlist("status") or request.args.get("status"),
             "camera": request.args.get("camera"),
             "severity": request.args.get("severity"),
-            "search": request.args.get("search"),
-            "date_from": request.args.get("date_from"),
-            "date_to": request.args.get("date_to"),
+            "search": request.args.get("q") or request.args.get("search"),
+            "date": request.args.get("date"),
+            "date_from": request.args.get("from") or request.args.get("date_from"),
+            "date_to": request.args.get("to") or request.args.get("date_to"),
             "sort_by": request.args.get("sort_by", "newest")
         }
 
@@ -167,7 +176,7 @@ def list_violations():
         return jsonify(res)
     except Exception as e:
         logger.error(f"Error fetching violations: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 @api_bp.route("/violations/<int:violation_id>", methods=["GET"])
@@ -175,27 +184,68 @@ def get_violation(violation_id):
     """Fetches full details for a single violation."""
     v = violation_service.get_violation_by_id(violation_id)
     if not v:
-        return jsonify({"error": "Violation not found"}), 404
-    return jsonify(v)
+        return jsonify({"ok": False, "error": "Violation not found"}), 404
+    return jsonify({"ok": True, "data": v, "violation": v})
 
 
-@api_bp.route("/violations/<int:violation_id>/status", methods=["PUT"])
+@api_bp.route("/violations/<int:violation_id>/history", methods=["GET"])
+def get_violation_history_api(violation_id):
+    """Fetches audit history for status transitions of a violation."""
+    history = violation_service.get_violation_history(violation_id)
+    return jsonify({"ok": True, "history": history})
+
+
+@api_bp.route("/violations/<int:violation_id>/status", methods=["PUT", "PATCH"])
 def update_status(violation_id):
-    """Updates status and notes for a violation."""
-    try:
-        data = request.get_json() or {}
-        new_status = data.get("status")
-        if not new_status:
-            return jsonify({"error": "Missing status"}), 400
+    """
+    Updates status and review notes for a violation.
+    Enforces server-side authentication: requires logged-in user.
+    Records audit entry in violation_status_history.
+    """
+    from flask import session
+    if not session.get("logged_in"):
+        return jsonify({
+            "ok": False,
+            "error": "Unauthorized: Authentication required to update violation status"
+        }), 401
 
-        reviewed_by = data.get("reviewed_by")
+    try:
+        data = request.get_json(silent=True) or {}
+        new_status = data.get("status")
+        if not new_status or not str(new_status).strip():
+            return jsonify({"ok": False, "error": "Missing 'status' parameter"}), 400
+
+        norm_status = str(new_status).strip().lower()
+        allowed_statuses = {
+            "pending", "reviewed", "resolved",
+            "detected", "pending review", "confirmed", "dismissed"
+        }
+        if norm_status not in allowed_statuses:
+            return jsonify({
+                "ok": False,
+                "error": f"Invalid status: '{new_status}'. Allowed values: {sorted(list(allowed_statuses))}"
+            }), 400
+
+        actor = session.get("username") or session.get("user") or data.get("reviewed_by") or "Supervisor"
         notes = data.get("notes")
 
-        violation_service.update_violation_status(violation_id, new_status, reviewed_by, notes)
-        return jsonify({"success": True, "message": f"Violation #{violation_id} updated to '{new_status}'"})
+        res = violation_service.update_violation_status(violation_id, norm_status, reviewed_by=actor, notes=notes)
+        return jsonify({
+            "ok": True,
+            "success": True,
+            "data": res.get("violation"),
+            "counts": res.get("counts"),
+            "message": res.get("message")
+        })
+    except ValueError as ve:
+        # Check if violation was not found
+        msg = str(ve)
+        status_code = 404 if "not found" in msg.lower() else 400
+        return jsonify({"ok": False, "error": msg}), status_code
     except Exception as e:
-        logger.error(f"Error updating violation #{violation_id}: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error updating violation #{violation_id}: {e}", exc_info=True)
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 
 
 @api_bp.route("/violations/<int:violation_id>/explain", methods=["GET"])

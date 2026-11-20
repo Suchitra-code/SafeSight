@@ -47,6 +47,7 @@ def run_smoke_test():
         ("/repositories", "Knowledge Repositories (M2)"),
         ("/assistant", "AI Safety Assistant RAG (M3)"),
         ("/investigations", "Incident Investigations (M3)"),
+        ("/violation-monitoring", "Violation Monitoring (M5)"),
     ]
 
     for url, desc in pages:
@@ -78,6 +79,7 @@ def run_smoke_test():
         ("/api/copilot/suggestions", "Dynamic Copilot Prompts (M4)"),
         ("/api/copilot/history", "Copilot Runs History (M4)"),
         ("/api/kpis/workplace-safety", "Workplace Safety KPIs (M5)"),
+        ("/api/violations?page=1&page_size=5", "Violation Monitoring API (M5)"),
     ]
 
     for url, desc in apis:

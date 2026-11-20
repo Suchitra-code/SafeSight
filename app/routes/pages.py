@@ -122,6 +122,22 @@ def events():
     )
 
 
+@pages_bp.route("/violation-monitoring")
+def violation_monitoring():
+    """Violation Monitoring page with real-time status model, filters, and audit table."""
+    cameras = execute_query("SELECT * FROM cameras WHERE is_active = 1") or []
+    counts = violation_service.get_violation_summary_counts()
+    initial_data = violation_service.get_violations(page=1, per_page=10)
+    return render_template(
+        "violation_monitoring.html",
+        active_page="violation_monitoring",
+        cameras=[dict(c) for c in cameras],
+        counts=counts,
+        initial_data=initial_data,
+        demo_mode=config.DEMO_MODE
+    )
+
+
 @pages_bp.route("/reports")
 def reports():
     """Compliance Reports & Audit Logs page."""

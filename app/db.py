@@ -274,6 +274,8 @@ def init_db():
         init_db_milestone3()
         # Auto-run Milestone 4 schema migrations
         init_db_milestone4()
+        # Auto-run Violation Monitoring schema migrations
+        init_db_violation_monitoring()
         return True
     except Exception as e:
         logger.error(f"Failed to initialize SQLite fallback: {e}")
@@ -608,3 +610,75 @@ def init_db_milestone4():
     except Exception as e:
         logger.error(f"Failed to initialize SQLite Milestone 4 tables: {e}")
         return False
+
+
+def init_db_violation_monitoring():
+    """
+    Auto-initializes Violation Monitoring audit history table and safe additive columns.
+    Works for both MySQL and SQLite fallback cleanly using CREATE TABLE IF NOT EXISTS.
+    """
+    global _use_sqlite_fallback
+    pool = _get_mysql_pool()
+
+    if not _use_sqlite_fallback and pool:
+        try:
+            conn = pool.get_connection()
+            cur = conn.cursor()
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS violation_status_history (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    violation_id INT NOT NULL,
+                    old_status VARCHAR(50) NOT NULL,
+                    new_status VARCHAR(50) NOT NULL,
+                    changed_by VARCHAR(100),
+                    notes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_vsh_vid (violation_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            """)
+            # Check and add department column to violations safely
+            try:
+                cur.execute("SELECT department FROM violations LIMIT 1")
+            except Exception:
+                try:
+                    cur.execute("ALTER TABLE violations ADD COLUMN department VARCHAR(100) DEFAULT NULL")
+                except Exception as de:
+                    logger.warning(f"Notice on MySQL violations.department migration: {de}")
+            conn.commit()
+            cur.close()
+            conn.close()
+            logger.info("MySQL Violation Monitoring tables initialized successfully.")
+            return True
+        except Exception as e:
+            logger.error(f"Failed MySQL Violation Monitoring init ({e}), using SQLite fallback.")
+
+    # SQLite Fallback DDL
+    try:
+        conn = sqlite3.connect(_sqlite_db_path)
+        cur = conn.cursor()
+        cur.executescript("""
+            CREATE TABLE IF NOT EXISTS violation_status_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                violation_id INTEGER NOT NULL,
+                old_status TEXT NOT NULL,
+                new_status TEXT NOT NULL,
+                changed_by TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (violation_id) REFERENCES violations(id) ON DELETE CASCADE
+            );
+        """)
+        # Safe column addition for department
+        try:
+            cur.execute("ALTER TABLE violations ADD COLUMN department TEXT DEFAULT NULL")
+            conn.commit()
+        except sqlite3.OperationalError:
+            # Column already exists
+            pass
+        conn.close()
+        logger.info(f"SQLite Violation Monitoring tables initialized successfully at {_sqlite_db_path}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to initialize SQLite Violation Monitoring tables: {e}")
+        return False
+

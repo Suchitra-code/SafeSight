@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}SafeSight AI – Violation Monitoring{% endblock %}
+{% block breadcrumb %}Violation Monitoring & Lifecycle Audit{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/violation_monitoring.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="vm-page-container">
+
+  <!-- ========================================================================= -->
+  <!-- 1. TOP HEADER & SUMMARY METRICS ROW                                       -->
+  <!-- ========================================================================= -->
+  <div class="vm-header-bar">
+    <div class="vm-title-group">
+      <h2>
+        <span>🛡️</span> Violation Monitoring
+      </h2>
+      <p>
+        End-to-end incident lifecycle management, spatial inspection audits & real-time status transitions
+      </p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span class="badge-status status-safe" style="font-size: 11px;">Live Sync Active</span>
+      <button class="btn btn-secondary btn-sm" onclick="window.vmController.fetchViolations()" title="Refresh Data" style="font-weight: 700;">
+        <span>🔄</span> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- 4 Summary KPI Cards: Total, Pending, Reviewed, Resolved -->
+  <div class="vm-summary-grid" role="region" aria-label="Violation summary statistics">
+    <!-- Card 1: Total Violations -->
+    <div class="vm-kpi-card" id="vmKpiTotal" role="button" tabindex="0" aria-label="Filter by all violations">
+      <div class="vm-kpi-card-top">
+        <div class="vm-kpi-icon-badge vm-kpi-badge-total">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">ALL EVENTS</span>
+      </div>
+      <div>
+        <h3 class="vm-kpi-num" id="vmValTotal" data-val="{{ counts.total }}">{{ counts.total }}</h3>
+        <p class="vm-kpi-label">Total Violations</p>
+        <span class="vm-kpi-sub">Audited site infractions</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Pending Review -->
+    <div class="vm-kpi-card" id="vmKpiPending" role="button" tabindex="0" aria-label="Filter by pending violations">
+      <div class="vm-kpi-card-top">
+        <div class="vm-kpi-icon-badge vm-kpi-badge-pending">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <span style="font-size: 0.72rem; color: #8F4E00; font-weight: 700;">AWAITING REVIEW</span>
+      </div>
+      <div>
+        <h3 class="vm-kpi-num" id="vmValPending" data-val="{{ counts.pending }}" style="color: var(--orange);">{{ counts.pending }}</h3>
+        <p class="vm-kpi-label">Pending</p>
+        <span class="vm-kpi-sub">Detected & queued for officer verification</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Reviewed -->
+    <div class="vm-kpi-card" id="vmKpiReviewed" role="button" tabindex="0" aria-label="Filter by reviewed violations">
+      <div class="vm-kpi-card-top">
+        <div class="vm-kpi-icon-badge vm-kpi-badge-reviewed">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        </div>
+        <span style="font-size: 0.72rem; color: #6A0D5D; font-weight: 700;">CONFIRMED / AUDITED</span>
+      </div>
+      <div>
+        <h3 class="vm-kpi-num" id="vmValReviewed" data-val="{{ counts.reviewed }}" style="color: var(--berry);">{{ counts.reviewed }}</h3>
+        <p class="vm-kpi-label">Reviewed</p>
+        <span class="vm-kpi-sub">Confirmed infractions or dismissed events</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Resolved -->
+    <div class="vm-kpi-card" id="vmKpiResolved" role="button" tabindex="0" aria-label="Filter by resolved violations">
+      <div class="vm-kpi-card-top">
+        <div class="vm-kpi-icon-badge vm-kpi-badge-resolved">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <span style="font-size: 0.72rem; color: #115E3B; font-weight: 700;">COMPLETED</span>
+      </div>
+      <div>
+        <h3 class="vm-kpi-num" id="vmValResolved" data-val="{{ counts.resolved }}" style="color: var(--mint);">{{ counts.resolved }}</h3>
+        <p class="vm-kpi-label">Resolved</p>
+        <span class="vm-kpi-sub">Corrective actions taken and closed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. SEARCH & FILTER TOOLBAR                                                -->
+  <!-- ========================================================================= -->
+  <div class="vm-filter-panel">
+    <div class="vm-filter-row">
+      <!-- Search Input -->
+      <div class="vm-search-box">
+        <span class="vm-search-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" id="vmSearchInput" class="vm-search-input" placeholder="Search violation type or location..." aria-label="Search violations by type or location">
+        <button type="button" id="vmSearchClear" class="vm-search-clear" title="Clear search">✕</button>
+      </div>
+
+      <!-- Violation Type Filter -->
+      <select id="vmTypeFilter" class="vm-filter-select" aria-label="Filter by violation type">
+        <option value="">All Violation Types</option>
+        <option value="helmet">Missing Helmet</option>
+        <option value="vest">Missing Safety Vest</option>
+        <option value="equipment">No Safety Equipment</option>
+        <option value="other">Other Safety Violation</option>
+      </select>
+
+      <!-- Status Filter -->
+      <select id="vmStatusFilter" class="vm-filter-select" aria-label="Filter by status">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="reviewed">Reviewed</option>
+        <option value="resolved">Resolved</option>
+      </select>
+
+      <!-- Single Date Filter -->
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <label for="vmDateFilter" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">DATE:</label>
+        <input type="date" id="vmDateFilter" class="vm-date-input" aria-label="Filter by specific date">
+      </div>
+
+      <!-- Date Range (From - To) -->
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <label for="vmFromFilter" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">RANGE:</label>
+        <input type="date" id="vmFromFilter" class="vm-date-input" placeholder="From" aria-label="Date range start">
+        <span style="font-size: 0.75rem; color: var(--text-muted);">to</span>
+        <input type="date" id="vmToFilter" class="vm-date-input" placeholder="To" aria-label="Date range end">
+      </div>
+
+      <!-- Page Size Selector -->
+      <div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">
+        <label for="vmPageSizeSelect" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">PER PAGE:</label>
+        <select id="vmPageSizeSelect" class="vm-filter-select" style="padding: 6px 10px;" aria-label="Items per page">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+
+      <!-- Clear All Button -->
+      <button type="button" id="vmClearAllBtn" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+        <span>✕</span> Clear Filters
+      </button>
+    </div>
+
+    <!-- Active Filter Chips Row -->
+    <div class="vm-filter-chips-row" id="vmFilterChips" style="display: none;"></div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. VIOLATION AUDIT TABLE                                                  -->
+  <!-- Columns: S.No, Violation Type, Detection Date, Detection Time,             -->
+  <!--          Location / Department, Detected Image, Status, Actions           -->
+  <!-- ========================================================================= -->
+  <div class="vm-table-card">
+    <div class="vm-table-wrapper">
+      <table class="vm-table" aria-label="Violations audit log">
+        <thead>
+          <tr>
+            <th class="vm-col-sno">S.No</th>
+            <th>Violation Type</th>
+            <th>Detection Date</th>
+            <th>Detection Time</th>
+            <th>Location / Department</th>
+            <th>Detected Image</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="vmTableBody">
+          {% if initial_data and initial_data['data'] %}
+            {% for item in initial_data['data'] %}
+              <tr data-id="{{ item.id }}" data-idx="{{ loop.index0 }}">
+                <td class="vm-col-sno" data-label="S.No">{{ item.sno }}</td>
+                <td data-label="Violation Type">
+                  <span class="vm-type-chip vm-type-{{ item.type_icon|default('other') }}">
+                    <span>
+                      {% if item.type_icon == 'helmet' %}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a8 8 0 0 0-16 0v2z"/><path d="M12 4v7"/></svg>
+                      {% elif item.type_icon == 'vest' %}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h4l4 4 4-4h4v16H4z"/><path d="M4 14h16"/></svg>
+                      {% elif item.type_icon == 'equipment' %}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                      {% else %}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                      {% endif %}
+                    </span>
+                    <span>{{ item.type_label|default(item.violation_type) }}</span>
+                  </span>
+                </td>
+                <td data-label="Detection Date" class="vm-date-cell">{{ item.date_formatted|default('Not recorded') }}</td>
+                <td data-label="Detection Time" class="vm-time-cell">{{ item.time_formatted|default('Not recorded') }}</td>
+                <td data-label="Location / Dept" class="vm-location-cell" title="{{ item.location_display|default('Not specified') }}">
+                  <span>📍</span> {{ item.location_display|default('Not specified') }}
+                </td>
+                <td data-label="Detected Image">
+                  <div class="vm-thumb-wrap" onclick="window.vmController.openModal({{ loop.index0 }})" title="Click to inspect image" tabindex="0" role="button" aria-label="Inspect violation image #{{ item.id }}">
+                    {% if item.snapshot_path %}
+                      <img src="/outputs/{{ item.snapshot_path }}" alt="Violation #{{ item.id }}" class="vm-thumb-img" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                      <div class="vm-thumb-fallback" style="display:none;"><span>📷</span>No Image</div>
+                    {% else %}
+                      <div class="vm-thumb-fallback"><span>📷</span>No Image</div>
+                    {% endif %}
+                  </div>
+                </td>
+                <td data-label="Status">
+                  <span class="vm-status-pill {{ item.status_badge_class|default('badge-status-pending') }}" title="{{ item.status_tooltip|default(item.ui_status) }}">
+                    <span>●</span>
+                    <span>{{ item.ui_status|default('Pending') }}</span>
+                    {% if item.is_dismissed %}
+                      <span class="vm-dismissed-tag" title="Dismissed during review">Dismissed</span>
+                    {% endif %}
+                  </span>
+                </td>
+                <td data-label="Actions" class="vm-action-cell">
+                  <button class="vm-view-btn" onclick="window.vmController.openModal({{ loop.index0 }})" title="View details and audit">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span>View</span>
+                  </button>
+                  <select class="vm-status-select" onchange="window.vmController.handleStatusChange({{ item.id }}, this.value)" aria-label="Change status for violation #{{ item.id }}">
+                    <option value="pending" {% if item.ui_status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="reviewed" {% if item.ui_status == 'Reviewed' %}selected{% endif %}>Reviewed</option>
+                    <option value="resolved" {% if item.ui_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                  </select>
+                </td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div id="vmEmptyState" class="vm-empty-state" style="display: none;">
+        <div class="vm-empty-icon">🔍</div>
+        <h3 class="vm-empty-title">No violations match your filters</h3>
+        <p class="vm-empty-text">Try adjusting your search keyword, dates, or status selection.</p>
+        <button class="btn btn-secondary btn-sm" onclick="window.vmController.resetFilters()" style="margin-top: 8px; font-weight: 700;">
+          <span>✕</span> Clear All Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="vm-pagination-bar">
+      <div class="vm-page-info" id="vmPageInfo">
+        Showing 1 to {{ initial_data['data']|length if initial_data and initial_data['data'] else 0 }} of {{ counts.total }}
+      </div>
+      <div class="vm-page-controls">
+        <button class="vm-page-btn" id="vmPrevPageBtn" disabled aria-label="Previous page">Previous</button>
+        <div id="vmPageNumbers" style="display: flex; gap: 4px;"></div>
+        <button class="vm-page-btn" id="vmNextPageBtn" aria-label="Next page">Next</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========================================================================= -->
+<!-- 4. IMAGE PREVIEW & VERIFICATION MODAL                                     -->
+<!-- Accessible keyboard trapping, Esc to close, Backdrop click close           -->
+<!-- Prev/Next image arrows, Status updater                                    -->
+<!-- ========================================================================= -->
+<div class="vm-modal-backdrop" id="vmModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="vmModalTitle" aria-hidden="true">
+  <div class="vm-modal-box">
+    <!-- Header -->
+    <div class="vm-modal-header">
+      <h3 class="vm-modal-title" id="vmModalTitle">
+        <span>📸</span> Violation Audit
+      </h3>
+      <button type="button" class="vm-modal-close-btn" id="vmModalCloseBtn" aria-label="Close modal">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="vm-modal-body">
+      <!-- Large Image View with Prev/Next Navigation -->
+      <div class="vm-modal-media-wrap">
+        <button type="button" class="vm-modal-nav-arrow vm-modal-nav-prev" id="vmModalPrevBtn" title="Previous violation" aria-label="Previous image">‹</button>
+        <img src="" alt="Violation Preview" id="vmModalImg" class="vm-modal-large-img" />
+        <div id="vmModalImgFallback" class="vm-thumb-fallback" style="display: none; height: 260px; font-size: 0.95rem;">
+          <span style="font-size: 2.2rem; margin-bottom: 8px;">📷</span>
+          <span>No High-Resolution Image Available</span>
+        </div>
+        <button type="button" class="vm-modal-nav-arrow vm-modal-nav-next" id="vmModalNextBtn" title="Next violation" aria-label="Next image">›</button>
+      </div>
+
+      <!-- Violation Details Grid -->
+      <div class="vm-modal-details-grid">
+        <div class="vm-detail-item">
+          <span class="vm-detail-label">Violation Record</span>
+          <span class="vm-detail-val" id="vmModalId">#--</span>
+        </div>
+        <div class="vm-detail-item">
+          <span class="vm-detail-label">Infraction Type</span>
+          <span class="vm-detail-val" id="vmModalType">--</span>
+        </div>
+        <div class="vm-detail-item">
+          <span class="vm-detail-label">Facility Location</span>
+          <span class="vm-detail-val" id="vmModalLocation">--</span>
+        </div>
+        <div class="vm-detail-item">
+          <span class="vm-detail-label">Camera Sensor</span>
+          <span class="vm-detail-val" id="vmModalCamera">--</span>
+        </div>
+        <div class="vm-detail-item">
+          <span class="vm-detail-label">Detection Date</span>
+          <span class="vm-detail-val" id="vmModalDate">--</span>
+        </div>
+        <div class="vm-detail-item">
+          <span class="vm-detail-label">Detection Time</span>
+          <span class="vm-detail-val" id="vmModalTime">--</span>
+        </div>
+        <div class="vm-detail-item">
+          <span class="vm-detail-label">Audit Reviewer</span>
+          <span class="vm-detail-val" id="vmModalReviewer">--</span>
+        </div>
+        <div class="vm-detail-item">
+          <span class="vm-detail-label">Audit Notes</span>
+          <span class="vm-detail-val" id="vmModalNotes" style="font-weight: 500; font-size: 0.8rem; line-height: 1.4;">--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer with Status Updater -->
+    <div class="vm-modal-footer">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">UPDATE STATUS:</span>
+        <select id="vmModalStatusSelect" class="vm-status-select" style="padding: 7px 14px; font-size: 0.85rem;" aria-label="Change violation status in modal">
+          <option value="pending">Pending</option>
+          <option value="reviewed">Reviewed</option>
+          <option value="resolved">Resolved</option>
+        </select>
+      </div>
+
+      <button type="button" class="btn btn-secondary btn-sm" onclick="window.vmController.closeModal()" style="font-weight: 700;">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- 5. FLOATING TOAST NOTIFICATION CONTAINER                                  -->
+<!-- ========================================================================= -->
+<div class="vm-toast-container" id="vmToastContainer" aria-live="polite"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/violation_monitoring.js') }}"></script>
+{% endblock %}
