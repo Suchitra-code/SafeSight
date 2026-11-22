@@ -4,7 +4,7 @@ Serves Jinja2 templates for Landing, Dashboard, Upload, Result, Live,
 Events, and Reports pages, as well as processed snapshots and output media.
 """
 import os
-from flask import Blueprint, render_template, abort, send_from_directory, current_app
+from flask import Blueprint, render_template, abort, send_from_directory, current_app, session
 
 import config
 from app.db import execute_query
@@ -38,6 +38,17 @@ def dashboard():
     latest_v = analytics.get_latest_violation()
     workplace_kpis = kpi_service.get_workplace_safety_kpis().get("data", {})
 
+    filter_options = analytics.get_filter_options()
+    zone_risks = analytics.get_zone_risk_heatmap()
+    dept_perf = analytics.get_department_performance()
+    critical_alerts = analytics.get_critical_alerts()
+    resolution_metrics = analytics.get_resolution_metrics()
+    perf_score = analytics.get_safety_performance_score()
+    ai_insights = analytics.get_ai_safety_insights()
+    forecast = analytics.get_predictive_safety_forecast()
+    schedules = analytics.get_upcoming_inspections()
+    user_name = session.get("username") or session.get("user") or "Safety Lead"
+
     return render_template(
         "dashboard.html",
         active_page="dashboard",
@@ -47,7 +58,17 @@ def dashboard():
         v_by_type=v_by_type,
         cameras=[dict(c) for c in cameras],
         latest_violation=latest_v,
-        demo_mode=config.DEMO_MODE
+        demo_mode=config.DEMO_MODE,
+        filter_options=filter_options,
+        zone_risks=zone_risks,
+        dept_perf=dept_perf,
+        critical_alerts=critical_alerts,
+        resolution_metrics=resolution_metrics,
+        perf_score=perf_score,
+        ai_insights=ai_insights,
+        forecast=forecast,
+        schedules=schedules,
+        user_name=user_name
     )
 
 

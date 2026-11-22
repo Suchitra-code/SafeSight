@@ -279,13 +279,27 @@ def get_violation_snapshot(violation_id):
 @api_bp.route("/kpis/workplace-safety", methods=["GET"])
 def get_workplace_safety_kpis():
     """
-    Returns core workplace safety KPI metrics:
+    Returns core workplace safety KPI metrics with unified filter parameters:
     - total_inspections
     - total_violations
     - resolved_violations
     - compliance_percentage
     """
-    result = kpi_service.get_workplace_safety_kpis()
+    date_from = request.args.get("from") or request.args.get("date_from")
+    date_to = request.args.get("to") or request.args.get("date_to")
+    department = request.args.get("department")
+    location = request.args.get("location") or request.args.get("camera")
+    violation_type = request.args.get("type") or request.args.get("violation_type")
+    status = request.args.get("status")
+
+    result = kpi_service.get_workplace_safety_kpis(
+        date_from=date_from,
+        date_to=date_to,
+        department=department,
+        location=location,
+        violation_type=violation_type,
+        status=status
+    )
     if not result.get("ok"):
         return jsonify(result), 500
     return jsonify(result), 200
@@ -443,6 +457,171 @@ def download_report(filename):
     if not os.path.exists(safe_path):
         return jsonify({"error": "Report file not found"}), 404
     return send_file(safe_path, as_attachment=True, download_name=filename)
+
+
+# =============================================================================
+# PREMIUM DASHBOARD ENTERPRISE REST ENDPOINTS (Milestone 5)
+# =============================================================================
+
+@api_bp.route("/analytics/filter-options", methods=["GET"])
+def get_filter_options_api():
+    """Returns distinct department, location, gear type, and status options from real DB."""
+    return jsonify(analytics.get_filter_options())
+
+
+@api_bp.route("/analytics/zone-risk-heatmap", methods=["GET"])
+def get_zone_risk_heatmap_api():
+    """Returns zone-wise risk heatmap data with real severity weightings."""
+    date_from = request.args.get("from") or request.args.get("date_from")
+    date_to = request.args.get("to") or request.args.get("date_to")
+    department = request.args.get("department")
+    return jsonify(analytics.get_zone_risk_heatmap(date_from, date_to, department))
+
+
+@api_bp.route("/analytics/department-performance", methods=["GET"])
+def get_department_performance_api():
+    """Returns department-wise performance comparison (grouped bar chart)."""
+    date_from = request.args.get("from") or request.args.get("date_from")
+    date_to = request.args.get("to") or request.args.get("date_to")
+    return jsonify(analytics.get_department_performance(date_from, date_to))
+
+
+@api_bp.route("/analytics/critical-alerts", methods=["GET"])
+def get_critical_alerts_api():
+    """Returns real rule-based smart safety alerts."""
+    return jsonify(analytics.get_critical_alerts())
+
+
+@api_bp.route("/analytics/resolution-metrics", methods=["GET"])
+def get_resolution_metrics_api():
+    """Returns violation resolution metrics and turnaround time."""
+    return jsonify(analytics.get_resolution_metrics())
+
+
+@api_bp.route("/analytics/safety-performance-score", methods=["GET"])
+def get_safety_performance_score_api():
+    """Returns transparent, formula-grounded Safety Performance Score."""
+    return jsonify(analytics.get_safety_performance_score())
+
+
+@api_bp.route("/analytics/ai-insights", methods=["GET"])
+def get_ai_insights_api():
+    """Returns deterministic data-driven AI Safety Insights with AI Assistant links."""
+    return jsonify(analytics.get_ai_safety_insights())
+
+
+@api_bp.route("/analytics/forecast", methods=["GET"])
+def get_forecast_api():
+    """Returns honest predictive safety forecast (7-day moving average)."""
+    return jsonify(analytics.get_predictive_safety_forecast())
+
+
+@api_bp.route("/analytics/export-excel", methods=["GET"])
+def export_excel_api():
+    """Exports current workplace safety audit data as an Excel-compatible CSV report."""
+    import io
+    import csv
+    from flask import Response
+
+    date_from = request.args.get("from") or request.args.get("date_from")
+    date_to = request.args.get("to") or request.args.get("date_to")
+    department = request.args.get("department")
+
+    kpis = kpi_service.get_workplace_safety_kpis(date_from=date_from, date_to=date_to, department=department).get("data", {})
+    zones = analytics.get_zone_risk_heatmap(date_from=date_from, date_to=date_to, department=department)
+    dept_perf = analytics.get_department_performance(date_from=date_from, date_to=date_to)
+
+    output = io.StringIO()
+    # Add UTF-8 BOM so Excel opens it with proper encoding
+    output.write('\ufeff')
+    writer = csv.writer(output)
+
+    # 1. Header
+    writer.writerow(["SAFESIGHT AI - WORKPLACE SAFETY AUDIT REPORT"])
+    writer.writerow(["Generated At", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    writer.writerow(["Design System", "Sunrise Garden Enterprise Theme (0 Black, 0 Blue)"])
+    writer.writerow([])
+
+    # 2. Key Metrics Summary
+    writer.writerow(["KEY PERFORMANCE INDICATORS"])
+    writer.writerow(["Metric", "Value", "Unit", "Notes"])
+    writer.writerow(["Total Inspections", kpis.get("total_inspections", 0), "", "Processed media & CCTV audits"])
+    writer.writerow(["Total PPE Violations", kpis.get("total_violations", 0), "", "Detected gear infractions"])
+    writer.writerow(["Resolved Violations", kpis.get("resolved_violations", 0), "", "Audited and resolved by supervisors"])
+    writer.writerow(["Compliance Rate", f"{kpis.get('compliance_percentage', 0)}%", "%", "Standard formula (safe / total people * 100)"])
+    writer.writerow([])
+
+    # 3. Department Performance
+    writer.writerow(["DEPARTMENT PERFORMANCE COMPARISON"])
+    writer.writerow(["Department", "Inspections", "Violations", "Resolved", "Open", "Compliance Rate (%)"])
+    for d in dept_perf:
+        writer.writerow([d["department"], d["total_inspections"], d["total_violations"], d["resolved_violations"], d["open_violations"], f"{d['compliance_rate']}%"])
+    writer.writerow([])
+
+    # 4. Zone Risk Heatmap
+    writer.writerow(["ZONE SAFETY RISK HEATMAP"])
+    writer.writerow(["Zone / Location", "Department", "Total Violations", "Critical", "High", "Medium", "Low", "Risk Level", "Risk Score"])
+    for z in zones:
+        writer.writerow([z["zone"], z["department"], z["total_violations"], z["critical_count"], z["high_count"], z["medium_count"], z["low_count"], z["risk_level"], f"{z['risk_score']}%"])
+
+    csv_data = output.getvalue()
+    output.close()
+
+    filename = f"SafeSight_Safety_Audit_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@api_bp.route("/inspections/schedules", methods=["GET"])
+def get_inspection_schedules_api():
+    """Returns list of scheduled safety inspections."""
+    return jsonify({"ok": True, "data": analytics.get_upcoming_inspections()})
+
+
+@api_bp.route("/inspections/schedules", methods=["POST"])
+def create_inspection_schedule_api():
+    """Creates a new scheduled safety inspection. Server-side auth check."""
+    from flask import session
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "Unauthorized: Authentication required"}), 401
+
+    data = request.get_json(silent=True) or {}
+    title = data.get("title", "").strip()
+    department = data.get("department", "").strip()
+    location = data.get("location", "").strip()
+    scheduled_date = data.get("scheduled_date", "").strip()
+    assignee = data.get("assignee", "").strip()
+    notes = data.get("notes", "").strip()
+
+    if not title or not department or not location or not scheduled_date or not assignee:
+        return jsonify({"ok": False, "error": "Missing required fields: title, department, location, scheduled_date, assignee"}), 400
+
+    sql = """
+        INSERT INTO inspection_schedules (title, department, location, scheduled_date, assignee, status, notes)
+        VALUES (%s, %s, %s, %s, %s, 'scheduled', %s)
+    """
+    execute_query(sql, (title, department, location, scheduled_date, assignee, notes), commit=True)
+    return jsonify({"ok": True, "message": "Inspection scheduled successfully"}), 201
+
+
+@api_bp.route("/inspections/schedules/<int:sched_id>/status", methods=["PATCH"])
+def update_inspection_schedule_status(sched_id):
+    """Updates inspection schedule status (e.g., 'completed'). Server-side auth check."""
+    from flask import session
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "Unauthorized: Authentication required"}), 401
+
+    data = request.get_json(silent=True) or {}
+    new_status = data.get("status", "").strip().lower()
+    if new_status not in ["scheduled", "in_progress", "completed", "cancelled"]:
+        return jsonify({"ok": False, "error": "Invalid status value"}), 400
+
+    execute_query("UPDATE inspection_schedules SET status = %s WHERE id = %s", (new_status, sched_id), commit=True)
+    return jsonify({"ok": True, "message": f"Inspection #{sched_id} status updated to {new_status}"})
+
 
 
 @api_bp.route("/seed-demo", methods=["POST"])

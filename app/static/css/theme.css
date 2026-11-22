@@ -8,35 +8,78 @@
    ========================================================================== */
 
 :root {
-  /* ── Backgrounds (bright and warm) ── */
-  --bg-page:        #FFF7EE;   /* warm cream */
+  /* ── Backgrounds & Neutrals (bright, warm cream & blush) ── */
+  --bg-page:        #FFF9F2;   /* warm cream with faint blush gradient */
   --bg-page-2:      #FFEAF2;   /* blush pink */
   --bg-card:        #FFFFFF;
-  --bg-soft-peach:  #FFE3D3;
-  --bg-soft-mint:   #DDF7E8;
-  --bg-soft-sun:    #FFF1B8;
-  --bg-soft-berry:  #F8DDF0;
+  --text-strong:    #4A1D2F;   /* primary text: deep plum (~L=20%) */
+  --text-secondary: #7A5563;   /* secondary text */
+  --text-main:      #6B3A4D;
+  --text-soft:      #7A5563;
+  --text-muted:     #7A5563;
+  --text-on-color:  #FFFFFF;
+  --border:         #F3DDD3;   /* warm neutral border */
+  --border-soft:    #F3DDD3;
+  --border-strong:  #E8C4B8;
 
-  /* ── Brand colours ── */
-  --coral:    #FF6B4A;   /* primary buttons, main highlights */
-  --orange:   #FF9F1C;
-  --sun:      #FFC93C;   /* warnings, highlights */
-  --lime:     #8CC63F;
-  --mint:     #22B573;   /* safe / compliant / resolved / success */
-  --pink:     #FF4D8D;
-  --magenta:  #D6247F;   /* confirmed */
-  --berry:    #B5179E;   /* AI / LangGraph / Copilot features */
-  --red:      #E53950;   /* unsafe / violation / critical / error */
+  /* ── Section 2: 8-Tint Pastel & Accent System ── */
+  /* 1. Peach (Total Inspections) */
+  --pastel-peach:   #FFF0DF;
+  --accent-peach:   #F0A45D;
+  --text-peach:     #8A4F14;
 
-  /* ── Text (dark but NOT black — deep plum-maroon family) ── */
-  --text-strong:  #4A1D2F;   /* darkest colour allowed (~L=25%) */
-  --text-main:    #6B3A4D;
-  --text-soft:    #9A6B7E;
-  --text-on-color: #FFFFFF;
+  /* 2. Pink (PPE Violations) */
+  --pastel-pink:    #FFE8F0;
+  --accent-pink:    #E76B9A;
+  --text-pink:      #8F2F57;
 
-  /* ── Lines, borders, shadows (warm tinted) ── */
-  --border:       #F3D9CF;
-  --border-strong: #E8C4B8;
+  /* 3. Mint (Resolved Violations / Safe) */
+  --pastel-mint:    #DDF7EA;
+  --accent-mint:    #35B982;
+  --text-mint:      #10603F;
+
+  /* 4. Orchid (Compliance Rate / AI) */
+  --pastel-orchid:  #F8E3F4;
+  --accent-orchid:  #C94BB5;
+  --text-orchid:    #7A2570;
+
+  /* 5. Coral (Primary actions, highlights) */
+  --pastel-coral:   #FFE5DE;
+  --accent-coral:   #F07861;
+  --text-coral:     #8F3425;
+
+  /* 6. Sun (Warnings, recent activity) */
+  --pastel-sun:     #FFF4C2;
+  --accent-sun:     #F2B705;
+  --text-sun:       #6B4B00;
+
+  /* 7. Lime (Department comparison) */
+  --pastel-lime:    #EAF6D2;
+  --accent-lime:    #8CC63F;
+  --text-lime:      #445E14;
+
+  /* 8. Red (Critical / Unsafe infractions only) */
+  --pastel-red:     #FFE1E4;
+  --accent-red:     #E53950;
+  --text-red:       #9B1C2E;
+
+  /* ── Legacy Aliases for Seamless Backward Compatibility ── */
+  --bg-soft-peach:  #FFF0DF;
+  --bg-soft-mint:   #DDF7EA;
+  --bg-soft-sun:    #FFF4C2;
+  --bg-soft-berry:  #F8E3F4;
+  --coral:          #FF6B4A;
+  --orange:         #FF9F1C;
+  --sun:            #FFC93C;
+  --lime:           #8CC63F;
+  --mint:           #22B573;
+  --pink:           #FF4D8D;
+  --magenta:        #D6247F;
+  --berry:          #B5179E;
+  --red:            #E53950;
+  --danger:         #E53950;
+  --success:        #22B573;
+  --warning:        #FF9F1C;
   --shadow-soft:  0 8px 24px rgba(255, 107, 74, 0.12);
   --shadow-pop:   0 14px 36px rgba(214, 36, 127, 0.18);
   --shadow-sm:    0 2px 8px rgba(255, 107, 74, 0.08);

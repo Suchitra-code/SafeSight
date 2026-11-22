@@ -32,7 +32,18 @@ ALLOWED_HEX = {
     "#fff1b8", "#f8ddf0", "#ff6b4a", "#ff9f1c", "#ffc93c", "#8cc63f",
     "#22b573", "#ff4d8d", "#d6247f", "#b5179e", "#e53950", "#4a1d2f",
     "#6b3a4d", "#9a6b7e", "#f3d9cf", "#e8c4b8", "#c07000", "#ffe2e6",
-    "#fce0ef", "#fffdf9", "#fff4ee", "#fefefe", "#fafafa"
+    "#fce0ef", "#fffdf9", "#fff4ee", "#fefefe", "#fafafa",
+    # Section 2 Pastel & Accent system
+    "#fff0df", "#f0a45d", "#8a4f14",  # Peach
+    "#ffe8f0", "#e76b9a", "#8f2f57",  # Pink
+    "#ddf7ea", "#35b982", "#10603f",  # Mint
+    "#f8e3f4", "#c94bb5", "#7a2570",  # Orchid
+    "#ffe5de", "#f07861", "#8f3425",  # Coral
+    "#fff4c2", "#f2b705", "#6b4b00",  # Sun
+    "#eaf6d2", "#8cc63f", "#445e14",  # Lime
+    "#ffe1e4", "#e53950", "#9b1c2e",  # Red
+    "#fff9f2", "#7a5563", "#f3ddd3",  # Neutrals (Cream, Muted plum, Borders)
+    "#d85338", "#1e9462"              # High-contrast accessible button darkeners
 }
 
 def hex_to_hsl(hex_str: str) -> Tuple[float, float, float]:

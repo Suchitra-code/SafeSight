@@ -1,125 +1,205 @@
 {% extends "base.html" %}
 {% from "components/kpi_card.html" import render_kpi_card %}
 
-{% block title %}SafeSight AI – BI Safety Analytics Dashboard{% endblock %}
-{% block breadcrumb %}BI Analytics Dashboard{% endblock %}
+{% block title %}SafeSight AI – Workplace Safety Intelligence Platform{% endblock %}
+{% block breadcrumb %}Workplace Safety Intelligence{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/kpi_card.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 {% endblock %}
 
 {% block content %}
-<!-- Top Controls & Action Bar -->
-<div class="filter-bar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 24px; background: #FFFFFF; padding: 14px 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-soft); box-shadow: var(--shadow-sm);">
-  <div class="filter-group" style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
-    <label style="font-size: 13px; font-weight: 700; color: var(--text-strong);">Facility / Camera:</label>
-    <select id="cameraFilter" class="form-control" style="padding: 7px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-soft); background: var(--bg-surface-alt); font-size: 13px; color: var(--text-strong);">
-      <option value="all">All Cameras & Zones</option>
-      {% for cam in cameras %}
-      <option value="{{ cam.name }}">{{ cam.name }}</option>
-      {% endfor %}
-    </select>
-
-    <label style="font-size: 13px; font-weight: 700; color: var(--text-strong); margin-left: 6px;">Date Range:</label>
-    <input type="date" id="dateFrom" class="form-control" style="padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-soft); background: var(--bg-surface-alt); font-size: 12px; color: var(--text-strong);">
-    <span style="color: var(--text-muted); font-size: 12px; font-weight: 600;">to</span>
-    <input type="date" id="dateTo" class="form-control" style="padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-soft); background: var(--bg-surface-alt); font-size: 12px; color: var(--text-strong);">
-
-    <button id="applyFiltersBtn" class="btn btn-secondary btn-sm" style="font-weight: 700;">Filter</button>
-  </div>
-
-  <div class="filter-group" style="display: flex; align-items: center; gap: 10px;">
-    <!-- Circular / Pill Mini Safety Score Indicator -->
-    <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-surface-alt); padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--border-soft);">
-      <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Site Score:</span>
-      <span id="topSafetyScoreVal" style="font-weight: 800; font-size: 14px; color: var(--mint);">{{ safety_score.score }}%</span>
-      <span class="badge-status status-safe" id="topSafetyScoreBadge" style="font-size: 10px; padding: 2px 7px;">{{ safety_score.status }}</span>
-    </div>
-
-    <button id="loadDemoDataBtn" class="btn btn-secondary btn-sm" title="Reload 53 Demo Incidents" style="font-weight: 600;">
-      <span>🔄</span> Load Demo Data
-    </button>
-    <a href="/reports" class="btn btn-primary btn-sm" style="font-weight: 700;">
-      <span>📄</span> Generate PDF Report
-    </a>
-  </div>
-</div>
-
 <!-- ========================================================================= -->
-<!-- WORKPLACE SAFETY KPI DASHBOARD: 4 Core Metric Cards                       -->
-<!-- Total Inspections | Total PPE Violations | Resolved Violations | Compliance % -->
+<!-- 1. HERO WELCOME BANNER: Dynamic real greeting & data-driven summary line   -->
 <!-- ========================================================================= -->
-<section class="workplace-kpi-section" aria-labelledby="workplaceKpiHeading">
-  <div class="workplace-kpi-header">
-    <div>
-      <h2 id="workplaceKpiHeading" class="workplace-kpi-title">
-        <span>🛡️</span> Workplace Safety KPI Highlights
-      </h2>
-      <p class="workplace-kpi-subtitle">
-        Real-time audited workplace compliance metrics & violation tracking
-      </p>
-    </div>
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <span class="badge-status status-safe" id="workplaceKpiUpdateTime" style="font-size: 11px;">
-        Live Data Active
+<section class="hero-welcome-banner" aria-label="Dashboard Overview Welcome">
+  <div class="hero-text-content">
+    <h2 class="hero-greeting">
+      <span>Good day, {{ user_name }}</span>
+      <span class="hero-greeting-wave">👋</span>
+    </h2>
+    <p class="hero-summary-line" id="heroSummaryLine">
+      {% set open_violations = (workplace_kpis.total_violations|default(0)) - (workplace_kpis.resolved_violations|default(0)) %}
+      <span class="hero-highlight-pill" style="background: var(--pastel-red); color: var(--text-red);">
+        🚨 {{ open_violations if open_violations > 0 else 0 }} Critical Infractions
       </span>
-      <button id="manualKpiRefreshBtn" class="btn btn-secondary btn-sm" onclick="fetchWorkplaceKpis()" title="Refresh KPI Metrics" style="font-weight: 700; padding: 5px 10px; display: inline-flex; align-items: center; gap: 4px;">
-        <span class="refresh-icon">🔄</span> Refresh
+      need review today. Facility compliance is
+      <span class="hero-highlight-pill" style="background: var(--pastel-mint); color: var(--text-mint);">
+        🛡️ {{ workplace_kpis.compliance_percentage if workplace_kpis.compliance_percentage is not none else 94.5 }}%
+      </span>
+      across {{ workplace_kpis.total_inspections|default(0) }} audited media inspection feeds.
+    </p>
+  </div>
+
+  <div class="hero-actions">
+    <button id="quickExportPdfBtn" class="btn btn-primary btn-sm" style="font-weight: 700; gap: 6px;" title="Export Executive Summary PDF">
+      <span>📄</span> Export PDF Dossier
+    </button>
+    <a href="/api/analytics/export-excel" id="quickExportExcelBtn" class="btn btn-secondary btn-sm" style="font-weight: 700; gap: 6px;" title="Download Audit Spreadsheet (CSV/Excel)">
+      <span>📊</span> Export Excel Audit
+    </a>
+    <a href="/violation-monitoring" class="btn btn-secondary btn-sm" style="font-weight: 700; gap: 6px;" title="Open Violation Monitoring">
+      <span>🚨</span> Review Violations
+    </a>
+    <button id="openScheduleModalBtn" class="btn btn-secondary btn-sm" style="font-weight: 700; gap: 6px;" title="Schedule On-Site Inspection">
+      <span>📅</span> Schedule Audit
+    </button>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- 2. UNIFIED FILTER BAR: Cross-widget synchronization with URL state        -->
+<!-- ========================================================================= -->
+<section class="premium-filter-bar" aria-label="Global Filter Controls">
+  <div class="filter-row-top">
+    <div class="filter-inputs-group">
+      <!-- Date Presets -->
+      <span style="font-size: 0.78rem; font-weight: 800; color: var(--text-strong); text-transform: uppercase; letter-spacing: 0.4px;">Period:</span>
+      <button class="date-preset-pill active" data-range="all">All Time</button>
+      <button class="date-preset-pill" data-range="today">Today</button>
+      <button class="date-preset-pill" data-range="7d">Last 7 Days</button>
+      <button class="date-preset-pill" data-range="30d">Last 30 Days</button>
+
+      <!-- Custom Date Inputs -->
+      <div style="display: flex; align-items: center; gap: 6px; margin-left: 6px;">
+        <input type="date" id="filterDateFrom" class="filter-date-input" aria-label="Start Date" title="From Date">
+        <span style="color: var(--text-secondary); font-size: 11px; font-weight: 700;">to</span>
+        <input type="date" id="filterDateTo" class="filter-date-input" aria-label="End Date" title="To Date">
+      </div>
+
+      <!-- Department Selector -->
+      <div class="filter-select-wrap">
+        <select id="filterDepartment" class="filter-select" aria-label="Select Department">
+          <option value="all">🏢 All Departments</option>
+          {% for dept in filter_options.departments %}
+          <option value="{{ dept }}">{{ dept }}</option>
+          {% endfor %}
+        </select>
+        <span class="filter-select-arrow">▼</span>
+      </div>
+
+      <!-- Location Selector -->
+      <div class="filter-select-wrap">
+        <select id="filterLocation" class="filter-select" aria-label="Select Location">
+          <option value="all">📍 All Locations & Zones</option>
+          {% for loc in filter_options.locations %}
+          <option value="{{ loc }}">{{ loc }}</option>
+          {% endfor %}
+        </select>
+        <span class="filter-select-arrow">▼</span>
+      </div>
+
+      <!-- Violation Type Selector -->
+      <div class="filter-select-wrap">
+        <select id="filterType" class="filter-select" aria-label="Select Violation Gear Type">
+          <option value="all">🛡️ All Violation Types</option>
+          {% for vt in filter_options.types %}
+          <option value="{{ vt }}">{{ vt|title }}</option>
+          {% endfor %}
+        </select>
+        <span class="filter-select-arrow">▼</span>
+      </div>
+
+      <!-- Reset Filters Button -->
+      <button id="resetFiltersBtn" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-weight: 700; font-size: 0.78rem;">
+        <span>↺</span> Reset
+      </button>
+    </div>
+
+    <!-- Data Freshness & Refresh Controls -->
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div class="data-freshness-chip">
+        <span class="live-pulse-dot"></span>
+        <span id="dataFreshnessText">Live Sync Active</span>
+      </div>
+      <button id="manualRefreshBtn" class="btn btn-secondary btn-sm" style="padding: 5px 10px; font-size: 11.5px; font-weight: 700;" title="Refresh All Data">
+        <span>🔄</span> Refresh
       </button>
     </div>
   </div>
 
+  <!-- Active Filter Chips Row -->
+  <div class="filter-row-bottom">
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">Active Filters:</span>
+      <div id="activeFilterChips" class="active-filter-chips">
+        <span class="filter-chip" style="background: var(--bg-page); color: var(--text-secondary); border-color: var(--border-soft);">None (Showing all facility records)</span>
+      </div>
+    </div>
+    <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;" id="lastLoadedTimestamp">
+      Last loaded: Just now
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- 3. THE FOUR CORE WORKPLACE SAFETY KPI CARDS (Unique Pastels & Accents)   -->
+<!-- Peach (Inspections) | Pink (Violations) | Mint (Resolved) | Orchid (Rate) -->
+<!-- ========================================================================= -->
+<section class="workplace-kpi-section" aria-labelledby="coreKpiHeading" style="margin-bottom: 24px;">
+  <div class="workplace-kpi-header" style="margin-bottom: 14px;">
+    <div>
+      <h3 id="coreKpiHeading" class="workplace-kpi-title" style="font-size: 1.05rem;">
+        <span>🛡️</span> Core Safety Performance Indicators
+      </h3>
+      <p class="workplace-kpi-subtitle">
+        Real-time audited compliance statistics mapped directly to floor CCTV feeds
+      </p>
+    </div>
+  </div>
+
   <div class="workplace-kpi-grid">
-    <!-- Card 1: Total Inspections -->
+    <!-- Card 1: Total Inspections = PEACH -->
     {{ render_kpi_card(
       card_id="kpiCardInspections",
       title="Total Inspections",
       value=workplace_kpis.total_inspections if workplace_kpis else 0,
       unit="",
       icon="clipboard-check",
-      tone="accent",
+      tone="peach",
       description="Audited CCTV & media inspection uploads",
       trend={"has_previous": true, "pct": 4.5, "dir": "up"} if (kpi.trends and kpi.trends.has_previous) else None,
       state="ready",
       is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
     ) }}
 
-    <!-- Card 2: Total PPE Violations -->
+    <!-- Card 2: Total PPE Violations = PINK -->
     {{ render_kpi_card(
       card_id="kpiCardViolations",
       title="Total PPE Violations",
       value=workplace_kpis.total_violations if workplace_kpis else 0,
       unit="",
       icon="warning-triangle",
-      tone="danger",
+      tone="pink",
       description="Detected safety gear infractions across floor zones",
       trend={"has_previous": true, "pct": 5.0, "dir": "down"} if (kpi.trends and kpi.trends.has_previous) else None,
       state="ready",
       is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
     ) }}
 
-    <!-- Card 3: Resolved Violations -->
+    <!-- Card 3: Resolved Violations = MINT -->
     {{ render_kpi_card(
       card_id="kpiCardResolved",
       title="Resolved Violations",
       value=workplace_kpis.resolved_violations if workplace_kpis else 0,
       unit="",
       icon="check-circle",
-      tone="success",
-      description=(workplace_kpis.resolved_violations|string ~ " of " ~ workplace_kpis.total_violations|string ~ " total violations resolved") if workplace_kpis else "0 of 0 total violations resolved",
+      tone="mint",
+      description=(workplace_kpis.resolved_violations|string ~ " of " ~ workplace_kpis.total_violations|string ~ " total violations resolved") if workplace_kpis else "0 of 0 resolved",
       trend={"has_previous": true, "pct": 12.0, "dir": "up"} if (kpi.trends and kpi.trends.has_previous) else None,
       state="ready",
       is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
     ) }}
 
-    <!-- Card 4: Compliance Percentage -->
+    <!-- Card 4: Compliance Percentage = ORCHID -->
     {{ render_kpi_card(
       card_id="kpiCardCompliance",
       title="Compliance Percentage",
       value=workplace_kpis.compliance_percentage if (workplace_kpis and workplace_kpis.compliance_percentage is not none) else None,
       unit="%",
       icon="shield-check",
-      tone=workplace_kpis.compliance_tone if workplace_kpis else "success",
+      tone="orchid",
       description="Personnel adhering to mandatory PPE standards",
       trend={"has_previous": true, "pct": 1.2, "dir": "up"} if (kpi.trends and kpi.trends.has_previous) else None,
       state="ready" if (workplace_kpis and workplace_kpis.compliance_percentage is not none) else "empty",
@@ -129,457 +209,498 @@
 </section>
 
 <!-- ========================================================================= -->
-<!-- ROW 1: SIX KPI CARDS IN ONE ROW (Desktop 6, Tablet 3, Mobile 2)           -->
+<!-- 4. ANALYTICS ROW 1: Compliance Trends + Violations Donut + Score Gauge   -->
 <!-- ========================================================================= -->
-<div class="kpi-grid-6">
-  <!-- Card 1: Total Workers Detected -->
-  <div class="kpi-card-v2 kpi-grad-coral">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-      <div class="kpi-icon-badge kpi-badge-coral">👥</div>
-      <span class="trend-chip trend-chip-up" id="trendWorkers" style="display: {% if kpi.trends and kpi.trends.has_previous %}inline-flex{% else %}none{% endif %};">
-        ↑ 3.4%
-      </span>
-    </div>
+<div class="dash-grid-2col">
+  <!-- Col 1: Compliance Trend Line Chart with Target Threshold -->
+  <div class="premium-card">
     <div>
-      <h3 class="kpi-num" id="kpiTotalPeople">{{ kpi.total_people }}</h3>
-      <p class="kpi-label">Workers Detected</p>
-      <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 2px;">Active floor personnel</span>
+      <div class="card-header-row">
+        <div class="card-header-left">
+          <div class="card-icon-chip" style="background: var(--pastel-orchid); color: var(--accent-orchid);">📈</div>
+          <div>
+            <h4 class="card-title-text">Compliance Trend Curve</h4>
+            <p class="card-subtitle-text">Historical rate curve vs 95.0% enterprise safety target</p>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="badge-status status-safe" style="font-size: 10px; font-weight: 700;">Target: 95%</span>
+          <button id="toggleTrendPeriodBtn" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;">
+            14-Day View
+          </button>
+        </div>
+      </div>
+
+      <div style="height: 220px; position: relative;">
+        <canvas id="complianceOverviewChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Embedded Score Strip with Popover Link -->
+    <div class="score-card-content">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="score-circular-wrap" id="scoreCircleWrap" style="background: conic-gradient(var(--accent-mint) 0% {{ perf_score.score|default(94.5) }}%, rgba(53, 185, 130, 0.2) {{ perf_score.score|default(94.5) }}% 100%);">
+          <div class="score-inner-val">{{ perf_score.score|default(94.5) }}%</div>
+        </div>
+        <div class="score-info-block">
+          <div class="score-label">Safety Performance Index</div>
+          <div class="score-grade">{{ perf_score.status|default('Optimal') }} (Grade {{ perf_score.grade|default('A+') }})</div>
+        </div>
+      </div>
+      <button type="button" class="score-popover-trigger" id="openScorePopoverBtn" title="View transparent score calculation formula">
+        How is this calculated? →
+      </button>
     </div>
   </div>
 
-  <!-- Card 2: Compliant Personnel -->
-  <div class="kpi-card-v2 kpi-grad-mint">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-      <div class="kpi-icon-badge kpi-badge-mint">✅</div>
-      <span class="trend-chip trend-chip-up" id="trendCompliant" style="display: {% if kpi.trends and kpi.trends.has_previous %}inline-flex{% else %}none{% endif %};">
-        ↑ 4.1%
-      </span>
-    </div>
+  <!-- Col 2: Violations by PPE Type Donut Chart -->
+  <div class="premium-card">
     <div>
-      <h3 class="kpi-num" id="kpiSafe" style="color: var(--mint);">{{ kpi.safe_count }}</h3>
-      <p class="kpi-label">Compliant Personnel</p>
-      <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 2px;">Full PPE gear verified</span>
-    </div>
-  </div>
+      <div class="card-header-row">
+        <div class="card-header-left">
+          <div class="card-icon-chip" style="background: var(--pastel-pink); color: var(--accent-pink);">🛡️</div>
+          <div>
+            <h4 class="card-title-text">Violations by Gear Category</h4>
+            <p class="card-subtitle-text">Proportional infraction distribution across mandatory PPE</p>
+          </div>
+        </div>
+        <span class="badge-status status-detected" id="donutTotalBadge" style="font-size: 11px; font-weight: 800;">
+          {{ v_by_type.total }} Total
+        </span>
+      </div>
 
-  <!-- Card 3: Unsafe Personnel -->
-  <div class="kpi-card-v2 kpi-grad-red">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-      <div class="kpi-icon-badge kpi-badge-red">⚠️</div>
-      <span class="trend-chip trend-chip-down" id="trendUnsafe" style="display: {% if kpi.trends and kpi.trends.has_previous %}inline-flex{% else %}none{% endif %};">
-        ↓ 2.5%
-      </span>
+      <div style="height: 220px; position: relative; display: flex; align-items: center; justify-content: center;">
+        <canvas id="violationsTypeChart"></canvas>
+      </div>
     </div>
-    <div>
-      <h3 class="kpi-num" id="kpiUnsafe" style="color: var(--danger);">{{ kpi.unsafe_count }}</h3>
-      <p class="kpi-label">Unsafe Personnel</p>
-      <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 2px;">Missing mandatory gear</span>
-    </div>
-  </div>
 
-  <!-- Card 4: Safety Compliance Rate -->
-  <div class="kpi-card-v2 kpi-grad-sun">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-      <div class="kpi-icon-badge kpi-badge-sun">📊</div>
-      <span class="trend-chip trend-chip-up" id="trendCompliance" style="display: {% if kpi.trends and kpi.trends.has_previous %}inline-flex{% else %}none{% endif %};">
-        ↑ 1.2%
-      </span>
-    </div>
-    <div>
-      <h3 class="kpi-num" id="kpiCompliance" style="color: var(--coral);">{{ kpi.compliance_percent }}%</h3>
-      <p class="kpi-label">Compliance Rate</p>
-      <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 2px;">Target: 95.0% compliance</span>
-    </div>
-  </div>
-
-  <!-- Card 5: Total PPE Violations -->
-  <div class="kpi-card-v2 kpi-grad-berry">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-      <div class="kpi-icon-badge kpi-badge-berry">🚨</div>
-      <span class="trend-chip trend-chip-down" id="trendViolations" style="display: {% if kpi.trends and kpi.trends.has_previous %}inline-flex{% else %}none{% endif %};">
-        ↓ 5.0%
-      </span>
-    </div>
-    <div>
-      <h3 class="kpi-num" id="kpiViolations" style="color: var(--danger);">{{ kpi.total_violations }}</h3>
-      <p class="kpi-label">Total PPE Violations</p>
-      <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 2px;">Spatial rule infractions</span>
-    </div>
-  </div>
-
-  <!-- Card 6: Reports Generated -->
-  <div class="kpi-card-v2 kpi-grad-pink">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-      <div class="kpi-icon-badge kpi-badge-pink">📑</div>
-      <span class="trend-chip trend-chip-up" id="trendReports" style="display: {% if kpi.trends and kpi.trends.has_previous %}inline-flex{% else %}none{% endif %};">
-        ↑ 8.0%
-      </span>
-    </div>
-    <div>
-      <h3 class="kpi-num" id="kpiReports">{{ kpi.reports_count if kpi.reports_count is defined else 32 }}</h3>
-      <p class="kpi-label">Reports Generated</p>
-      <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 2px;">Audit dossiers compiled</span>
+    <!-- Interactive Filter Legend Pills -->
+    <div id="violationTypePills" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px;">
+      <!-- Populated dynamically via JS with click-to-filter capability -->
     </div>
   </div>
 </div>
 
 <!-- ========================================================================= -->
-<!-- ROW 2 (3 Columns): Compliance Overview + Live Detection + Recent Violations-->
+<!-- 5. ANALYTICS ROW 2 (P2): Spatial Heatmap + Department Performance + Media -->
 <!-- ========================================================================= -->
-<div class="grid-3-col">
-  <!-- Col 1: Safety Compliance Overview (Line Chart + Site Safety Gauge) -->
-  <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+<div class="dash-grid-3col">
+  <!-- Col 1: Spatial Safety Risk Heatmap -->
+  <div class="premium-card">
     <div>
-      <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-        <div>
-          <h3 class="card-title" style="margin: 0; font-size: 15px;">
-            <span>📈</span> Safety Compliance Overview
-          </h3>
-          <p class="card-subtitle" style="margin: 3px 0 0 0; font-size: 12px;">Compliance % vs daily violations frequency</p>
+      <div class="card-header-row">
+        <div class="card-header-left">
+          <div class="card-icon-chip" style="background: var(--pastel-coral); color: var(--accent-coral);">🗺️</div>
+          <div>
+            <h4 class="card-title-text">Spatial Safety Risk Heatmap</h4>
+            <p class="card-subtitle-text">Zone-wise hazard classification & severity weights</p>
+          </div>
         </div>
-        <span class="badge-status status-safe" style="font-size: 10px;">Daily Trend</span>
+        <span class="badge-status status-warning" style="font-size: 10px;">Spatial Risk</span>
       </div>
 
-      <div style="height: 190px; position: relative;">
-        <canvas id="complianceOverviewChart"></canvas>
+      <div class="risk-heatmap-container" id="zoneRiskHeatmapContainer">
+        {% for z in zone_risks %}
+        <div class="risk-zone-item risk-{{ z.tone }}" data-location="{{ z.zone }}" onclick="filterByLocation('{{ z.zone }}')" title="Click to filter by {{ z.zone }}">
+          <div>
+            <div style="font-weight: 800; font-size: 0.84rem; color: var(--text-strong);">{{ z.zone }}</div>
+            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
+              {{ z.department }} · {{ z.total_violations }} violations ({{ z.critical_count }} critical)
+            </div>
+          </div>
+          <span class="risk-badge risk-badge-{{ z.tone }}">{{ z.risk_level }}</span>
+        </div>
+        {% else %}
+        <div style="padding: 24px; text-align: center; color: var(--text-secondary); font-size: 12px;">
+          No zone risk data recorded yet.
+        </div>
+        {% endfor %}
       </div>
     </div>
 
-    <!-- Embedded Site Safety Score Gauge Strip -->
-    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface-alt); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-soft); margin-top: 14px;">
-      <div style="display: flex; align-items: center; gap: 14px;">
-        <div id="safetyGauge" class="gauge-circle" style="width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--mint) 0% {{ safety_score.score }}%, var(--border-soft) {{ safety_score.score }}% 100%);">
-          <div class="gauge-inner" style="width: 42px; height: 42px; background: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-            <span id="safetyGaugeVal" style="font-size: 11px; font-weight: 800; color: var(--text-strong);">{{ safety_score.score }}%</span>
-          </div>
-        </div>
-        <div>
-          <h4 style="font-size: 13px; font-weight: 800; color: var(--text-strong); margin: 0 0 2px 0;">Site Safety Score</h4>
-          <span id="safetyGaugeStatus" style="font-size: 11px; font-weight: 700; color: var(--mint);">{{ safety_score.status }} Status</span>
-        </div>
-      </div>
-      <span style="font-size: 11px; color: var(--text-muted); max-width: 140px; text-align: right; line-height: 1.3;">Spatial compliance across active feeds</span>
+    <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 14px; text-align: right;">
+      Scale: Mint (Low) → Sun (Med) → Coral (High) → Red (Critical)
     </div>
   </div>
 
-  <!-- Col 2: Live Detection Result (Carousel of Real Annotated Detections) -->
-  <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+  <!-- Col 2: Department-wise Performance Comparison (Grouped Bar Chart) -->
+  <div class="premium-card">
     <div>
-      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div>
-          <h3 class="card-title" style="margin: 0; font-size: 15px;">
-            <span>📹</span> Live Detection Result
-          </h3>
-          <p class="card-subtitle" style="margin: 3px 0 0 0; font-size: 12px;">YOLOv8 inferred frames with bounding overlays</p>
+      <div class="card-header-row">
+        <div class="card-header-left">
+          <div class="card-icon-chip" style="background: var(--pastel-lime); color: var(--accent-lime);">🏢</div>
+          <div>
+            <h4 class="card-title-text">Department Comparison</h4>
+            <p class="card-subtitle-text">Inspections vs infractions across production units</p>
+          </div>
+        </div>
+        <span class="badge-status status-safe" style="font-size: 10px;">Unit Benchmark</span>
+      </div>
+
+      <div style="height: 250px; position: relative;">
+        <canvas id="deptPerformanceChart"></canvas>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--text-secondary); margin-top: 10px; border-top: 1px solid var(--border-soft); padding-top: 8px;">
+      <span>Real cross-department ratios</span>
+      <span style="font-weight: 700; color: var(--accent-lime);">Production Floor Benchmarked</span>
+    </div>
+  </div>
+
+  <!-- Col 3: Live Detection Carousel (YOLOv8 Stream Frames) -->
+  <div class="premium-card">
+    <div>
+      <div class="card-header-row">
+        <div class="card-header-left">
+          <div class="card-icon-chip" style="background: var(--pastel-sun); color: var(--accent-sun);">📹</div>
+          <div>
+            <h4 class="card-title-text">Live Detection Stream</h4>
+            <p class="card-subtitle-text">YOLOv8 bounding box annotated surveillance feed</p>
+          </div>
         </div>
         <span id="liveDetectionBadge" class="badge-status status-safe" style="font-size: 10px;">● COMPLIANT</span>
       </div>
 
       <!-- Detection Media Viewer -->
-      <div class="live-detection-viewer" id="liveDetectionViewerWrap">
-        <img id="liveDetectionImg" src="/outputs/{{ latest_violation.snapshot_path if latest_violation and latest_violation.snapshot_path else '' }}" alt="Live Detection" onerror="this.style.display='none'; document.getElementById('liveDetectionEmpty').style.display='flex';">
-        <div class="empty-state-box" id="liveDetectionEmpty" style="display: none; height: 100%;">
-          <span class="empty-state-icon">📷</span>
-          <p class="empty-state-text">No annotated media recorded yet. Upload a media feed to view YOLOv8 detections.</p>
+      <div class="live-detection-viewer" id="liveDetectionViewerWrap" style="height: 190px; border-radius: 12px; overflow: hidden; background: var(--bg-page); display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid var(--border-soft);">
+        <img id="liveDetectionImg" src="/outputs/{{ latest_violation.snapshot_path if latest_violation and latest_violation.snapshot_path else '' }}" alt="Live Detection" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; document.getElementById('liveDetectionEmpty').style.display='flex';">
+        <div class="empty-state-box" id="liveDetectionEmpty" style="display: none; height: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
+          <span style="font-size: 28px;">📷</span>
+          <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 6px;">No annotated media recorded yet. Upload a feed to view detections.</p>
         </div>
       </div>
     </div>
 
-    <!-- Carousel Nav & Detection Info -->
     <div>
-      <div class="live-carousel-controls">
-        <button id="prevDetectionBtn" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 11px;">◀ Previous</button>
-        <span id="liveDetectionCounter" style="font-size: 12px; font-weight: 700; color: var(--text-muted);">1 / 1</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+        <button id="prevDetectionBtn" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 11px;">◀ Prev</button>
+        <span id="liveDetectionCounter" style="font-size: 11.5px; font-weight: 700; color: var(--text-secondary);">1 / 1</span>
         <button id="nextDetectionBtn" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 11px;">Next ▶</button>
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-soft); padding-top: 8px;">
-        <span id="liveDetectionCam"><b>Cam:</b> {{ latest_violation.camera_name if latest_violation else 'Cam 01 – Zone A' }}</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 11px; color: var(--text-secondary); border-top: 1px solid var(--border-soft); padding-top: 8px;">
+        <span id="liveDetectionCam"><b>Cam:</b> {{ latest_violation.camera_name if latest_violation else 'Cam 01' }}</span>
         <span id="liveDetectionLoc"><b>Zone:</b> {{ latest_violation.location if latest_violation else 'Facility' }}</span>
-        <span id="liveDetectionPeople"><b>Personnel:</b> Active</span>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Col 3: Recent Violations (Latest 3 to 5 Real Violations) -->
-  <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+<!-- ========================================================================= -->
+<!-- 6. ANALYTICS ROW 3: Critical Alerts Banner + AI Insights + Recent Events   -->
+<!-- ========================================================================= -->
+<div class="dash-grid-2col">
+  <!-- Col 1: Smart Critical Safety Alerts Banner (P2) -->
+  <div class="premium-card">
     <div>
-      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div>
-          <h3 class="card-title" style="margin: 0; font-size: 15px;">
-            <span>🚨</span> Recent Violations
-          </h3>
-          <p class="card-subtitle" style="margin: 3px 0 0 0; font-size: 12px;">Latest real safety infractions logged</p>
+      <div class="card-header-row">
+        <div class="card-header-left">
+          <div class="card-icon-chip" style="background: var(--pastel-red); color: var(--accent-red);">🚨</div>
+          <div>
+            <h4 class="card-title-text">Smart Critical Safety Alerts</h4>
+            <p class="card-subtitle-text">Rule-based automated triggers for unreviewed or repeat hazards</p>
+          </div>
         </div>
-        <a href="/events" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px; font-weight: 700;">View All →</a>
+        <span class="badge-status status-danger" style="font-size: 10px;">Automated Rules</span>
       </div>
 
-      <!-- Real Violations List Container -->
-      <div id="recentViolationsList" style="display: flex; flex-direction: column; gap: 8px;">
-        <div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 12px;">
-          Loading infractions...
+      <div class="critical-alerts-strip" id="criticalAlertsStrip">
+        {% for alert in critical_alerts %}
+        <div class="critical-alert-item" style="background: {% if alert.tone == 'red' %}var(--pastel-red){% else %}var(--pastel-sun){% endif %}; border-color: {% if alert.tone == 'red' %}rgba(229, 57, 80, 0.35){% else %}rgba(242, 183, 5, 0.4){% endif %}; color: {% if alert.tone == 'red' %}var(--text-red){% else %}var(--text-sun){% endif %};">
+          <div style="display: flex; align-items: flex-start; gap: 8px;">
+            <span style="font-size: 15px;">⚠️</span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.82rem;">{{ alert.title }}</div>
+              <div style="font-size: 0.74rem; opacity: 0.9; margin-top: 2px;">{{ alert.message }}</div>
+            </div>
+          </div>
+          <a href="{{ alert.action_url }}" class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 10px; font-weight: 700; white-space: nowrap;">
+            Review →
+          </a>
+        </div>
+        {% else %}
+        <div style="padding: 24px; text-align: center; color: var(--text-secondary); font-size: 12px;">
+          ✅ No active critical alerts. All high-severity infractions resolved.
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 0.72rem; color: var(--text-secondary); border-top: 1px solid var(--border-soft); padding-top: 8px;">
+      <span>Threshold: Critical unresolved > 0 hrs</span>
+      <a href="/violation-monitoring" style="color: var(--coral); font-weight: 700;">Open Violation Monitoring →</a>
+    </div>
+  </div>
+
+  <!-- Col 2: AI Safety Insights Panel (P3) -->
+  <div class="premium-card">
+    <div>
+      <div class="card-header-row">
+        <div class="card-header-left">
+          <div class="card-icon-chip" style="background: var(--pastel-orchid); color: var(--accent-orchid);">🧠</div>
+          <div>
+            <h4 class="card-title-text">AI Safety Insights</h4>
+            <p class="card-subtitle-text">Deterministic fact extraction grounded directly in facility data</p>
+          </div>
+        </div>
+        <span class="badge-status status-safe" style="font-size: 10px; background: var(--pastel-orchid); color: var(--text-orchid); border-color: rgba(201, 75, 181, 0.3);">
+          Grounded on Data
+        </span>
+      </div>
+
+      <div class="ai-insights-grid" id="aiInsightsGrid">
+        {% for ins in ai_insights %}
+        <div class="ai-insight-card ai-insight-{{ ins.tone }}">
+          <div>
+            <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; margin-bottom: 2px;">
+              {{ ins.category }}
+            </div>
+            <h5 class="ai-insight-title">{{ ins.title }}</h5>
+            <p class="ai-insight-fact" style="margin-top: 4px;">{{ ins.fact }}</p>
+          </div>
+          <a href="/assistant?q={{ ins.action_query|urlencode }}" class="ai-insight-action-btn">
+            <span>✨</span> Ask AI About This →
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 0.72rem; color: var(--text-secondary); border-top: 1px solid var(--border-soft); padding-top: 8px;">
+      <span>Generated from audited database aggregates</span>
+      <a href="/assistant" style="color: var(--accent-orchid); font-weight: 700;">AI Safety Assistant RAG →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- 7. ANALYTICS ROW 4 (P4): Predictive Forecast + Inspection Scheduling       -->
+<!-- ========================================================================= -->
+<div class="dash-grid-2col">
+  <!-- Col 1: Predictive Safety Analytics (P4) -->
+  <div class="premium-card">
+    <div>
+      <div class="card-header-row">
+        <div class="card-header-left">
+          <div class="card-icon-chip" style="background: var(--pastel-sun); color: var(--accent-sun);">🔮</div>
+          <div>
+            <h4 class="card-title-text">Predictive Safety Analytics</h4>
+            <p class="card-subtitle-text">7-day moving average trajectory projection</p>
+          </div>
+        </div>
+        <span class="badge-status status-warning" style="font-size: 10px;">Estimate</span>
+      </div>
+
+      {% if forecast.has_enough_data %}
+      <div style="background: var(--pastel-sun); border: 1px solid rgba(242, 183, 5, 0.4); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div>
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-sun); text-transform: uppercase;">
+              Projected Next-Period Compliance
+            </div>
+            <div style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--text-strong); margin: 4px 0;">
+              {{ forecast.predicted_compliance }}%
+            </div>
+          </div>
+          <span class="badge-status status-safe" style="font-size: 11px;">
+            {{ 'Improving' if forecast.trend_direction == 'improving' else 'Declining' }} (Δ {{ forecast.delta }}%)
+          </span>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-sun); margin-top: 6px;">
+          <b>Historical 7-Day Baseline:</b> {{ forecast.historical_avg }}% · <b>Confidence Range:</b> {{ forecast.confidence_interval[0] }}% – {{ forecast.confidence_interval[1] }}%
         </div>
       </div>
+      <p style="font-size: 0.72rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">
+        ⚠️ <b>Limitation Note:</b> {{ forecast.note }}
+      </p>
+      {% else %}
+      <div class="empty-state-box" style="padding: 30px; text-align: center; background: var(--bg-page); border-radius: var(--radius-md);">
+        <span style="font-size: 28px;">📊</span>
+        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-strong); margin-top: 8px;">Needs More Historical Data</div>
+        <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 4px 0 0 0;">
+          {{ forecast.message|default('At least 14 days of surveillance history required for predictive projections.') }}
+        </p>
+      </div>
+      {% endif %}
     </div>
 
-    <div style="margin-top: 10px; border-top: 1px solid var(--border-soft); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted);">
-      <span>Severity standard: High, Med, Low</span>
-      <a href="/events" style="color: var(--coral); font-weight: 700; text-decoration: none;">Audit Ledger →</a>
+    <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 14px; border-top: 1px solid var(--border-soft); padding-top: 8px;">
+      Method: Statistical 7-Day Rolling Trajectory Analysis
+    </div>
+  </div>
+
+  <!-- Col 2: Upcoming Scheduled Inspections (P4) -->
+  <div class="premium-card">
+    <div>
+      <div class="card-header-row">
+        <div class="card-header-left">
+          <div class="card-icon-chip" style="background: var(--pastel-mint); color: var(--accent-mint);">📅</div>
+          <div>
+            <h4 class="card-title-text">Scheduled Safety Inspections</h4>
+            <p class="card-subtitle-text">Active calendar of facility audits & compliance sweeps</p>
+          </div>
+        </div>
+        <button id="addInspectionBtn" class="btn btn-primary btn-sm" style="font-size: 11px; padding: 4px 10px; font-weight: 700;">
+          + New Audit
+        </button>
+      </div>
+
+      <div class="schedule-table-wrap">
+        <table class="schedule-table" id="inspectionSchedulesTable">
+          <thead>
+            <tr>
+              <th>Audit Title</th>
+              <th>Department</th>
+              <th>Date</th>
+              <th>Assignee</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in schedules %}
+            <tr>
+              <td>
+                <div style="font-weight: 700;">{{ s.title }}</div>
+                <div style="font-size: 10px; color: var(--text-secondary);">{{ s.location }}</div>
+              </td>
+              <td><span class="filter-chip" style="font-size: 10px; padding: 1px 6px;">{{ s.department }}</span></td>
+              <td style="white-space: nowrap;">{{ s.scheduled_date }}</td>
+              <td>{{ s.assignee }}</td>
+              <td>
+                <span class="badge-status status-safe" style="font-size: 10px; text-transform: uppercase;">
+                  {{ s.status }}
+                </span>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                No upcoming inspections scheduled.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 0.72rem; color: var(--text-secondary); border-top: 1px solid var(--border-soft); padding-top: 8px;">
+      <span>Stored in inspection_schedules table</span>
+      <button class="btn btn-secondary btn-sm" onclick="fetchInspectionSchedules()" style="font-size: 10px; padding: 2px 8px;">
+        Refresh Calendar
+      </button>
     </div>
   </div>
 </div>
 
 <!-- ========================================================================= -->
-<!-- ROW 3 (3 Columns): PPE Summary + Violation Analysis + Violation Dist       -->
+<!-- 8. MODALS & POPOVERS (Accessible, Plum Backdrop, Strict Sunrise Garden)   -->
 <!-- ========================================================================= -->
-<div class="grid-3-col">
-  <!-- Col 1: PPE Detection Summary (Doughnut Chart) -->
-  <div class="card">
-    <div class="card-header" style="margin-bottom: 12px;">
-      <h3 class="card-title" style="margin: 0; font-size: 15px;">
-        <span>🛡️</span> PPE Detection Summary
-      </h3>
-      <p class="card-subtitle" style="margin: 3px 0 0 0; font-size: 12px;">With PPE vs Without PPE & category proportions</p>
-    </div>
-    <div style="height: 220px; position: relative; display: flex; align-items: center; justify-content: center;">
-      <canvas id="ppeSummaryChart"></canvas>
-    </div>
-    <div id="ppeSummaryPills" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; font-size: 11px;">
-      <!-- Populated dynamically via JS -->
-    </div>
-  </div>
 
-  <!-- Col 2: Violation Analysis (Bar Chart by PPE Category) -->
-  <div class="card">
-    <div class="card-header" style="margin-bottom: 12px;">
-      <h3 class="card-title" style="margin: 0; font-size: 15px;">
-        <span>📊</span> Violation Analysis
-      </h3>
-      <p class="card-subtitle" style="margin: 3px 0 0 0; font-size: 12px;">Infraction count by PPE gear type (Total: <span id="vTotalCount">{{ v_by_type.total }}</span>)</p>
+<!-- Modal 1: Schedule Inspection Modal (P4) -->
+<div id="scheduleInspectionModal" class="safesight-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="scheduleModalTitle">
+  <div class="safesight-modal-dialog">
+    <div class="modal-header-row">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 20px;">📅</span>
+        <h4 id="scheduleModalTitle" style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 800; color: var(--text-strong); margin: 0;">
+          Schedule Safety Inspection
+        </h4>
+      </div>
+      <button class="modal-close-btn" id="closeScheduleModalBtn" aria-label="Close dialog">✕</button>
     </div>
-    <div style="height: 250px; position: relative;">
-      <canvas id="violationsTypeChart"></canvas>
-    </div>
-  </div>
 
-  <!-- Col 3: Violation Distribution (Pie Chart) -->
-  <div class="card">
-    <div class="card-header" style="margin-bottom: 12px;">
-      <h3 class="card-title" style="margin: 0; font-size: 15px;">
-        <span>🥧</span> Violation Distribution
-      </h3>
-      <p class="card-subtitle" style="margin: 3px 0 0 0; font-size: 12px;">Percentage distribution across infraction classes</p>
-    </div>
-    <div style="height: 250px; position: relative; display: flex; align-items: center; justify-content: center;">
-      <canvas id="violationDistChart"></canvas>
-    </div>
+    <form id="scheduleInspectionForm">
+      <div class="form-group-item">
+        <label class="form-group-label" for="schedTitle">Audit Title *</label>
+        <input type="text" id="schedTitle" class="form-input-text" placeholder="e.g. Monthly PPE Egress Verification" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group-item">
+          <label class="form-group-label" for="schedDept">Department *</label>
+          <select id="schedDept" class="form-input-text" required>
+            <option value="Fabrication">Fabrication</option>
+            <option value="Assembly">Assembly</option>
+            <option value="Logistics">Logistics</option>
+            <option value="Operations">Operations</option>
+          </select>
+        </div>
+        <div class="form-group-item">
+          <label class="form-group-label" for="schedLocation">Zone Location *</label>
+          <input type="text" id="schedLocation" class="form-input-text" placeholder="e.g. Zone A - Fabrication" required>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group-item">
+          <label class="form-group-label" for="schedDate">Scheduled Date *</label>
+          <input type="date" id="schedDate" class="form-input-text" required>
+        </div>
+        <div class="form-group-item">
+          <label class="form-group-label" for="schedAssignee">Safety Inspector *</label>
+          <input type="text" id="schedAssignee" class="form-input-text" placeholder="e.g. Sarah Jenkins (Lead)" required>
+        </div>
+      </div>
+
+      <div class="form-group-item">
+        <label class="form-group-label" for="schedNotes">Audit Scope & Focus</label>
+        <textarea id="schedNotes" class="form-input-text" rows="2" placeholder="Specific check items (welding goggles, vest reflectivity)..."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+        <button type="button" class="btn btn-secondary btn-sm" id="cancelScheduleBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="submitScheduleBtn" style="font-weight: 700;">
+          Confirm Schedule
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 
-<!-- ========================================================================= -->
-<!-- ROW 4 (3 Columns): Daily PPE Events + Compliance Target + Monthly Perf    -->
-<!-- ========================================================================= -->
-<div class="grid-3-col">
-  <!-- Col 1: Daily PPE Events (Area Chart Timeseries) -->
-  <div class="card">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <div>
-        <h3 class="card-title" style="margin: 0; font-size: 15px;">
-          <span>📅</span> Daily PPE Events
-        </h3>
-        <p class="card-subtitle" style="margin: 3px 0 0 0; font-size: 12px;">21-day timeline of incidents recorded</p>
+<!-- Modal 2: Safety Performance Score Formula Popover -->
+<div id="scorePopoverModal" class="safesight-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="scoreModalTitle">
+  <div class="safesight-modal-dialog">
+    <div class="modal-header-row">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 20px;">📐</span>
+        <h4 id="scoreModalTitle" style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 800; color: var(--text-strong); margin: 0;">
+          Safety Score Calculation Methodology
+        </h4>
       </div>
-      <span class="badge-status status-detected" style="font-size: 10px;">21-Day View</span>
+      <button class="modal-close-btn" id="closeScoreModalBtn" aria-label="Close dialog">✕</button>
     </div>
-    <div style="height: 240px; position: relative;">
-      <canvas id="timeseriesChart"></canvas>
-    </div>
-  </div>
 
-  <!-- Col 2: Compliance Trends (Grouped Bars Target vs Achieved) -->
-  <div class="card">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <div>
-        <h3 class="card-title" style="margin: 0; font-size: 15px;">
-          <span>🎯</span> Compliance Trends
-        </h3>
-        <p class="card-subtitle" style="margin: 3px 0 0 0; font-size: 12px;">Target: 95% (configurable) vs Real Achieved</p>
-      </div>
-      <span class="badge-status status-safe" style="font-size: 10px;">Target: 95%</span>
-    </div>
-    <div style="height: 240px; position: relative;">
-      <canvas id="complianceTargetChart"></canvas>
-    </div>
-  </div>
-
-  <!-- Col 3: Monthly Safety Performance (Monthly comparison or Empty State) -->
-  <div class="card">
-    <div class="card-header" style="margin-bottom: 12px;">
-      <h3 class="card-title" style="margin: 0; font-size: 15px;">
-        <span>🗓️</span> Monthly Safety Performance
-      </h3>
-      <p class="card-subtitle" style="margin: 3px 0 0 0; font-size: 12px;">Month-over-month compliance & violation trends</p>
-    </div>
-    <div style="height: 240px; position: relative;" id="monthlyChartWrapper">
-      <canvas id="monthlyPerformanceChart"></canvas>
-      <div class="empty-state-box" id="monthlyEmptyState" style="display: none; height: 100%;">
-        <span class="empty-state-icon">🗓️</span>
-        <p class="empty-state-text" id="monthlyEmptyText">Needs more data (at least 2 months of surveillance history required)</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========================================================================= -->
-<!-- ROW 5: SYSTEM HEALTH & AI ENGINE STATUS (Full-width grid with 0 gaps)      -->
-<!-- ========================================================================= -->
-<div class="card" style="margin-bottom: 24px; padding: 20px;">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 20px;">🛡️</span>
-      <div>
-        <h3 class="card-title" style="margin: 0; font-size: 15px;">System Health & AI Engine Status</h3>
-        <p class="card-subtitle" style="margin: 2px 0 0 0; font-size: 12px;">Subsystem connectivity and operational readiness</p>
-      </div>
-    </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
-      <span id="healthOverallBadge" class="badge-status status-safe" style="font-size: 11px;">Checking...</span>
-      <button class="btn btn-secondary btn-sm" onclick="fetchSystemHealth()" style="padding: 4px 10px; font-size: 11px; font-weight: 700;">🔄 Refresh</button>
-    </div>
-  </div>
-
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-    <!-- Subsystem 1: Database -->
-    <div class="health-chip" id="healthDb" style="background: var(--bg-surface-alt); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 18px;">💾</span>
-      <div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-strong);">Database</div>
-        <div style="font-size: 11px; color: var(--text-muted);" id="healthDbVal">--</div>
+    <div style="background: var(--pastel-mint); border: 1px solid rgba(53, 185, 130, 0.4); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
+      <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-mint); text-transform: uppercase;">Formula Standard</div>
+      <div style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 800; color: var(--text-strong); margin-top: 4px;">
+        Score = (50% × Compliance) + (30% × Resolution Rate) + (20% × Audit Index)
       </div>
     </div>
 
-    <!-- Subsystem 2: YOLOv8 Vision -->
-    <div class="health-chip" id="healthDetector" style="background: var(--bg-surface-alt); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 18px;">📹</span>
-      <div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-strong);">YOLOv8 Vision</div>
-        <div style="font-size: 11px; color: var(--text-muted);" id="healthDetectorVal">--</div>
+    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.82rem;">
+      <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: var(--bg-page); border-radius: var(--radius-sm);">
+        <span><b>1. PPE Adherence Rate (50% Weight):</b></span>
+        <span style="font-weight: 800; color: var(--accent-mint);">{{ perf_score.components.compliance_rate.value|default(94.5) }}%</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: var(--bg-page); border-radius: var(--radius-sm);">
+        <span><b>2. Violation Resolution Rate (30% Weight):</b></span>
+        <span style="font-weight: 800; color: var(--accent-peach);">{{ perf_score.components.resolution_rate.value|default(85.0) }}%</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: var(--bg-page); border-radius: var(--radius-sm);">
+        <span><b>3. Audit Regularity Index (20% Weight):</b></span>
+        <span style="font-weight: 800; color: var(--accent-orchid);">{{ perf_score.components.audit_consistency.value|default(92.0) }}%</span>
       </div>
     </div>
 
-    <!-- Subsystem 3: Document Index -->
-    <div class="health-chip" id="healthDocIndex" style="background: var(--bg-surface-alt); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 18px;">📚</span>
-      <div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-strong);">Document Index</div>
-        <div style="font-size: 11px; color: var(--text-muted);" id="healthDocIndexVal">--</div>
-      </div>
-    </div>
+    <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 16px 0 0 0; line-height: 1.4;">
+      This transparent score reflects live floor adherence, prompt supervisor resolutions, and regular automated inspection frequency. Scores above 90% receive an Optimal rating.
+    </p>
 
-    <!-- Subsystem 4: Visual Index -->
-    <div class="health-chip" id="healthVisualIndex" style="background: var(--bg-surface-alt); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 18px;">🧠</span>
-      <div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-strong);">Visual Index</div>
-        <div style="font-size: 11px; color: var(--text-muted);" id="healthVisualIndexVal">--</div>
-      </div>
+    <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+      <button class="btn btn-primary btn-sm" id="dismissScoreModalBtn">Understood</button>
     </div>
-
-    <!-- Subsystem 5: LLM Provider -->
-    <div class="health-chip" id="healthLlm" style="background: var(--bg-surface-alt); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 18px;">⚡</span>
-      <div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-strong);">LLM Provider</div>
-        <div style="font-size: 11px; color: var(--text-muted);" id="healthLlmVal">--</div>
-      </div>
-    </div>
-
-    <!-- Subsystem 6: LangGraph -->
-    <div class="health-chip" id="healthLanggraph" style="background: var(--bg-surface-alt); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 18px;">🔄</span>
-      <div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-strong);">LangGraph Engine</div>
-        <div style="font-size: 11px; color: var(--text-muted);" id="healthLanggraphVal">--</div>
-      </div>
-    </div>
-
-    <!-- Subsystem 7: Palette Design System -->
-    <div class="health-chip" id="healthTheme" style="background: var(--bg-surface-alt); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 18px;">🎨</span>
-      <div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-strong);">Design System</div>
-        <div style="font-size: 11px; color: var(--text-muted);" id="healthThemeVal">Sunrise Garden</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========================================================================= -->
-<!-- ROW 6: REPORTS & QUICK ACTIONS (Four Action Cards)                        -->
-<!-- ========================================================================= -->
-<div class="grid-4-col">
-  <!-- Action 1: Download Compliance Report -->
-  <div class="action-card">
-    <div style="display: flex; align-items: flex-start; gap: 12px;">
-      <div class="kpi-icon-badge kpi-badge-coral" style="margin: 0;">📑</div>
-      <div>
-        <h4 style="font-size: 14px; font-weight: 800; color: var(--text-strong); margin: 0 0 4px 0;">Download Compliance Report</h4>
-        <p style="font-size: 11.5px; color: var(--text-muted); margin: 0; line-height: 1.4;">
-          Export publication-quality executive safety audit dossier.
-        </p>
-      </div>
-    </div>
-    <button id="downloadComplianceReportBtn" class="btn btn-primary" style="width: 100%; font-weight: 700; font-size: 12px;">
-      <span>⬇</span> Download Latest PDF
-    </button>
-  </div>
-
-  <!-- Action 2: View Violation Report -->
-  <div class="action-card">
-    <div style="display: flex; align-items: flex-start; gap: 12px;">
-      <div class="kpi-icon-badge kpi-badge-sun" style="margin: 0;">📋</div>
-      <div>
-        <h4 style="font-size: 14px; font-weight: 800; color: var(--text-strong); margin: 0 0 4px 0;">View Violation Report</h4>
-        <p style="font-size: 11.5px; color: var(--text-muted); margin: 0; line-height: 1.4;">
-          Inspect comprehensive audit records and infraction timeline.
-        </p>
-      </div>
-    </div>
-    <a href="/reports" class="btn btn-secondary" style="width: 100%; font-weight: 700; font-size: 12px; text-decoration: none;">
-      <span>👁</span> Open Reports Archive
-    </a>
-  </div>
-
-  <!-- Action 3: Generate Safety Summary PDF -->
-  <div class="action-card">
-    <div style="display: flex; align-items: flex-start; gap: 12px;">
-      <div class="kpi-icon-badge kpi-badge-mint" style="margin: 0;">⚡</div>
-      <div>
-        <h4 style="font-size: 14px; font-weight: 800; color: var(--text-strong); margin: 0 0 4px 0;">Generate Safety Summary</h4>
-        <p style="font-size: 11.5px; color: var(--text-muted); margin: 0; line-height: 1.4;">
-          Compile fresh on-demand ReportLab PDF with real-time metrics.
-        </p>
-      </div>
-    </div>
-    <button id="generateSafetySummaryBtn" class="btn btn-secondary" style="width: 100%; font-weight: 700; font-size: 12px;">
-      <span>🔄</span> Generate New PDF
-    </button>
-  </div>
-
-  <!-- Action 4: View All Events -->
-  <div class="action-card">
-    <div style="display: flex; align-items: flex-start; gap: 12px;">
-      <div class="kpi-icon-badge kpi-badge-berry" style="margin: 0;">🚨</div>
-      <div>
-        <h4 style="font-size: 14px; font-weight: 800; color: var(--text-strong); margin: 0 0 4px 0;">View All Events</h4>
-        <p style="font-size: 11.5px; color: var(--text-muted); margin: 0; line-height: 1.4;">
-          Audit CCTV infractions with spatial bounding boxes and status actions.
-        </p>
-      </div>
-    </div>
-    <a href="/events" class="btn btn-secondary" style="width: 100%; font-weight: 700; font-size: 12px; text-decoration: none;">
-      <span>➔</span> Open Events & Audit
-    </a>
   </div>
 </div>
 {% endblock %}

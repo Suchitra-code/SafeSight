@@ -276,6 +276,8 @@ def init_db():
         init_db_milestone4()
         # Auto-run Violation Monitoring schema migrations
         init_db_violation_monitoring()
+        # Auto-run Premium Dashboard schema migrations
+        init_db_premium_dashboard()
         return True
     except Exception as e:
         logger.error(f"Failed to initialize SQLite fallback: {e}")
@@ -681,4 +683,109 @@ def init_db_violation_monitoring():
     except Exception as e:
         logger.error(f"Failed to initialize SQLite Violation Monitoring tables: {e}")
         return False
+
+
+def init_db_premium_dashboard():
+    """
+    Auto-initializes Premium Dashboard schema extensions:
+    - inspection_schedules table for P4 scheduling
+    - Safe department column on uploads & violations
+    - Safe department backfill from real location/zone data
+    - Initial upcoming inspection records
+    Works for both MySQL and SQLite fallback cleanly using CREATE TABLE IF NOT EXISTS.
+    """
+    global _use_sqlite_fallback
+    pool = _get_mysql_pool()
+
+    if not _use_sqlite_fallback and pool:
+        try:
+            conn = pool.get_connection()
+            cur = conn.cursor()
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS inspection_schedules (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    title VARCHAR(150) NOT NULL,
+                    department VARCHAR(100) NOT NULL,
+                    location VARCHAR(150) NOT NULL,
+                    scheduled_date DATE NOT NULL,
+                    assignee VARCHAR(100) NOT NULL,
+                    status VARCHAR(50) DEFAULT 'scheduled',
+                    notes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_is_status (status),
+                    INDEX idx_is_date (scheduled_date)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            """)
+            try:
+                cur.execute("SELECT department FROM uploads LIMIT 1")
+            except Exception:
+                try:
+                    cur.execute("ALTER TABLE uploads ADD COLUMN department VARCHAR(100) DEFAULT NULL")
+                except Exception as de:
+                    logger.warning(f"Notice on MySQL uploads.department migration: {de}")
+            conn.commit()
+            cur.close()
+            conn.close()
+            logger.info("MySQL Premium Dashboard tables initialized successfully.")
+            return True
+        except Exception as e:
+            logger.error(f"Failed MySQL Premium Dashboard init ({e}), using SQLite fallback.")
+
+    # SQLite Fallback DDL
+    try:
+        conn = sqlite3.connect(_sqlite_db_path)
+        cur = conn.cursor()
+        cur.executescript("""
+            CREATE TABLE IF NOT EXISTS inspection_schedules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                department TEXT NOT NULL,
+                location TEXT NOT NULL,
+                scheduled_date DATE NOT NULL,
+                assignee TEXT NOT NULL,
+                status TEXT DEFAULT 'scheduled',
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        # Safe column addition for department on uploads
+        try:
+            cur.execute("ALTER TABLE uploads ADD COLUMN department TEXT DEFAULT NULL")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass
+
+        # Backfill department in violations and uploads based on real location data
+        cur.execute("UPDATE violations SET department = 'Fabrication' WHERE (location LIKE '%Fabrication%' OR location LIKE '%Zone A%') AND (department IS NULL OR department = '')")
+        cur.execute("UPDATE violations SET department = 'Assembly' WHERE (location LIKE '%Assembly%' OR location LIKE '%Zone B%') AND (department IS NULL OR department = '')")
+        cur.execute("UPDATE violations SET department = 'Logistics' WHERE (location LIKE '%Exit%' OR location LIKE '%Zone C%' OR location LIKE '%Warehouse%') AND (department IS NULL OR department = '')")
+        cur.execute("UPDATE violations SET department = 'Operations' WHERE department IS NULL OR department = ''")
+
+        cur.execute("UPDATE uploads SET department = 'Fabrication' WHERE (location LIKE '%Fabrication%' OR location LIKE '%Zone A%') AND (department IS NULL OR department = '')")
+        cur.execute("UPDATE uploads SET department = 'Assembly' WHERE (location LIKE '%Assembly%' OR location LIKE '%Zone B%') AND (department IS NULL OR department = '')")
+        cur.execute("UPDATE uploads SET department = 'Logistics' WHERE (location LIKE '%Exit%' OR location LIKE '%Zone C%') AND (department IS NULL OR department = '')")
+        cur.execute("UPDATE uploads SET department = 'Operations' WHERE department IS NULL OR department = ''")
+        conn.commit()
+
+        # Seed initial upcoming inspections if table is empty
+        cur.execute("SELECT COUNT(*) FROM inspection_schedules")
+        count = cur.fetchone()[0]
+        if count == 0:
+            cur.executemany("""
+                INSERT INTO inspection_schedules (title, department, location, scheduled_date, assignee, status, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, [
+                ('PPE Compliance Routine Audit', 'Fabrication', 'Zone A - Fabrication', '2026-11-24', 'Sarah Jenkins (Safety Lead)', 'scheduled', 'Quarterly heavy welding and helmet checks'),
+                ('High-Hazard Zone Assessment', 'Assembly', 'Zone B - Assembly Line', '2026-11-25', 'Marcus Chen (Senior Inspector)', 'scheduled', 'Conveyor belt guard & safety vest inspection'),
+                ('Exit Clearance & Signage Audit', 'Logistics', 'Zone C - Exit Gate', '2026-11-26', 'Elena Rostova (Compliance Specialist)', 'scheduled', 'Emergency egress & night shift visibility check'),
+            ])
+            conn.commit()
+
+        conn.close()
+        logger.info(f"SQLite Premium Dashboard tables initialized successfully at {_sqlite_db_path}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to initialize SQLite Premium Dashboard tables: {e}")
+        return False
+
 

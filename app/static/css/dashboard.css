@@ -1,0 +1,703 @@
+/* ==========================================================================
+   SafeSight AI — Premium Workplace Safety Intelligence Dashboard Styles
+   Theme: Sunrise Garden Enterprise (Strictly 0 black, 0 blue).
+   ========================================================================== */
+
+/* ── Hero Welcome Banner ── */
+.hero-welcome-banner {
+  background: linear-gradient(135deg, rgba(255, 240, 223, 0.95) 0%, rgba(255, 232, 240, 0.95) 50%, rgba(248, 227, 244, 0.95) 100%);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(255, 107, 74, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.hero-welcome-banner::before {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 201, 60, 0.25) 0%, rgba(255, 107, 74, 0.05) 70%, transparent 100%);
+  pointer-events: none;
+}
+
+.hero-welcome-banner::after {
+  content: "";
+  position: absolute;
+  bottom: -40px;
+  left: 20%;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 75, 181, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-text-content {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+}
+
+.hero-greeting {
+  font-family: var(--font-heading);
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.4px;
+}
+
+.hero-greeting-wave {
+  display: inline-block;
+  animation: wave 2.2s infinite;
+  transform-origin: 70% 70%;
+}
+
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.hero-summary-line {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.hero-highlight-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.hero-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Unified Filter Bar ── */
+.premium-filter-bar {
+  background: #FFFFFF;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 18px rgba(255, 107, 74, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.filter-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.filter-inputs-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.filter-select {
+  appearance: none;
+  background: var(--pastel-peach);
+  border: 1px solid rgba(240, 164, 93, 0.4);
+  color: var(--text-peach);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 7px 28px 7px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.filter-select:hover {
+  border-color: var(--accent-peach);
+}
+
+.filter-select:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 1px;
+}
+
+.filter-select-arrow {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  font-size: 9px;
+  color: var(--text-peach);
+}
+
+.filter-date-input {
+  background: #FFFFFF;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+
+.filter-date-input:focus-visible {
+  outline: 2px solid var(--coral);
+}
+
+.date-preset-pill {
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: var(--bg-page);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-soft);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.date-preset-pill:hover,
+.date-preset-pill.active {
+  background: var(--pastel-coral);
+  color: var(--text-coral);
+  border-color: rgba(240, 120, 97, 0.4);
+}
+
+.filter-row-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(243, 221, 211, 0.6);
+}
+
+.active-filter-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--pastel-orchid);
+  color: var(--text-orchid);
+  border: 1px solid rgba(201, 75, 181, 0.3);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.filter-chip-remove {
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-chip-remove:hover {
+  color: var(--accent-red);
+}
+
+/* ── Freshness & Live Engine Chip ── */
+.data-freshness-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--pastel-mint);
+  border: 1px solid rgba(53, 185, 130, 0.35);
+  color: var(--text-mint);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.live-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-mint);
+  box-shadow: 0 0 0 rgba(53, 185, 130, 0.4);
+  animation: pulseLive 2s infinite;
+}
+
+@keyframes pulseLive {
+  0% { box-shadow: 0 0 0 0 rgba(53, 185, 130, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(53, 185, 130, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(53, 185, 130, 0); }
+}
+
+/* ── Dashboard Layout Grids ── */
+.dash-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.dash-grid-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.dash-grid-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1199px) {
+  .dash-grid-2col,
+  .dash-grid-3col {
+    grid-template-columns: 1fr;
+  }
+  .dash-grid-4col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 599px) {
+  .dash-grid-4col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Premium Card Enhancements ── */
+.premium-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid var(--border-soft);
+  padding: 22px 24px;
+  box-shadow: 0 4px 20px rgba(255, 107, 74, 0.06);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.premium-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(255, 107, 74, 0.12);
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-icon-chip {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.card-title-text {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.card-subtitle-text {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin: 2px 0 0 0;
+}
+
+/* ── Safety Performance Score Gauge & Popover ── */
+.score-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--pastel-mint);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(53, 185, 130, 0.3);
+  margin-top: 14px;
+}
+
+.score-circular-wrap {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.score-inner-val {
+  width: 44px;
+  height: 44px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.score-info-block {
+  flex: 1;
+}
+
+.score-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-mint);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score-grade {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.score-popover-trigger {
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-mint);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* ── Spatial Safety Risk Heatmap ── */
+.risk-heatmap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.risk-zone-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.risk-zone-item:hover {
+  transform: translateX(4px);
+}
+
+.risk-zone-item.risk-critical {
+  background: var(--pastel-red);
+  border-color: rgba(229, 57, 80, 0.4);
+}
+
+.risk-zone-item.risk-high {
+  background: var(--pastel-coral);
+  border-color: rgba(240, 120, 97, 0.4);
+}
+
+.risk-zone-item.risk-medium {
+  background: var(--pastel-sun);
+  border-color: rgba(242, 183, 5, 0.4);
+}
+
+.risk-zone-item.risk-low {
+  background: var(--pastel-mint);
+  border-color: rgba(53, 185, 130, 0.4);
+}
+
+.risk-badge {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.risk-badge-critical { background: var(--accent-red); color: #FFFFFF; }
+.risk-badge-high     { background: var(--accent-coral); color: #FFFFFF; }
+.risk-badge-medium   { background: var(--accent-sun); color: var(--text-strong); }
+.risk-badge-low      { background: var(--accent-mint); color: #FFFFFF; }
+
+/* ── AI Safety Insights Panel (P3) ── */
+.ai-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 768px) {
+  .ai-insights-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ai-insight-card {
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid;
+  transition: transform 0.2s ease;
+}
+
+.ai-insight-card:hover {
+  transform: translateY(-2px);
+}
+
+.ai-insight-pink   { background: var(--pastel-pink);   border-color: rgba(231, 107, 154, 0.35); }
+.ai-insight-mint   { background: var(--pastel-mint);   border-color: rgba(53, 185, 130, 0.35); }
+.ai-insight-orchid { background: var(--pastel-orchid); border-color: rgba(201, 75, 181, 0.35); }
+.ai-insight-sun    { background: var(--pastel-sun);    border-color: rgba(242, 183, 5, 0.35); }
+
+.ai-insight-title {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.ai-insight-fact {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.ai-insight-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: var(--transition-fast);
+}
+
+.ai-insight-pink .ai-insight-action-btn   { background: var(--accent-pink); color: #FFFFFF; }
+.ai-insight-mint .ai-insight-action-btn   { background: var(--accent-mint); color: #FFFFFF; }
+.ai-insight-orchid .ai-insight-action-btn { background: var(--accent-orchid); color: #FFFFFF; }
+.ai-insight-sun .ai-insight-action-btn    { background: var(--accent-sun); color: var(--text-strong); }
+
+/* ── Critical Alerts Banner (P2) ── */
+.critical-alerts-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.critical-alert-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--pastel-red);
+  border: 1px solid rgba(229, 57, 80, 0.3);
+  font-size: 0.8rem;
+  color: var(--text-red);
+  gap: 12px;
+}
+
+/* ── Scheduled Inspections Table (P4) ── */
+.schedule-table-wrap {
+  overflow-x: auto;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.schedule-table th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--bg-page);
+  color: var(--text-secondary);
+  font-weight: 700;
+  border-bottom: 1.5px solid var(--border-soft);
+}
+
+.schedule-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-strong);
+}
+
+.schedule-table tr:hover td {
+  background: rgba(255, 240, 223, 0.4);
+}
+
+/* ── Modals & Dialogs (Accessible, Plum Backdrop) ── */
+.safesight-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(74, 29, 47, 0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 20px;
+}
+
+.safesight-modal-dialog {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid var(--border-soft);
+  max-width: 520px;
+  width: 100%;
+  padding: 24px 28px;
+  box-shadow: 0 16px 40px rgba(74, 29, 47, 0.25);
+  position: relative;
+  animation: modalEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalEnter {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.modal-close-btn {
+  background: var(--bg-page);
+  border: 1px solid var(--border-soft);
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: var(--transition-fast);
+}
+
+.modal-close-btn:hover {
+  background: var(--pastel-red);
+  color: var(--text-red);
+}
+
+.form-group-item {
+  margin-bottom: 14px;
+}
+
+.form-group-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  margin-bottom: 6px;
+}
+
+.form-input-text {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-page);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--text-strong);
+}
+
+.form-input-text:focus-visible {
+  outline: 2px solid var(--coral);
+}

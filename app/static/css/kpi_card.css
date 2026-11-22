@@ -77,26 +77,102 @@
   outline-offset: 3px;
 }
 
-/* ── Tones (Borders & Soft Gradients) ── */
-.kpi-tone-accent {
-  background: linear-gradient(135deg, #FFFFFF 0%, #FFF5EF 100%);
-  border-top: 4px solid var(--coral);
+/* ── Tones (Section 2 Pastel Backgrounds & Accents) ── */
+.kpi-tone-peach {
+  background: var(--pastel-peach);
+  border: 1px solid rgba(240, 164, 93, 0.4);
+  box-shadow: 0 4px 20px rgba(240, 164, 93, 0.10);
+}
+.kpi-tone-peach .kpi-number,
+.kpi-tone-peach .kpi-unit,
+.kpi-tone-peach .kpi-title {
+  color: var(--text-peach);
+}
+.kpi-tone-peach .kpi-desc {
+  color: var(--text-peach);
+  opacity: 0.88;
 }
 
-.kpi-tone-danger {
-  background: linear-gradient(135deg, #FFFFFF 0%, #FEECEF 100%);
-  border-top: 4px solid var(--danger);
+.kpi-tone-pink {
+  background: var(--pastel-pink);
+  border: 1px solid rgba(231, 107, 154, 0.4);
+  box-shadow: 0 4px 20px rgba(231, 107, 154, 0.10);
+}
+.kpi-tone-pink .kpi-number,
+.kpi-tone-pink .kpi-unit,
+.kpi-tone-pink .kpi-title {
+  color: var(--text-pink);
+}
+.kpi-tone-pink .kpi-desc {
+  color: var(--text-pink);
+  opacity: 0.88;
 }
 
-.kpi-tone-success {
-  background: linear-gradient(135deg, #FFFFFF 0%, #EEFAF4 100%);
-  border-top: 4px solid var(--mint);
+.kpi-tone-mint {
+  background: var(--pastel-mint);
+  border: 1px solid rgba(53, 185, 130, 0.4);
+  box-shadow: 0 4px 20px rgba(53, 185, 130, 0.10);
+}
+.kpi-tone-mint .kpi-number,
+.kpi-tone-mint .kpi-unit,
+.kpi-tone-mint .kpi-title {
+  color: var(--text-mint);
+}
+.kpi-tone-mint .kpi-desc {
+  color: var(--text-mint);
+  opacity: 0.88;
 }
 
-.kpi-tone-warning {
-  background: linear-gradient(135deg, #FFFFFF 0%, #FFFCE8 100%);
-  border-top: 4px solid var(--sun);
+.kpi-tone-orchid {
+  background: var(--pastel-orchid);
+  border: 1px solid rgba(201, 75, 181, 0.4);
+  box-shadow: 0 4px 20px rgba(201, 75, 181, 0.10);
 }
+.kpi-tone-orchid .kpi-number,
+.kpi-tone-orchid .kpi-unit,
+.kpi-tone-orchid .kpi-title {
+  color: var(--text-orchid);
+}
+.kpi-tone-orchid .kpi-desc {
+  color: var(--text-orchid);
+  opacity: 0.88;
+}
+
+.kpi-tone-coral {
+  background: var(--pastel-coral);
+  border: 1px solid rgba(240, 120, 97, 0.4);
+  box-shadow: 0 4px 20px rgba(240, 120, 97, 0.10);
+}
+.kpi-tone-coral .kpi-number,
+.kpi-tone-coral .kpi-unit,
+.kpi-tone-coral .kpi-title {
+  color: var(--text-coral);
+}
+.kpi-tone-coral .kpi-desc {
+  color: var(--text-coral);
+  opacity: 0.88;
+}
+
+.kpi-tone-sun {
+  background: var(--pastel-sun);
+  border: 1px solid rgba(242, 183, 5, 0.4);
+  box-shadow: 0 4px 20px rgba(242, 183, 5, 0.10);
+}
+.kpi-tone-sun .kpi-number,
+.kpi-tone-sun .kpi-unit,
+.kpi-tone-sun .kpi-title {
+  color: var(--text-sun);
+}
+.kpi-tone-sun .kpi-desc {
+  color: var(--text-sun);
+  opacity: 0.88;
+}
+
+/* ── Backward-compatible aliases ── */
+.kpi-tone-accent  { background: var(--pastel-peach); border: 1px solid rgba(240, 164, 93, 0.4); }
+.kpi-tone-danger  { background: var(--pastel-pink); border: 1px solid rgba(231, 107, 154, 0.4); }
+.kpi-tone-success { background: var(--pastel-mint); border: 1px solid rgba(53, 185, 130, 0.4); }
+.kpi-tone-warning { background: var(--pastel-sun); border: 1px solid rgba(242, 183, 5, 0.4); }
 
 /* ── Card Header Row ── */
 .kpi-card-top {
@@ -121,10 +197,18 @@
   transform: scale(1.08);
 }
 
-.kpi-badge-accent  { background: rgba(255, 107, 74, 0.15); color: var(--coral); }
-.kpi-badge-danger  { background: rgba(229, 57, 80, 0.15); color: var(--danger); }
-.kpi-badge-success { background: rgba(34, 181, 115, 0.15); color: var(--mint); }
-.kpi-badge-warning { background: rgba(255, 201, 60, 0.25); color: #C28E00; }
+.kpi-badge-peach   { background: rgba(240, 164, 93, 0.25); color: var(--accent-peach); }
+.kpi-badge-pink    { background: rgba(231, 107, 154, 0.25); color: var(--accent-pink); }
+.kpi-badge-mint    { background: rgba(53, 185, 130, 0.25); color: var(--accent-mint); }
+.kpi-badge-orchid  { background: rgba(201, 75, 181, 0.25); color: var(--accent-orchid); }
+.kpi-badge-coral   { background: rgba(240, 120, 97, 0.25); color: var(--accent-coral); }
+.kpi-badge-sun     { background: rgba(242, 183, 5, 0.25); color: var(--accent-sun); }
+.kpi-badge-lime    { background: rgba(140, 198, 63, 0.25); color: var(--accent-lime); }
+.kpi-badge-red     { background: rgba(229, 57, 80, 0.25); color: var(--accent-red); }
+.kpi-badge-accent  { background: rgba(240, 164, 93, 0.25); color: var(--accent-peach); }
+.kpi-badge-danger  { background: rgba(231, 107, 154, 0.25); color: var(--accent-pink); }
+.kpi-badge-success { background: rgba(53, 185, 130, 0.25); color: var(--accent-mint); }
+.kpi-badge-warning { background: rgba(242, 183, 5, 0.25); color: var(--accent-sun); }
 
 .kpi-demo-badge {
   position: absolute;

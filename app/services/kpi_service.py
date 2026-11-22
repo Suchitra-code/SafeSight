@@ -83,34 +83,117 @@ def compute_kpi_metrics(
     }
 
 
-def get_workplace_safety_kpis() -> Dict[str, Any]:
+def get_workplace_safety_kpis(
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    department: Optional[str] = None,
+    location: Optional[str] = None,
+    violation_type: Optional[str] = None,
+    status: Optional[str] = None
+) -> Dict[str, Any]:
     """
     Queries database tables (uploads, violations, detections) using parameterised SQL,
-    and returns verified workplace safety KPIs.
+    with unified filtering support across date, department, location, violation type, and status.
+    Guarantees consistent numbers across the entire dashboard.
     """
     try:
+        from app.services.violation_mapper import get_db_statuses_for_ui_filter
+
         # 1. Total Inspections from uploads table
-        inspections_sql = "SELECT COUNT(*) as c FROM uploads WHERE status != %s"
-        inspections_res = execute_query(inspections_sql, ("failed",), fetch=True)
+        u_clauses = ["status != %s"]
+        u_params = ["failed"]
+        if date_from:
+            u_clauses.append("uploaded_at >= %s")
+            u_params.append(f"{date_from} 00:00:00")
+        if date_to:
+            u_clauses.append("uploaded_at <= %s")
+            u_params.append(f"{date_to} 23:59:59")
+        if department and department.lower() != "all":
+            u_clauses.append("department = %s")
+            u_params.append(department)
+        if location and location.lower() != "all":
+            u_clauses.append("location = %s")
+            u_params.append(location)
+
+        inspections_sql = f"SELECT COUNT(*) as c FROM uploads WHERE {' AND '.join(u_clauses)}"
+        inspections_res = execute_query(inspections_sql, tuple(u_params), fetch=True)
         inspections_count = inspections_res[0]["c"] if inspections_res else 0
 
-        # 2. Total Violations
-        v_sql = "SELECT COUNT(*) as c FROM violations"
-        v_res = execute_query(v_sql, fetch=True)
+        # 2. Total Violations with filters
+        v_clauses = ["1=1"]
+        v_params = []
+        if date_from:
+            v_clauses.append("detected_at >= %s")
+            v_params.append(f"{date_from} 00:00:00")
+        if date_to:
+            v_clauses.append("detected_at <= %s")
+            v_params.append(f"{date_to} 23:59:59")
+        if department and department.lower() != "all":
+            v_clauses.append("department = %s")
+            v_params.append(department)
+        if location and location.lower() != "all":
+            v_clauses.append("(location = %s OR camera_name = %s)")
+            v_params.extend([location, location])
+        if violation_type and violation_type.lower() != "all":
+            v_clauses.append("LOWER(violation_type) = LOWER(%s)")
+            v_params.append(violation_type)
+        if status and status.lower() != "all":
+            db_stats = get_db_statuses_for_ui_filter(status)
+            placeholders = ", ".join(["%s"] * len(db_stats))
+            v_clauses.append(f"LOWER(status) IN ({placeholders})")
+            v_params.extend([s.lower() for s in db_stats])
+
+        v_where = " AND ".join(v_clauses)
+        v_sql = f"SELECT COUNT(*) as c FROM violations WHERE {v_where}"
+        v_res = execute_query(v_sql, tuple(v_params), fetch=True)
         total_violations = v_res[0]["c"] if v_res else 0
 
-        # 3. Resolved Violations
-        r_sql = "SELECT COUNT(*) as c FROM violations WHERE LOWER(status) = %s"
-        r_res = execute_query(r_sql, ("resolved",), fetch=True)
+        # 3. Resolved Violations (inherits same filters, but status pinned to resolved)
+        r_clauses = [c for c in v_clauses if "status" not in c.lower()]
+        r_params = []
+        # Rebuild params without status filter
+        if date_from:
+            r_params.append(f"{date_from} 00:00:00")
+        if date_to:
+            r_params.append(f"{date_to} 23:59:59")
+        if department and department.lower() != "all":
+            r_params.append(department)
+        if location and location.lower() != "all":
+            r_params.extend([location, location])
+        if violation_type and violation_type.lower() != "all":
+            r_params.append(violation_type)
+
+        r_clauses.append("LOWER(status) = %s")
+        r_params.append("resolved")
+
+        r_sql = f"SELECT COUNT(*) as c FROM violations WHERE {' AND '.join(r_clauses)}"
+        r_res = execute_query(r_sql, tuple(r_params), fetch=True)
         resolved_violations = r_res[0]["c"] if r_res else 0
 
         # 4. Personnel counts for compliance from detections table
-        d_sql = """
-            SELECT COALESCE(SUM(total_people), 0) AS p,
-                   COALESCE(SUM(safe_count), 0) AS s
-            FROM detections
+        d_clauses = ["1=1"]
+        d_params = []
+        if date_from:
+            d_clauses.append("d.created_at >= %s")
+            d_params.append(f"{date_from} 00:00:00")
+        if date_to:
+            d_clauses.append("d.created_at <= %s")
+            d_params.append(f"{date_to} 23:59:59")
+        if department and department.lower() != "all":
+            d_clauses.append("u.department = %s")
+            d_params.append(department)
+        if location and location.lower() != "all":
+            d_clauses.append("u.location = %s")
+            d_params.append(location)
+
+        d_sql = f"""
+            SELECT COALESCE(SUM(d.total_people), 0) AS p,
+                   COALESCE(SUM(d.safe_count), 0) AS s
+            FROM detections d
+            LEFT JOIN uploads u ON d.upload_id = u.id
+            WHERE {' AND '.join(d_clauses)}
         """
-        d_res = execute_query(d_sql, fetch=True)
+        d_res = execute_query(d_sql, tuple(d_params), fetch=True)
         total_people = int(d_res[0]["p"]) if d_res else 0
         safe_count = int(d_res[0]["s"]) if d_res else 0
 

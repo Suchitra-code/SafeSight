@@ -157,28 +157,81 @@
     <div class="main-wrapper">
       <!-- Top Bar -->
       <header class="top-bar">
-        <div class="breadcrumb">
-          <span>SafeSight</span>
-          <span>/</span>
-          <span class="breadcrumb-active">{% block breadcrumb %}Overview{% endblock %}</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button id="sidebarToggleBtn" class="btn btn-secondary btn-sm" style="padding: 6px 10px; font-size: 14px;" title="Toggle Sidebar">
+            <span>☰</span>
+          </button>
+          <div class="breadcrumb" style="margin: 0;">
+            <span>SafeSight</span>
+            <span>/</span>
+            <span class="breadcrumb-active">{% block breadcrumb %}Overview{% endblock %}</span>
+          </div>
         </div>
 
-        <div class="top-bar-actions">
-          <button class="btn btn-secondary btn-sm" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {ctrlKey:true, key:'k'}))" title="Quick Search (Ctrl+K)" style="font-size: 11px; padding: 4px 10px;">
+        <div class="top-bar-actions" style="display: flex; align-items: center; gap: 12px;">
+          <!-- Global Search (Ctrl+K) -->
+          <button class="btn btn-secondary btn-sm" onclick="document.dispatchEvent(new KeyboardEvent('keydown', {ctrlKey:true, key:'k'}))" title="Quick Search (Ctrl+K)" style="font-size: 11.5px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
             <span>🔍</span> <span style="font-weight: 700;">Ctrl+K</span>
           </button>
 
-          <div class="live-indicator-pill" id="visionEnginePill" title="YOLOv8 Detection Engine" style="background: rgba(255, 107, 74, 0.08); border: 1px solid var(--border-soft);">
-            <span class="pulsing-dot" id="visionEngineDot" style="background: {% if demo_mode %}var(--sun){% else %}var(--mint){% endif %};"></span>
-            <span id="visionEngineText" style="font-weight: 700; color: var(--text-strong);">{{ 'Vision Engine (Demo)' if demo_mode else 'Vision Engine Active' }}</span>
+          <!-- Real Engine Health Status Chip -->
+          <div class="live-indicator-pill" id="visionEnginePill" title="YOLOv8 Vision Subsystem Status" style="background: var(--pastel-mint); border: 1px solid rgba(53, 185, 130, 0.4); padding: 5px 12px; border-radius: var(--radius-pill); display: flex; align-items: center; gap: 8px;">
+            <span class="pulsing-dot" id="visionEngineDot" style="background: {% if demo_mode %}var(--accent-sun){% else %}var(--accent-mint){% endif %}; width: 8px; height: 8px; border-radius: 50%;"></span>
+            <span id="visionEngineText" style="font-weight: 700; font-size: 11.5px; color: {% if demo_mode %}var(--text-sun){% else %}var(--text-mint){% endif %};">
+              {{ 'Engine (Demo)' if demo_mode else 'Engine Active' }}
+            </span>
           </div>
 
-          <a href="/events" class="bell-btn" title="Live Violations" style="width: 36px; height: 36px; border-radius: var(--radius-pill); background: var(--bg-soft-peach); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; position: relative;">
-            <span>🔔</span>
-            <span id="globalBellBadge" class="bell-badge" style="display:none; position: absolute; top: -4px; right: -4px; background: var(--red); color: white; font-size: 10px; font-weight: 800; border-radius: 999px; padding: 1px 5px;">0</span>
-          </a>
+          <!-- Notification Bell with Dropdown Menu -->
+          <div style="position: relative;">
+            <button id="headerBellBtn" class="bell-btn" title="Critical Safety Alerts" style="width: 38px; height: 38px; border-radius: var(--radius-pill); background: var(--pastel-peach); border: 1px solid rgba(240, 164, 93, 0.4); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer;">
+              <span>🔔</span>
+              <span id="globalBellBadge" class="bell-badge" style="display:none; position: absolute; top: -3px; right: -3px; background: var(--accent-red); color: #FFFFFF; font-size: 10px; font-weight: 800; border-radius: 999px; padding: 1px 6px;">0</span>
+            </button>
+            <!-- Dropdown Container -->
+            <div id="headerBellDropdown" style="display: none; position: absolute; right: 0; top: 46px; width: 320px; background: #FFFFFF; border-radius: var(--radius-lg); border: 1px solid var(--border-soft); box-shadow: 0 12px 36px rgba(74, 29, 47, 0.16); z-index: 1000; overflow: hidden; animation: modalEnter 0.2s ease;">
+              <div style="padding: 12px 16px; background: var(--bg-page); border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 12.5px; font-weight: 800; color: var(--text-strong);">Safety Alerts</span>
+                <span id="bellUnreadCount" class="badge-status status-danger" style="font-size: 10px; padding: 2px 7px;">0 Active</span>
+              </div>
+              <div id="headerBellList" style="max-height: 280px; overflow-y: auto; padding: 6px 0;">
+                <div style="padding: 16px; text-align: center; color: var(--text-secondary); font-size: 12px;">No unreviewed critical infractions</div>
+              </div>
+              <div style="padding: 8px 14px; background: var(--bg-page); border-top: 1px solid var(--border-soft); text-align: center;">
+                <a href="/violation-monitoring" style="font-size: 11.5px; font-weight: 700; color: var(--coral);">Open Violation Monitoring →</a>
+              </div>
+            </div>
+          </div>
 
-          <div style="font-size: 13px; color: var(--text-soft); font-weight: 600;" id="clockDisplay">
+          <!-- User Profile Dropdown -->
+          <div style="position: relative;">
+            <div id="userProfileBtn" style="display: flex; align-items: center; gap: 8px; background: #FFFFFF; border: 1px solid var(--border-soft); padding: 4px 10px 4px 5px; border-radius: var(--radius-pill); cursor: pointer; box-shadow: var(--shadow-sm);">
+              <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--coral), var(--pink)); color: #FFFFFF; font-weight: 800; font-size: 11px; display: flex; align-items: center; justify-content: center;">
+                SL
+              </div>
+              <div style="text-align: left; line-height: 1.1;">
+                <div style="font-size: 12px; font-weight: 700; color: var(--text-strong);">Safety Lead</div>
+                <div style="font-size: 10px; color: var(--text-secondary);">Enterprise Admin</div>
+              </div>
+              <span style="font-size: 10px; color: var(--text-secondary); margin-left: 2px;">▼</span>
+            </div>
+            <!-- User Dropdown Menu -->
+            <div id="userProfileDropdown" style="display: none; position: absolute; right: 0; top: 46px; width: 190px; background: #FFFFFF; border-radius: var(--radius-md); border: 1px solid var(--border-soft); box-shadow: 0 10px 30px rgba(74, 29, 47, 0.15); z-index: 1000; overflow: hidden;">
+              <div style="padding: 12px 14px; border-bottom: 1px solid var(--border-soft); background: var(--bg-page);">
+                <div style="font-size: 12px; font-weight: 800; color: var(--text-strong);">Signed in as</div>
+                <div style="font-size: 11px; color: var(--text-secondary); word-break: break-all;">supervisor@safesight.ai</div>
+              </div>
+              <a href="/ui-kit" style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 12px; color: var(--text-strong); text-decoration: none; border-bottom: 1px solid var(--border-soft);">
+                <span>🌸</span> UI Component Kit
+              </a>
+              <a href="/logout" style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 12px; color: var(--accent-red); text-decoration: none; font-weight: 700;">
+                <span>🚪</span> Sign Out
+              </a>
+            </div>
+          </div>
+
+          <!-- Live Clock -->
+          <div style="font-size: 12.5px; color: var(--text-secondary); font-weight: 700; padding: 4px 8px; background: var(--bg-page); border-radius: var(--radius-sm); border: 1px solid var(--border-soft);" id="clockDisplay">
             --:--
           </div>
         </div>
@@ -216,21 +269,79 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Periodically fetch live violations count for bell badge
+    // Periodically fetch live violations count for bell badge and critical alerts
     function refreshBellBadge() {
-      fetch('/api/analytics/kpi')
+      fetch('/api/analytics/critical-alerts')
         .then(r => r.json())
-        .then(data => {
+        .then(alerts => {
           const badge = document.getElementById('globalBellBadge');
-          if (badge && data.total_violations > 0) {
-            badge.innerText = data.total_violations;
-            badge.style.display = 'flex';
+          const unreadEl = document.getElementById('bellUnreadCount');
+          const listEl = document.getElementById('headerBellList');
+          const count = Array.isArray(alerts) ? alerts.length : 0;
+
+          if (badge) {
+            if (count > 0) {
+              badge.innerText = count;
+              badge.style.display = 'flex';
+            } else {
+              badge.style.display = 'none';
+            }
+          }
+          if (unreadEl) {
+            unreadEl.innerText = `${count} Active`;
+          }
+          if (listEl && Array.isArray(alerts) && alerts.length > 0) {
+            listEl.innerHTML = alerts.map(a => `
+              <a href="${a.action_url || '/violation-monitoring'}" style="display: block; padding: 10px 14px; text-decoration: none; border-bottom: 1px solid var(--border-soft); transition: background 0.15s;" onmouseover="this.style.background='var(--pastel-peach)'" onmouseout="this.style.background='transparent'">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                  <span style="font-size: 11px; font-weight: 800; color: ${a.tone === 'red' ? 'var(--accent-red)' : 'var(--accent-sun)'};">${a.severity}</span>
+                  <span style="font-size: 10px; color: var(--text-secondary);">${a.timestamp}</span>
+                </div>
+                <div style="font-size: 11.5px; font-weight: 700; color: var(--text-strong);">${a.title}</div>
+                <div style="font-size: 10.5px; color: var(--text-secondary); margin-top: 2px;">${a.message}</div>
+              </a>
+            `).join('');
           }
         })
         .catch(() => {});
     }
     refreshBellBadge();
-    setInterval(refreshBellBadge, 10000);
+    setInterval(refreshBellBadge, 15000);
+
+    // Sidebar Toggle Handler
+    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+    if (sidebarToggleBtn) {
+      sidebarToggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('sidebar-collapsed');
+      });
+    }
+
+    // Header Dropdowns click handlers
+    const bellBtn = document.getElementById('headerBellBtn');
+    const bellDropdown = document.getElementById('headerBellDropdown');
+    const userBtn = document.getElementById('userProfileBtn');
+    const userDropdown = document.getElementById('userProfileDropdown');
+
+    if (bellBtn && bellDropdown) {
+      bellBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (userDropdown) userDropdown.style.display = 'none';
+        bellDropdown.style.display = bellDropdown.style.display === 'block' ? 'none' : 'block';
+      });
+    }
+
+    if (userBtn && userDropdown) {
+      userBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (bellDropdown) bellDropdown.style.display = 'none';
+        userDropdown.style.display = userDropdown.style.display === 'block' ? 'none' : 'block';
+      });
+    }
+
+    document.addEventListener('click', () => {
+      if (bellDropdown) bellDropdown.style.display = 'none';
+      if (userDropdown) userDropdown.style.display = 'none';
+    });
   </script>
 
   {% block scripts %}{% endblock %}
