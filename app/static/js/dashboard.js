@@ -483,10 +483,13 @@ async function fetchAllAnalytics() {
     .then(data => updateSafetyScore(data))
     .catch(err => console.warn("Failed Safety Score fetch:", err));
 
-  // 2. Row 2: Safety Compliance Overview Line Chart
+  // 2. Row 2: Safety Compliance Overview Line Chart & Premium Compliance Trend Curve
   fetch(`/api/analytics/compliance-trend?${query}`)
     .then(r => r.json())
-    .then(data => renderComplianceOverviewChart(data))
+    .then(data => {
+      renderComplianceOverviewChart(data);
+      renderComplianceTrendCurveChart(data);
+    })
     .catch(err => console.warn("Failed Compliance Overview fetch:", err));
 
   // 3. Row 3: PPE Summary Doughnut, Violation Analysis Donut, Violation Distribution Severity Donut
@@ -533,12 +536,6 @@ async function fetchAllAnalytics() {
 
   // 7. Core Workplace Safety KPIs & Advanced Intelligence
   fetchWorkplaceKpis(query);
-  fetchComplianceTrend(query);
-  fetchViolationsByType(query);
-  fetch(`/api/analytics/compliance-trend?${query}`)
-    .then(r => r.json())
-    .then(data => renderComplianceTrendCurveChart(data))
-    .catch(err => console.warn("Failed Trend Curve fetch:", err));
   fetchZoneRiskHeatmap(query);
   fetchDepartmentPerformance(query);
   fetchSafetyPerformanceScore();
@@ -636,9 +633,14 @@ function renderComplianceTrendCurveChart(data) {
   if (!ctx) return;
 
   const pal = getActivePalette();
-  const dates = data.dates || [];
-  const compliance = data.compliance || [92.0, 93.5, 95.0, 91.5, 94.0, 96.0, 94.5, 95.2, 93.8, 94.1, 95.5, 96.2, 94.0, 95.1, 94.5];
-  const target = Array(dates.length || compliance.length).fill(95.0);
+  const dates = (data && Array.isArray(data.dates) && data.dates.length > 0) ? data.dates : [
+    "2026-11-08", "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-14",
+    "2026-11-15", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20", "2026-11-21"
+  ];
+  const compliance = (data && Array.isArray(data.compliance) && data.compliance.length > 0) ? data.compliance : [
+    92.0, 93.5, 95.0, 91.5, 94.0, 96.0, 94.5, 95.2, 93.8, 94.1, 95.5, 96.2, 94.0, 95.1
+  ];
+  const target = Array(dates.length).fill(95.0);
 
   if (complianceTrendCurveChartInstance) {
     complianceTrendCurveChartInstance.destroy();
@@ -678,9 +680,33 @@ function renderComplianceTrendCurveChart(data) {
         }
       ]
     },
+    plugins: [
+      {
+        id: "compliancePointLabels",
+        afterDatasetsDraw(chart) {
+          const c = chart.ctx;
+          const meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data) return;
+          meta.data.forEach((element, index) => {
+            const val = chart.data.datasets[0].data[index];
+            if (val === undefined || val === null) return;
+            c.save();
+            c.font = "bold 9px " + (pal.fontFamily || "sans-serif");
+            c.fillStyle = pal.textStrong;
+            c.textAlign = "center";
+            c.textBaseline = "bottom";
+            c.fillText(`${Number(val).toFixed(1)}%`, element.x, element.y - 7);
+            c.restore();
+          });
+        }
+      }
+    ],
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: { top: 18, right: 10, left: 6, bottom: 6 }
+      },
       plugins: {
         legend: {
           display: true,
@@ -737,21 +763,27 @@ function renderViolationsGearCategoryChart(data) {
   if (!canvas || !window.Chart) return;
 
   const pal = getActivePalette();
+  const d = data || {};
   const totalBadge = document.getElementById("donutTotalBadge");
-  const total = data.total || 65;
+  const total = d.total || 65;
   if (totalBadge) totalBadge.innerText = `${total} Total`;
 
-  // Pre-calculated Largest-Remainder percentages summing exactly to 100.0%
-  // Helmet: 29 (44.6%), Safety Vest: 19 (29.2%), Safety Shoes: 0 (0.0%), Goggles: 12 (18.5%), Other: 5 (7.7%)
+  const helmetCount = d.helmet !== undefined ? d.helmet : 29;
+  const vestCount = d.vest !== undefined ? d.vest : 19;
+  const shoesCount = d.shoes !== undefined ? d.shoes : 0;
+  const gogglesCount = d.goggles !== undefined ? d.goggles : 12;
+  const otherCount = d.other !== undefined ? d.other : 5;
+
+  const sum = (helmetCount + vestCount + shoesCount + gogglesCount + otherCount) || 65;
   const categories = [
-    { name: "No Helmet", count: data.helmet || 29, pct: 44.6, color: pal.ppeHelmet },
-    { name: "No Safety Vest", count: data.vest || 19, pct: 29.2, color: pal.ppeVest },
-    { name: "No Safety Shoes", count: 0, pct: 0.0, color: pal.ppeShoes },
-    { name: "Goggles", count: data.goggles || 12, pct: 18.5, color: pal.ppeGoggles },
-    { name: "Other", count: data.other || 5, pct: 7.7, color: pal.ppeOther }
+    { name: "No Helmet", count: helmetCount, pct: sum > 0 ? ((helmetCount / sum) * 100).toFixed(1) : "44.6", color: pal.ppeHelmet },
+    { name: "No Safety Vest", count: vestCount, pct: sum > 0 ? ((vestCount / sum) * 100).toFixed(1) : "29.2", color: pal.ppeVest },
+    { name: "No Safety Shoes", count: shoesCount, pct: sum > 0 ? ((shoesCount / sum) * 100).toFixed(1) : "0.0", color: pal.ppeShoes },
+    { name: "Goggles", count: gogglesCount, pct: sum > 0 ? ((gogglesCount / sum) * 100).toFixed(1) : "18.5", color: pal.ppeGoggles },
+    { name: "Other", count: otherCount, pct: sum > 0 ? ((otherCount / sum) * 100).toFixed(1) : "7.7", color: pal.ppeOther }
   ];
 
-  const labels = categories.map(c => `${c.name} (${c.pct}%)`);
+  const labels = categories.map(c => c.name);
   const values = categories.map(c => c.count);
   const colors = categories.map(c => c.color);
 
@@ -773,10 +805,32 @@ function renderViolationsGearCategoryChart(data) {
         }
       ]
     },
+    plugins: [
+      {
+        id: "barValueLabels",
+        afterDatasetsDraw(chart) {
+          const c = chart.ctx;
+          const meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data) return;
+          meta.data.forEach((bar, index) => {
+            const cat = categories[index];
+            if (!cat) return;
+            c.save();
+            c.font = "bold 10px " + (pal.fontFamily || "sans-serif");
+            c.fillStyle = pal.textStrong;
+            c.textAlign = "left";
+            c.textBaseline = "middle";
+            c.fillText(` ${cat.count} (${cat.pct}%)`, bar.x + 4, bar.y);
+            c.restore();
+          });
+        }
+      }
+    ],
     options: {
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { right: 65, top: 4, bottom: 4 } },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1513,14 +1567,15 @@ function renderViolationDistChart(sevData) {
   }
 
   const pal = getActivePalette();
-  const high = sevData.HIGH || 29;
-  const med = sevData.MEDIUM || 31;
-  const low = sevData.LOW || 5;
-  const total = sevData.total || (high + med + low) || 65;
+  const d = sevData || {};
+  const high = d.HIGH !== undefined ? d.HIGH : 30;
+  const med = d.MEDIUM !== undefined ? d.MEDIUM : 33;
+  const low = d.LOW !== undefined ? d.LOW : 5;
+  const total = d.total || (high + med + low) || 68;
 
-  const pctHigh = total > 0 ? ((high / total) * 100).toFixed(1) : "44.6";
-  const pctMed = total > 0 ? ((med / total) * 100).toFixed(1) : "47.7";
-  const pctLow = total > 0 ? ((low / total) * 100).toFixed(1) : "7.7";
+  const pctHigh = total > 0 ? ((high / total) * 100).toFixed(1) : "44.1";
+  const pctMed = total > 0 ? ((med / total) * 100).toFixed(1) : "48.5";
+  const pctLow = total > 0 ? ((low / total) * 100).toFixed(1) : "7.4";
 
   const labels = [
     `High Severity (${pctHigh}%)`,
@@ -1530,7 +1585,7 @@ function renderViolationDistChart(sevData) {
   const values = [high, med, low];
   const colors = [pal.sevHigh, pal.sevMed, pal.sevLow];
 
-  violationDistChartInstance = new Chart(ctx, {
+  violationDistChartInstance = new Chart(canvas, {
     type: "doughnut",
     data: {
       labels: labels,
@@ -1546,6 +1601,26 @@ function renderViolationDistChart(sevData) {
         }
       ]
     },
+    plugins: [
+      {
+        id: "donutCenterValue",
+        beforeDraw(chart) {
+          const { width, height, ctx: c } = chart;
+          c.save();
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          const centerX = width / 2;
+          const centerY = (chart.chartArea ? (chart.chartArea.top + chart.chartArea.bottom) / 2 : height / 2) - 8;
+          c.font = "800 24px " + (pal.fontFamily || "sans-serif");
+          c.fillStyle = pal.textStrong;
+          c.fillText(String(total), centerX, centerY);
+          c.font = "700 10px " + (pal.fontFamily || "sans-serif");
+          c.fillStyle = pal.textMuted;
+          c.fillText("TOTAL", centerX, centerY + 18);
+          c.restore();
+        }
+      }
+    ],
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -1553,7 +1628,7 @@ function renderViolationDistChart(sevData) {
       plugins: {
         legend: {
           position: "bottom",
-          labels: { font: { size: 10, weight: 600 }, color: pal.textStrong, boxWidth: 10 }
+          labels: { font: { size: 10, weight: "600" }, color: pal.textStrong, boxWidth: 10 }
         },
         tooltip: {
           callbacks: {
