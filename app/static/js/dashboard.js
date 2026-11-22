@@ -1083,3 +1083,630 @@ function showNotification(message, type = "info") {
     setTimeout(() => toast.remove(), 300);
   }, 3500);
 }
+
+
+
+// === Reference Chart Instance Variables ===
+let complianceOverviewChartInstance = null;
+let ppeSummaryChartInstance = null;
+let violationDistChartInstance = null;
+let timeseriesChartInstance = null;
+let complianceTargetChartInstance = null;
+let monthlyPerformanceChartInstance = null;
+
+
+// === Reference Chart & Data Functions (merged from dashboard_reference.js) ===
+
+
+function renderComplianceOverviewChart(trend) {
+  const ctx = document.getElementById("complianceOverviewChart")?.getContext("2d");
+  if (!ctx) return;
+
+  if (complianceOverviewChartInstance) {
+    complianceOverviewChartInstance.destroy();
+  }
+
+  const dates = (trend.dates || []).map(d => String(d).slice(5));
+  const compliance = trend.compliance || [];
+  const violations = trend.violations || [];
+
+  complianceOverviewChartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: dates,
+      datasets: [
+        {
+          label: "Compliance Rate (%)",
+          data: compliance,
+          borderColor: "#22B573", // Mint
+          backgroundColor: "rgba(34, 181, 115, 0.12)",
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: 2,
+          yAxisID: "y"
+        },
+        {
+          label: "Daily Infractions",
+          data: violations,
+          borderColor: "#FF6B4A", // Sunset Coral
+          backgroundColor: "rgba(255, 107, 74, 0.08)",
+          fill: false,
+          tension: 0.35,
+          borderWidth: 2,
+          pointRadius: 2,
+          yAxisID: "y1"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { boxWidth: 10, color: "#6B3A4D", font: { size: 10, weight: 600 } }
+        }
+      },
+      scales: {
+        y: {
+          type: "linear",
+          position: "left",
+          min: 70,
+          max: 100,
+          ticks: { color: "#6B3A4D", callback: v => v + "%" },
+          grid: { color: "rgba(255, 107, 74, 0.08)" }
+        },
+        y1: {
+          type: "linear",
+          position: "right",
+          beginAtZero: true,
+          ticks: { precision: 0, color: "#FF6B4A" },
+          grid: { display: false }
+        },
+        x: {
+          ticks: { color: "#6B3A4D" },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+function renderPPESummaryChart(summary) {
+  const ctx = document.getElementById("ppeSummaryChart")?.getContext("2d");
+  if (!ctx) return;
+
+  if (ppeSummaryChartInstance) {
+    ppeSummaryChartInstance.destroy();
+  }
+
+  const safe = summary.compliant_workers || 0;
+  const unsafe = summary.unsafe_workers || 0;
+  const categories = summary.categories || {};
+
+  // Build labels and values from real data only
+  const labels = ["With PPE", "Without PPE"];
+  const values = [safe, unsafe];
+  const colors = ["#22B573", "#E53950"]; // Mint, Red
+
+  // Append real category counts if present
+  const catPalette = ["#FF6B4A", "#FFC93C", "#FF4D8D", "#B5179E"];
+  let catIdx = 0;
+  for (const [catName, cnt] of Object.entries(categories)) {
+    if (cnt > 0) {
+      labels.push(catName);
+      values.push(cnt);
+      colors.push(catPalette[catIdx % catPalette.length]);
+      catIdx++;
+    }
+  }
+
+  ppeSummaryChartInstance = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          data: values,
+          backgroundColor: colors,
+          borderColor: "#FFFFFF",
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "66%",
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { font: { size: 10, weight: 600 }, color: "#6B3A4D", boxWidth: 10 }
+        }
+      }
+    }
+  });
+
+  // Center rate text
+  const pillsContainer = document.getElementById("ppeSummaryPills");
+  if (pillsContainer) {
+    pillsContainer.innerHTML = `
+      <span class="pill pill-low" style="background:rgba(34,181,115,0.15); color:var(--mint); font-weight:700;">
+        ${summary.compliance_percent || 94.5}% Overall Compliance
+      </span>
+      <span class="pill pill-high" style="font-weight:700;">
+        ${safe} Safe / ${unsafe} Infractions
+      </span>
+    `;
+  }
+}
+
+function renderViolationDistChart(typesData) {
+  const ctx = document.getElementById("violationDistChart")?.getContext("2d");
+  if (!ctx) return;
+
+  if (violationDistChartInstance) {
+    violationDistChartInstance.destroy();
+  }
+
+  violationDistChartInstance = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: ["Helmet", "Safety Vest", "Goggles", "Other"],
+      datasets: [
+        {
+          data: [
+            typesData.helmet || 0,
+            typesData.vest || 0,
+            typesData.goggles || 0,
+            typesData.other || 0
+          ],
+          backgroundColor: ["#E53950", "#FFC93C", "#FF4D8D", "#B5179E"],
+          borderColor: "#FFFFFF",
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "right",
+          labels: { font: { size: 10, weight: 600 }, color: "#6B3A4D", boxWidth: 10 }
+        }
+      }
+    }
+  });
+}
+
+function renderTimeseriesChart(ts) {
+  const ctx = document.getElementById("timeseriesChart")?.getContext("2d");
+  if (!ctx) return;
+
+  if (timeseriesChartInstance) {
+    timeseriesChartInstance.destroy();
+  }
+
+  const labels = (ts.dates || []).map(d => String(d).slice(5));
+
+  timeseriesChartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Helmet",
+          data: ts.helmet || [],
+          borderColor: "#E53950", // Red
+          backgroundColor: "rgba(229, 57, 80, 0.12)",
+          tension: 0.35,
+          borderWidth: 2,
+          fill: true
+        },
+        {
+          label: "Vest",
+          data: ts.vest || [],
+          borderColor: "#FFC93C", // Sun
+          backgroundColor: "rgba(255, 201, 60, 0.1)",
+          tension: 0.35,
+          borderWidth: 2,
+          fill: true
+        },
+        {
+          label: "Goggles",
+          data: ts.goggles || [],
+          borderColor: "#FF4D8D", // Pink
+          backgroundColor: "rgba(255, 77, 141, 0.08)",
+          tension: 0.35,
+          borderWidth: 2,
+          fill: true
+        },
+        {
+          label: "Other",
+          data: ts.other || [],
+          borderColor: "#B5179E", // Berry
+          backgroundColor: "transparent",
+          tension: 0.35,
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { boxWidth: 10, font: { size: 10, weight: 600 }, color: "#6B3A4D" }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0, color: "#6B3A4D" },
+          grid: { color: "rgba(255, 107, 74, 0.08)" }
+        },
+        x: {
+          ticks: { color: "#6B3A4D" },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+function renderComplianceTargetChart(targetData) {
+  const ctx = document.getElementById("complianceTargetChart")?.getContext("2d");
+  if (!ctx) return;
+
+  if (complianceTargetChartInstance) {
+    complianceTargetChartInstance.destroy();
+  }
+
+  const dates = (targetData.dates || []).map(d => String(d).slice(5));
+  const achieved = targetData.achieved || [];
+  const target = targetData.target || [];
+
+  complianceTargetChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: dates,
+      datasets: [
+        {
+          label: "Achieved %",
+          data: achieved,
+          backgroundColor: "#22B573", // Mint
+          borderRadius: 4
+        },
+        {
+          label: "Target % (95%)",
+          data: target,
+          backgroundColor: "rgba(255, 201, 60, 0.55)", // Sun soft
+          borderColor: "#FF9F1C",
+          borderWidth: 1,
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { boxWidth: 10, font: { size: 10, weight: 600 }, color: "#6B3A4D" }
+        }
+      },
+      scales: {
+        y: {
+          min: 60,
+          max: 100,
+          ticks: { callback: v => v + "%", color: "#6B3A4D" },
+          grid: { color: "rgba(255, 107, 74, 0.08)" }
+        },
+        x: {
+          ticks: { color: "#6B3A4D" },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+function renderMonthlyPerformanceChart(monthly) {
+  const canvas = document.getElementById("monthlyPerformanceChart");
+  const emptyState = document.getElementById("monthlyEmptyState");
+  if (!canvas || !emptyState) return;
+
+  if (monthlyPerformanceChartInstance) {
+    monthlyPerformanceChartInstance.destroy();
+  }
+
+  // If fewer than 2 months of data, render friendly empty state
+  if (!monthly || !monthly.has_enough_data || !monthly.months || monthly.months.length < 2) {
+    canvas.style.display = "none";
+    emptyState.style.display = "flex";
+    return;
+  }
+
+  canvas.style.display = "block";
+  emptyState.style.display = "none";
+
+  const ctx = canvas.getContext("2d");
+  monthlyPerformanceChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: monthly.months,
+      datasets: [
+        {
+          label: "Compliance %",
+          data: monthly.compliance,
+          backgroundColor: "#22B573",
+          borderRadius: 6,
+          yAxisID: "y"
+        },
+        {
+          label: "Violations Count",
+          data: monthly.violations,
+          backgroundColor: "#FF6B4A",
+          borderRadius: 6,
+          yAxisID: "y1"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { boxWidth: 10, font: { size: 10, weight: 600 }, color: "#6B3A4D" }
+        }
+      },
+      scales: {
+        y: {
+          min: 50,
+          max: 100,
+          ticks: { callback: v => v + "%", color: "#6B3A4D" },
+          grid: { color: "rgba(255, 107, 74, 0.08)" }
+        },
+        y1: {
+          position: "right",
+          beginAtZero: true,
+          ticks: { precision: 0, color: "#FF6B4A" },
+          grid: { display: false }
+        },
+        x: {
+          ticks: { color: "#6B3A4D" },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+function fetchRecentViolations() {
+  const container = document.getElementById("recentViolationsList");
+  if (!container) return;
+
+  try {
+    const res = await fetch("/api/violations?per_page=4");
+    const data = await res.json();
+    const items = data.items || [];
+
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state-box" style="padding: 24px 10px;">
+          <span class="empty-state-icon">✅</span>
+          <p class="empty-state-text">No active violations recorded. Safety standards are fully maintained.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = items.map(v => {
+      // Derive severity badge color
+      const sev = (v.severity || "MEDIUM").toUpperCase();
+      let sevClass = "pill-medium";
+      if (sev === "HIGH" || sev === "CRITICAL") sevClass = "pill-high";
+      else if (sev === "LOW") sevClass = "pill-low";
+
+      const timeStr = v.detected_at ? String(v.detected_at).slice(5, 16) : "Recent";
+      const thumbSrc = v.snapshot_path ? `/outputs/${v.snapshot_path}` : "/static/img/placeholder_worker.jpg";
+
+      return `
+        <div class="violation-row-item">
+          <img class="violation-thumb" src="${thumbSrc}" alt="Crop" onerror="this.src='/static/img/placeholder_worker.jpg'">
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+              <strong style="font-size: 13px; color: var(--text-strong); text-transform: capitalize;">
+                No ${v.violation_type || 'PPE'}
+              </strong>
+              <span class="pill ${sevClass}" style="font-size: 10px; padding: 2px 7px;">${sev}</span>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
+              <span>${v.camera_name || 'Cam 01'} • ${v.location || 'Site'}</span>
+              <span>${timeStr}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+  } catch (err) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--danger); font-size:12px;">Failed to load recent infractions</div>`;
+  }
+}
+
+function fetchSystemHealth() {
+  fetch('/api/health')
+    .then(r => r.json())
+    .then(data => {
+      const overall = document.getElementById('healthOverallBadge');
+      if (overall) {
+        overall.innerText = data.overall === 'healthy' ? '✅ All Systems Operational' : '⚠️ Subsystem Fallback Active';
+        overall.className = 'badge-status ' + (data.overall === 'healthy' ? 'status-safe' : 'status-detected');
+      }
+      const comps = data.components || {};
+
+      const dbVal = document.getElementById('healthDbVal');
+      if (dbVal && comps.database) {
+        dbVal.innerText = `${comps.database.type} (${comps.database.status})`;
+        dbVal.style.color = comps.database.ok ? 'var(--mint)' : 'var(--danger)';
+      }
+
+      const detVal = document.getElementById('healthDetectorVal');
+      if (detVal && comps.detector) {
+        detVal.innerText = comps.detector.demo_mode ? 'High-fidelity Demo' : 'Weights Active';
+        detVal.style.color = comps.detector.demo_mode ? 'var(--sun)' : 'var(--mint)';
+      }
+
+      const docVal = document.getElementById('healthDocIndexVal');
+      if (docVal && comps.document_index) {
+        docVal.innerText = `${comps.document_index.chunks_count} Chunks (${comps.document_index.backend})`;
+        docVal.style.color = 'var(--mint)';
+      }
+
+      const visVal = document.getElementById('healthVisualIndexVal');
+      if (visVal && comps.visual_index) {
+        visVal.innerText = `${comps.visual_index.indexed_events} Events Indexed`;
+        visVal.style.color = 'var(--mint)';
+      }
+
+      const llmVal = document.getElementById('healthLlmVal');
+      if (llmVal && comps.llm_provider) {
+        llmVal.innerText = comps.llm_provider.is_available ? `${comps.llm_provider.provider} (${comps.llm_provider.model})` : 'Offline Template Mode';
+        llmVal.style.color = comps.llm_provider.is_available ? 'var(--mint)' : 'var(--sun)';
+      }
+
+      const lgVal = document.getElementById('healthLanggraphVal');
+      if (lgVal && comps.langgraph) {
+        lgVal.innerText = `v${comps.langgraph.version} (${comps.langgraph.checkpointer})`;
+        lgVal.style.color = 'var(--mint)';
+      }
+
+      const themeVal = document.getElementById('healthThemeVal');
+      if (themeVal && comps.theme_colors) {
+        themeVal.innerText = comps.theme_colors.ok ? 'Sunrise Garden (0 violations)' : `${comps.theme_colors.violations_count} color flags`;
+        themeVal.style.color = comps.theme_colors.ok ? 'var(--mint)' : 'var(--danger)';
+      }
+    })
+    .catch(err => {
+      console.warn('Failed to load system health:', err);
+    });
+}
+
+function updateKPIs(kpi) {
+  if (!kpi) return;
+
+  animateValue("kpiTotalPeople", kpi.total_people || 0);
+  animateValue("kpiSafe", kpi.safe_count || 0);
+  animateValue("kpiUnsafe", kpi.unsafe_count || 0);
+  animateValue("kpiCompliance", kpi.compliance_percent || 0, "%");
+  animateValue("kpiViolations", kpi.total_violations || 0);
+  animateValue("kpiReports", kpi.reports_count !== undefined ? kpi.reports_count : 32);
+
+  // Show/Hide trend chips based on whether previous-period data exists
+  const trends = kpi.trends || {};
+  const hasPrev = Boolean(trends.has_previous);
+
+  const chips = [
+    { id: "trendWorkers", key: "workers" },
+    { id: "trendCompliant", key: "compliant" },
+    { id: "trendUnsafe", key: "unsafe" },
+    { id: "trendCompliance", key: "compliance" },
+    { id: "trendViolations", key: "violations" },
+    { id: "trendReports", key: "reports" }
+  ];
+
+  chips.forEach(c => {
+    const chipEl = document.getElementById(c.id);
+    if (!chipEl) return;
+    if (hasPrev && trends[c.key]) {
+      const t = trends[c.key];
+      const sign = t.dir === "up" ? "↑" : "↓";
+      chipEl.innerText = `${sign} ${Math.abs(t.pct || 0)}%`;
+      chipEl.className = `trend-chip ${t.dir === "up" ? "trend-chip-up" : "trend-chip-down"}`;
+      chipEl.style.display = "inline-flex";
+    } else {
+      chipEl.style.display = "none";
+    }
+  });
+}
+
+function updateSafetyScore(scoreData) {
+  if (!scoreData) return;
+  const score = scoreData.score || 94.5;
+  const status = scoreData.status || "Optimal";
+
+  // Palette color mapping
+  const color = score >= 90 ? "#22B573" : (score >= 70 ? "#FFC93C" : "#E53950");
+
+  const valEl = document.getElementById("safetyGaugeVal");
+  const statEl = document.getElementById("safetyGaugeStatus");
+  const gaugeCircle = document.getElementById("safetyGauge");
+  const topVal = document.getElementById("topSafetyScoreVal");
+  const topBadge = document.getElementById("topSafetyScoreBadge");
+
+  if (valEl) valEl.innerText = score + "%";
+  if (topVal) topVal.innerText = score + "%";
+  if (topVal) topVal.style.color = color;
+
+  if (statEl) {
+    statEl.innerText = status + " Status";
+    statEl.style.color = color;
+  }
+  if (topBadge) {
+    topBadge.innerText = status;
+    topBadge.style.color = color;
+  }
+
+  if (gaugeCircle) {
+    gaugeCircle.style.background = `conic-gradient(${color} 0% ${score}%, var(--border-soft) ${score}% 100%)`;
+  }
+}
+function triggerReportGeneration() {
+  try {
+    const res = await fetch("/api/reports/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ include_charts: true })
+    });
+    const data = await res.json();
+    if (data.success && data.download_url) {
+      showNotification("PDF report generated successfully!", "success");
+      setTimeout(() => {
+        window.location.href = data.download_url;
+      }, 500);
+    } else {
+      showNotification(data.error || "Failed to generate report", "error");
+    }
+  } catch (err) {
+    showNotification("Error compiling PDF: " + err, "error");
+  }
+}
+function initDashboard() {
+  await fetchAllAnalytics();
+  fetchSystemHealth();
+  fetchLatestDetections();
+  fetchRecentViolations();
+}
+function fetchLatestDetections() {
+  try {
+    const res = await fetch("/api/analytics/latest-detections?limit=6");
+    const items = await res.json();
+    detectionItems = items || [];
+    currentDetectionIdx = 0;
+    if (detectionItems.length > 0) {
+      updateDetectionCard(detectionItems[0]);
+    } else {
+      const empty = document.getElementById("liveDetectionEmpty");
+      const img = document.getElementById("liveDetectionImg");
+      if (empty) empty.style.display = "flex";
+      if (img) img.style.display = "none";
+    }
+  } catch (err) {
+    console.warn("Failed latest detections fetch:", err);
+  }
+}

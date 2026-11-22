@@ -1,0 +1,20 @@
+
+/* =========================================================
+   health-chip: System Health subsystem status indicator
+   ========================================================= */
+.health-chip {
+  background: var(--bg-surface-alt, #FFF7EE);
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-soft, rgba(255,107,74,0.15));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: box-shadow 0.2s ease;
+}
+.health-chip:hover {
+  box-shadow: 0 2px 8px rgba(255, 107, 74, 0.1);
+}
+.health-chip.health-ok  { border-color: var(--mint, #2DB87A); }
+.health-chip.health-warn { border-color: var(--sun, #F5A623); }
+.health-chip.health-error { border-color: var(--danger, #E05C5C); }
