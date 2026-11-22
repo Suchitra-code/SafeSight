@@ -18,8 +18,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("safesight")
 
-# Module-level app object — Gunicorn imports this as `run:app`
+# Module-level app object — Gunicorn and Vercel import this as `run:app`
 app = create_app()
+application = app
 
 if __name__ == "__main__":
     # In local development, HOST defaults to 127.0.0.1 (loopback).

@@ -1,3 +1,2 @@
-# Vercel Deployment Configuration for SafeSight AI Flask Application
 [tool.vercel]
 entrypoint = "run:app"
