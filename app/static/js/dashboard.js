@@ -66,6 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCarouselControls();
   setupExportActions();
   setupAutoRefresh();
+  fetchSystemHealth();
+  fetchLatestDetections();
+  fetchRecentViolations();
   fetchAllAnalytics();
 });
 
@@ -252,6 +255,55 @@ function setupFilterEventListeners() {
       onFiltersChanged();
     });
   }
+
+  // Top Filter Bar buttons (Reference Image 1)
+  const applyBtn = document.getElementById("applyFiltersBtn");
+  if (applyBtn) {
+    applyBtn.addEventListener("click", () => fetchAllAnalytics());
+  }
+
+  const cameraFilter = document.getElementById("cameraFilter");
+  if (cameraFilter) {
+    cameraFilter.addEventListener("change", () => fetchAllAnalytics());
+  }
+
+  const dateFrom = document.getElementById("dateFrom");
+  if (dateFrom) {
+    dateFrom.addEventListener("change", () => fetchAllAnalytics());
+  }
+
+  const dateTo = document.getElementById("dateTo");
+  if (dateTo) {
+    dateTo.addEventListener("change", () => fetchAllAnalytics());
+  }
+
+  const loadDemoBtn = document.getElementById("loadDemoDataBtn");
+  if (loadDemoBtn) {
+    loadDemoBtn.addEventListener("click", async () => {
+      loadDemoBtn.disabled = true;
+      loadDemoBtn.innerHTML = "<span>⏳</span> Loading...";
+      try {
+        const res = await fetch("/api/seed-demo", { method: "POST" });
+        const data = await res.json();
+        showNotification(data.message || "Demo data populated (53 violations, 21 days)", "success");
+        setTimeout(() => location.reload(), 700);
+      } catch (err) {
+        showNotification("Error loading demo data: " + err, "error");
+        loadDemoBtn.disabled = false;
+        loadDemoBtn.innerHTML = "<span>🔄</span> Load Demo Data";
+      }
+    });
+  }
+
+  const downloadComplianceBtn = document.getElementById("downloadComplianceReportBtn");
+  if (downloadComplianceBtn) {
+    downloadComplianceBtn.addEventListener("click", () => triggerReportGeneration());
+  }
+
+  const generateSafetyBtn = document.getElementById("generateSafetySummaryBtn");
+  if (generateSafetyBtn) {
+    generateSafetyBtn.addEventListener("click", () => triggerReportGeneration());
+  }
 }
 
 function onFiltersChanged() {
@@ -392,25 +444,69 @@ window.filterByType = function(typeName) {
 async function fetchAllAnalytics() {
   const query = buildQueryString();
 
-  // 1. Core Workplace Safety KPIs
+  // 1. Fetch KPI & Site Safety Score
+  fetch(`/api/analytics/kpi?${query}`)
+    .then(r => r.json())
+    .then(data => updateKPIs(data))
+    .catch(err => console.warn("Failed KPI fetch:", err));
+
+  fetch(`/api/analytics/safety-score?${query}`)
+    .then(r => r.json())
+    .then(data => updateSafetyScore(data))
+    .catch(err => console.warn("Failed Safety Score fetch:", err));
+
+  // 2. Row 2: Safety Compliance Overview Line Chart
+  fetch(`/api/analytics/compliance-trend?${query}`)
+    .then(r => r.json())
+    .then(data => renderComplianceOverviewChart(data))
+    .catch(err => console.warn("Failed Compliance Overview fetch:", err));
+
+  // 3. Row 3: PPE Summary Doughnut, Violation Analysis Bar, Violation Distribution Pie
+  fetch(`/api/analytics/ppe-summary`)
+    .then(r => r.json())
+    .then(data => renderPPESummaryChart(data))
+    .catch(err => console.warn("Failed PPE Summary fetch:", err));
+
+  fetch(`/api/analytics/violations-by-type?${query}`)
+    .then(r => r.json())
+    .then(data => {
+      renderViolationsTypeChart(data);
+      renderViolationDistChart(data);
+    })
+    .catch(err => console.warn("Failed Violations Type fetch:", err));
+
+  // 4. Row 4: Daily PPE Events Area Chart, Compliance Trends (Target vs Achieved), Monthly Performance
+  fetch(`/api/analytics/timeseries?${query}`)
+    .then(r => r.json())
+    .then(data => renderTimeseriesChart(data))
+    .catch(err => console.warn("Failed Timeseries fetch:", err));
+
+  fetch(`/api/analytics/compliance-target-trends`)
+    .then(r => r.json())
+    .then(data => renderComplianceTargetChart(data))
+    .catch(err => console.warn("Failed Target Trends fetch:", err));
+
+  fetch(`/api/analytics/monthly-performance`)
+    .then(r => r.json())
+    .then(data => renderMonthlyPerformanceChart(data))
+    .catch(err => console.warn("Failed Monthly Performance fetch:", err));
+
+  // 5. Pictures: Live Detection Carousel & Recent Violations Thumbnails
+  fetchLatestDetections();
+  fetchRecentViolations();
+
+  // 6. System Health Subsystem Chips
+  fetchSystemHealth();
+
+  // 7. Core Workplace Safety KPIs & Advanced Intelligence
   fetchWorkplaceKpis(query);
-
-  // 2. Compliance Trend Line Chart
   fetchComplianceTrend(query);
-
-  // 3. Violations by Type Donut
   fetchViolationsByType(query);
-
-  // 4. Spatial Safety Risk Heatmap
   fetchZoneRiskHeatmap(query);
-
-  // 5. Department Performance
   fetchDepartmentPerformance(query);
-
-  // 6. Safety Score Index
   fetchSafetyPerformanceScore();
 
-  // 7. Update Last Loaded Timestamp
+  // 8. Update Last Loaded Timestamp
   const timeEl = document.getElementById("lastLoadedTimestamp");
   if (timeEl) {
     const now = new Date();
@@ -420,12 +516,18 @@ async function fetchAllAnalytics() {
 
 function buildQueryString() {
   const params = new URLSearchParams();
-  if (currentFilters.department !== "all") params.set("department", currentFilters.department);
-  if (currentFilters.location !== "all") params.set("location", currentFilters.location);
-  if (currentFilters.type !== "all") params.set("type", currentFilters.type);
-  if (currentFilters.dateFrom) params.set("from", currentFilters.dateFrom);
-  if (currentFilters.dateTo) params.set("to", currentFilters.dateTo);
-  if (currentFilters.status !== "all") params.set("status", currentFilters.status);
+  const cam = document.getElementById("cameraFilter")?.value;
+  if (cam && cam !== "all") params.set("camera", cam);
+
+  const df = document.getElementById("dateFrom")?.value || currentFilters.dateFrom;
+  const dt = document.getElementById("dateTo")?.value || currentFilters.dateTo;
+  if (df) params.set("from", df);
+  if (dt) params.set("to", dt);
+
+  if (currentFilters.department && currentFilters.department !== "all") params.set("department", currentFilters.department);
+  if (currentFilters.location && currentFilters.location !== "all") params.set("location", currentFilters.location);
+  if (currentFilters.type && currentFilters.type !== "all") params.set("type", currentFilters.type);
+  if (currentFilters.status && currentFilters.status !== "all") params.set("status", currentFilters.status);
   return params.toString();
 }
 
@@ -1486,7 +1588,7 @@ function renderMonthlyPerformanceChart(monthly) {
     }
   });
 }
-function fetchRecentViolations() {
+async function fetchRecentViolations() {
   const container = document.getElementById("recentViolationsList");
   if (!container) return;
 
@@ -1666,7 +1768,7 @@ function updateSafetyScore(scoreData) {
     gaugeCircle.style.background = `conic-gradient(${color} 0% ${score}%, var(--border-soft) ${score}% 100%)`;
   }
 }
-function triggerReportGeneration() {
+async function triggerReportGeneration() {
   try {
     const res = await fetch("/api/reports/generate", {
       method: "POST",
@@ -1686,13 +1788,13 @@ function triggerReportGeneration() {
     showNotification("Error compiling PDF: " + err, "error");
   }
 }
-function initDashboard() {
+async function initDashboard() {
   await fetchAllAnalytics();
   fetchSystemHealth();
   fetchLatestDetections();
   fetchRecentViolations();
 }
-function fetchLatestDetections() {
+async function fetchLatestDetections() {
   try {
     const res = await fetch("/api/analytics/latest-detections?limit=6");
     const items = await res.json();
