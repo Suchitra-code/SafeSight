@@ -31,11 +31,12 @@
     }
   </script>
 
-  <!-- SafeSight "Sunrise Garden" UI Stylesheets (Strictly NO blue, NO black) -->
+  <!-- SafeSight "Rosewood & Champagne" UI Stylesheets (Strictly NO blue, NO black) -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/polish.css') }}">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -143,7 +144,7 @@
 
       <div class="sidebar-footer" style="background: transparent; border-top: 1.5px solid var(--border-soft); padding: 12px 14px;">
         <a href="/ui-kit" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 5px 10px; font-weight: 700;" title="UI Component Showcase">
-          <span>🌸</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
           <span>UI Kit</span>
         </a>
         <a href="/logout" class="logout-link" title="Sign out" style="color: var(--text-muted); font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; text-decoration: none;">

@@ -1,0 +1,570 @@
+/* ==========================================================================
+   SafeSight AI — Premium Visual Polish
+   "Rosewood & Champagne" — Page Background, Body, Blobs, Sidebar Upgrade
+   ========================================================================== */
+
+/* ── Page Background with Mesh Gradient + Floating Blobs ── */
+body {
+  font-family: var(--font-body);
+  background: var(--grad-page-bg);
+  background-attachment: fixed;
+  color: var(--text-main);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Floating ambient blobs (behind content, low contrast) */
+.bg-blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+  animation: blobDrift 18s ease-in-out infinite alternate;
+}
+.bg-blob-1 {
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(253, 233, 228, 0.90) 0%, transparent 70%);
+  top: -80px; left: -120px;
+  animation-duration: 20s;
+}
+.bg-blob-2 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(246, 231, 203, 0.80) 0%, transparent 70%);
+  bottom: -60px; right: -80px;
+  animation-duration: 25s;
+  animation-direction: alternate-reverse;
+}
+.bg-blob-3 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(242, 217, 238, 0.65) 0%, transparent 70%);
+  top: 40%; left: 50%;
+  animation-duration: 30s;
+}
+
+@keyframes blobDrift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(30px, 20px) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-blob { animation: none; }
+}
+
+/* ══════════════════════════════════════════════════════
+   UPGRADED SIDEBAR — Ivory-to-Blush Gradient + Gold Hairline
+   ══════════════════════════════════════════════════════ */
+.sidebar {
+  background: linear-gradient(180deg, #FFFBF5 0%, #FFF6EA 55%, #FDE9E4 100%) !important;
+  border-right: 1px solid var(--border-gold) !important;
+  box-shadow: 2px 0 20px rgba(74, 29, 47, 0.07), 0 0 1px var(--gold-hairline) !important;
+}
+
+/* Logo / Brand Block — soft warm glow */
+.sidebar-brand {
+  background: linear-gradient(135deg, #FFFBF5 0%, #FFF0E5 100%) !important;
+  border-bottom: 1px solid var(--border-gold) !important;
+  position: relative;
+}
+.sidebar-brand::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-soft), transparent);
+}
+
+.brand-icon {
+  background: var(--grad-primary) !important;
+  box-shadow: 0 4px 16px rgba(226, 99, 75, 0.35) !important;
+  border-radius: 12px;
+}
+
+.brand-text h1 {
+  font-family: var(--font-heading) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: var(--text-strong) !important;
+  letter-spacing: -0.2px;
+}
+.brand-text p {
+  font-size: 9.5px !important;
+  font-weight: 600 !important;
+  color: var(--gold) !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase;
+}
+
+/* Nav links — refined pill style */
+.nav-link {
+  font-family: var(--font-heading);
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--text-soft) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 10px !important;
+  padding: 9px 12px !important;
+}
+.nav-link:hover {
+  color: var(--coral) !important;
+  background: rgba(226, 99, 75, 0.08) !important;
+  transform: translateX(2px) !important;
+}
+.nav-link.active {
+  background: var(--grad-primary) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 16px rgba(226, 99, 75, 0.35) !important;
+  transform: none !important;
+}
+
+/* Nav icon square — consistent tinted rounded squares */
+.nav-icon {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  transition: transform 0.2s ease !important;
+}
+.nav-link:hover .nav-icon { transform: scale(1.05); }
+.nav-link.active .nav-icon {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #FFFFFF !important;
+}
+
+/* Sidebar footer area */
+.sidebar-footer {
+  background: rgba(246, 231, 203, 0.35) !important;
+  border-top: 1px solid var(--border-gold) !important;
+}
+
+/* Demo banner in sidebar — refined champagne style */
+.demo-mode-banner,
+[class*="demo-banner"],
+.sidebar-demo-notice {
+  background: linear-gradient(135deg, #FDF0D5 0%, #F6E7CB 100%) !important;
+  border: 1px solid var(--gold-soft) !important;
+  border-radius: 10px !important;
+  color: var(--text-sun) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 8px 12px !important;
+  margin: 8px 10px !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   UPGRADED CARDS — 24px radius, gold hairline, warm shadow
+   ══════════════════════════════════════════════════════ */
+.card,
+.premium-card {
+  background: var(--bg-card) !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s ease !important;
+  position: relative;
+}
+.card:hover,
+.premium-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Card top accent line — 3px gradient hairline */
+.card::before,
+.premium-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 24px; right: 24px;
+  height: 3px;
+  background: linear-gradient(90deg,
+    rgba(226, 99, 75, 0.0) 0%,
+    rgba(226, 99, 75, 0.45) 30%,
+    rgba(217, 79, 112, 0.45) 70%,
+    rgba(226, 99, 75, 0.0) 100%);
+  border-radius: 0 0 2px 2px;
+}
+
+/* ══════════════════════════════════════════════════════
+   TYPOGRAPHY OVERRIDES — Manrope body + Fraunces display
+   ══════════════════════════════════════════════════════ */
+body, p, span, div, label, input, select, textarea, button, td, th, li {
+  font-family: var(--font-body);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+/* KPI numbers & page title use display font */
+.kpi-number,
+.hero-greeting,
+.score-inner-val,
+.display-font {
+  font-family: var(--font-display) !important;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Page title size */
+.page-title, .hero-greeting { font-size: clamp(1.5rem, 3vw, 2rem); }
+
+/* Small uppercase labels — refined, not heavy */
+.section-label,
+.card-section-label,
+.kpi-title,
+.badge-label,
+.filter-label {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+/* Body text size */
+body { font-size: 14.5px; line-height: 1.55; }
+p    { line-height: 1.6; }
+
+/* ══════════════════════════════════════════════════════
+   UPGRADED BUTTONS
+   ══════════════════════════════════════════════════════ */
+.btn {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.01em;
+}
+
+.btn-primary {
+  background: var(--grad-primary) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 16px rgba(226, 99, 75, 0.38) !important;
+  border: none !important;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(226, 99, 75, 0.48) !important;
+  filter: brightness(1.05);
+}
+.btn-primary:active { transform: translateY(0); filter: brightness(0.97); }
+
+.btn-secondary {
+  background: var(--bg-cream) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-gold) !important;
+  box-shadow: none !important;
+}
+.btn-secondary:hover {
+  background: var(--bg-champagne) !important;
+  border-color: var(--gold) !important;
+  color: var(--text-strong) !important;
+}
+
+.btn:focus-visible {
+  outline: 3px solid rgba(226, 99, 75, 0.45);
+  outline-offset: 2px;
+}
+.btn:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════
+   STATUS PILLS — tinted backgrounds, never bright accents
+   ══════════════════════════════════════════════════════ */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid transparent;
+  font-family: var(--font-heading);
+}
+
+.status-safe, .status-compliant, .status-resolved {
+  background: var(--emerald-soft);
+  color: var(--text-mint);
+  border-color: rgba(31, 157, 110, 0.30);
+}
+/* Replace black bullet dot with styled status dot */
+.status-safe::before, .status-compliant::before, .status-resolved::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--emerald);
+  flex-shrink: 0;
+}
+
+.status-warning, .status-pending {
+  background: var(--amber-soft);
+  color: var(--text-sun);
+  border-color: rgba(232, 163, 61, 0.30);
+}
+.status-warning::before, .status-pending::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  flex-shrink: 0;
+}
+
+.status-danger, .status-critical, .status-detected {
+  background: var(--burgundy-soft);
+  color: var(--text-red);
+  border-color: rgba(184, 40, 63, 0.30);
+}
+.status-danger::before, .status-critical::before, .status-detected::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--burgundy);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   HEADER BAR UPGRADE
+   ══════════════════════════════════════════════════════ */
+.top-bar, .main-header {
+  background: rgba(255, 251, 245, 0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid var(--border-gold) !important;
+  box-shadow: 0 1px 12px rgba(74, 29, 47, 0.06) !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   FORM CONTROLS — themed, no native black/blue
+   ══════════════════════════════════════════════════════ */
+.form-input-text,
+.filter-date-input,
+.filter-select,
+input[type="text"],
+input[type="email"],
+input[type="date"],
+select, textarea {
+  font-family: var(--font-body);
+  color: var(--text-strong);
+  background: var(--bg-cream);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-input-text:focus,
+.filter-date-input:focus,
+.filter-select:focus,
+input[type="text"]:focus,
+input[type="date"]:focus,
+select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--coral);
+  box-shadow: 0 0 0 3px rgba(226, 99, 75, 0.15);
+}
+
+/* ══════════════════════════════════════════════════════
+   DEMO BANNER — refined champagne ribbon (not loud yellow)
+   ══════════════════════════════════════════════════════ */
+.demo-mode-global-banner,
+.demo-data-banner {
+  background: linear-gradient(135deg, #FDF0D5 0%, #F6E7CB 100%);
+  border-top: 1px solid var(--gold-soft);
+  border-bottom: 1px solid var(--gold-soft);
+  color: var(--text-sun);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.01em;
+}
+/* Replace per-card DEMO badges with single section chip */
+.kpi-demo-badge {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  background: var(--amber-soft) !important;
+  color: var(--gold) !important;
+  border-color: var(--gold-soft) !important;
+  padding: 1px 6px !important;
+  border-radius: var(--radius-pill) !important;
+  letter-spacing: 0.5px;
+}
+
+/* ══════════════════════════════════════════════════════
+   SKELETON LOADERS — warm tinted
+   ══════════════════════════════════════════════════════ */
+.skeleton,
+.kpi-skeleton {
+  background: linear-gradient(90deg,
+    #F6E7CB 25%, #FFF6EA 50%, #F6E7CB 75%) !important;
+  background-size: 200% 100% !important;
+  animation: polishShimmer 1.5s ease-in-out infinite !important;
+  border-radius: 8px !important;
+}
+@keyframes polishShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton, .kpi-skeleton { animation: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════
+   TOASTS — left accent bar style
+   ══════════════════════════════════════════════════════ */
+.toast, .ss-toast {
+  background: var(--bg-cream) !important;
+  border: 1px solid var(--border) !important;
+  border-left: 4px solid var(--coral) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-strong) !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: var(--font-body);
+}
+.toast.toast-success, .ss-toast.toast-success {
+  border-left-color: var(--emerald) !important;
+}
+.toast.toast-warning, .ss-toast.toast-warning {
+  border-left-color: var(--amber) !important;
+}
+.toast.toast-error, .ss-toast.toast-error {
+  border-left-color: var(--burgundy) !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   TOOLTIPS — cream background, plum text
+   ══════════════════════════════════════════════════════ */
+[data-tooltip]::before,
+.tooltip-box {
+  background: var(--bg-cream) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-radius: var(--radius-sm) !important;
+  font-family: var(--font-body);
+  font-size: 12px;
+}
+
+/* ══════════════════════════════════════════════════════
+   MODAL UPGRADE
+   ══════════════════════════════════════════════════════ */
+.safesight-modal-dialog {
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--shadow-xl) !important;
+  border: 1px solid var(--border-gold) !important;
+  background: var(--bg-card) !important;
+}
+.modal-close-btn {
+  color: var(--text-soft) !important;
+  background: var(--bg-blush) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+}
+.modal-close-btn:hover {
+  color: var(--burgundy) !important;
+  background: var(--burgundy-soft) !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   TABLE REFINEMENTS
+   ══════════════════════════════════════════════════════ */
+.schedule-table th {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  background: var(--bg-cream);
+  border-bottom: 1px solid var(--border-gold);
+  padding: 10px 12px;
+}
+.schedule-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 13.5px;
+}
+.schedule-table tr:last-child td { border-bottom: none; }
+.schedule-table tr:hover td { background: var(--bg-cream); }
+
+/* ══════════════════════════════════════════════════════
+   IMAGE PLACEHOLDERS (Fix: no dark green / near-black squares)
+   ══════════════════════════════════════════════════════ */
+.detection-thumbnail,
+.live-detection-viewer,
+.snapshot-placeholder,
+.media-placeholder {
+  background: var(--bg-blush) !important;
+  border: 1.5px dashed var(--border-strong) !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  color: var(--text-soft) !important;
+}
+
+/* Detection empty state icon */
+.detection-empty-icon {
+  font-size: 28px;
+  opacity: 0.6;
+}
+
+/* Fix: live detection viewer background (was near-black) */
+#liveDetectionViewerWrap {
+  background: var(--bg-blush) !important;
+}
+#liveDetectionEmpty {
+  background: var(--bg-blush) !important;
+  color: var(--text-soft) !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   CHART.JS GLOBAL DEFAULTS OVERRIDE (via CSS custom props)
+   Applied via dashboard.js; documented here for reference.
+   
+   Chart.defaults.color = '#6B3A4D'    (--text-main)
+   Chart.defaults.borderColor = '#F1DED2'  (--border)
+   Chart.defaults.plugins.tooltip.backgroundColor = '#FFFBF5'
+   Chart.defaults.plugins.tooltip.titleColor = '#4A1D2F'
+   Chart.defaults.plugins.tooltip.bodyColor = '#6B3A4D'
+   Chart.defaults.plugins.tooltip.borderColor = '#F1DED2'
+   Chart.defaults.plugins.tooltip.borderWidth = 1
+   Chart.defaults.plugins.tooltip.cornerRadius = 8
+   Chart.defaults.scale.grid.color = 'rgba(241, 222, 210, 0.7)'
+   ══════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE ADJUSTMENTS
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .bg-blob { opacity: 0.35; filter: blur(50px); }
+}

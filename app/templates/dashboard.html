@@ -7,6 +7,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/kpi_card.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_polish.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -147,6 +148,11 @@
         Real-time audited compliance statistics mapped directly to floor CCTV feeds
       </p>
     </div>
+    {% if demo_mode or (workplace_kpis and workplace_kpis.is_demo) %}
+    <div class="demo-mode-chip" style="background: var(--amber-soft); color: var(--gold); border: 1px solid var(--gold-soft); padding: 4px 12px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700;">
+      Demo Data Active
+    </div>
+    {% endif %}
   </div>
 
   <div class="workplace-kpi-grid">
@@ -159,9 +165,9 @@
       icon="clipboard-check",
       tone="peach",
       description="Audited CCTV & media inspection uploads",
-      trend={"has_previous": true, "pct": 4.5, "dir": "up"} if (kpi.trends and kpi.trends.has_previous) else None,
+      trend=None,
       state="ready",
-      is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
+      is_demo=False
     ) }}
 
     <!-- Card 2: Total PPE Violations = PINK -->
@@ -173,9 +179,9 @@
       icon="warning-triangle",
       tone="pink",
       description="Detected safety gear infractions across floor zones",
-      trend={"has_previous": true, "pct": 5.0, "dir": "down"} if (kpi.trends and kpi.trends.has_previous) else None,
+      trend=None,
       state="ready",
-      is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
+      is_demo=False
     ) }}
 
     <!-- Card 3: Resolved Violations = MINT -->
@@ -187,9 +193,9 @@
       icon="check-circle",
       tone="mint",
       description=(workplace_kpis.resolved_violations|string ~ " of " ~ workplace_kpis.total_violations|string ~ " total violations resolved") if workplace_kpis else "0 of 0 resolved",
-      trend={"has_previous": true, "pct": 12.0, "dir": "up"} if (kpi.trends and kpi.trends.has_previous) else None,
+      trend=None,
       state="ready",
-      is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
+      is_demo=False
     ) }}
 
     <!-- Card 4: Compliance Percentage = ORCHID -->
@@ -201,9 +207,9 @@
       icon="shield-check",
       tone="orchid",
       description="Personnel adhering to mandatory PPE standards",
-      trend={"has_previous": true, "pct": 1.2, "dir": "up"} if (kpi.trends and kpi.trends.has_previous) else None,
+      trend=None,
       state="ready" if (workplace_kpis and workplace_kpis.compliance_percentage is not none) else "empty",
-      is_demo=workplace_kpis.is_demo if workplace_kpis else demo_mode
+      is_demo=False
     ) }}
   </div>
 </section>
@@ -359,14 +365,18 @@
             <p class="card-subtitle-text">YOLOv8 bounding box annotated surveillance feed</p>
           </div>
         </div>
-        <span id="liveDetectionBadge" class="badge-status status-safe" style="font-size: 10px;">● COMPLIANT</span>
+        <span id="liveDetectionBadge" class="badge-status status-safe" style="font-size: 10px;">COMPLIANT</span>
       </div>
 
       <!-- Detection Media Viewer -->
-      <div class="live-detection-viewer" id="liveDetectionViewerWrap" style="height: 190px; border-radius: 12px; overflow: hidden; background: var(--bg-page); display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid var(--border-soft);">
+      <div class="live-detection-viewer" id="liveDetectionViewerWrap" style="height: 190px; border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #FDE9E4 0%, #F6E7CB 100%); display: flex; align-items: center; justify-content: center; position: relative; border: 1.5px dashed var(--border-strong);">
         <img id="liveDetectionImg" src="/outputs/{{ latest_violation.snapshot_path if latest_violation and latest_violation.snapshot_path else '' }}" alt="Live Detection" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; document.getElementById('liveDetectionEmpty').style.display='flex';">
         <div class="empty-state-box" id="liveDetectionEmpty" style="display: none; height: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
-          <span style="font-size: 28px;">📷</span>
+          <span style="font-size: 28px; opacity: 0.7;">🛡️</span>
+          <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 6px; font-weight: 600;">No live snapshot captured</p>
+          <span style="font-size: 10px; color: var(--text-soft);">Feed running normally</span>
+        </div>
+      </div>
           <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 6px;">No annotated media recorded yet. Upload a feed to view detections.</p>
         </div>
       </div>

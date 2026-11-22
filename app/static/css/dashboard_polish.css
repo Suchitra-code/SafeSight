@@ -1,0 +1,349 @@
+/* ==========================================================================
+   SafeSight AI — Premium Dashboard Polish Overrides
+   "Rosewood & Champagne" Phase 2 — Dashboard-Specific Enhancements
+   Applied after dashboard.css to refine and fix specific defects.
+   ========================================================================== */
+
+/* ══════════════════════════════════════════════════════
+   HERO BANNER — Rosewood & Champagne upgrade
+   ══════════════════════════════════════════════════════ */
+.hero-welcome-banner {
+  background: linear-gradient(135deg,
+    rgba(255, 245, 230, 0.97) 0%,
+    rgba(253, 233, 228, 0.97) 50%,
+    rgba(242, 217, 238, 0.95) 100%) !important;
+  border: 1px solid var(--border-gold) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 6px 28px rgba(74, 29, 47, 0.07) !important;
+}
+.hero-welcome-banner::before {
+  background: radial-gradient(circle,
+    rgba(232, 163, 61, 0.22) 0%,
+    rgba(226, 99, 75, 0.06) 70%,
+    transparent 100%) !important;
+}
+.hero-welcome-banner::after {
+  background: radial-gradient(circle,
+    rgba(168, 62, 151, 0.12) 0%, transparent 70%) !important;
+}
+
+.hero-greeting {
+  font-family: var(--font-display) !important;
+  font-size: 1.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.5px !important;
+  color: var(--text-strong) !important;
+}
+
+.hero-summary-line {
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
+  font-weight: 500 !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   FILTER BAR — refined champagne style
+   ══════════════════════════════════════════════════════ */
+.premium-filter-bar {
+  background: var(--bg-cream) !important;
+  border: 1px solid var(--border-gold) !important;
+  border-radius: 20px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.date-preset-pill {
+  font-family: var(--font-heading) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  background: var(--bg-champagne) !important;
+  color: var(--text-soft) !important;
+  border: 1px solid var(--border-gold) !important;
+}
+.date-preset-pill:hover,
+.date-preset-pill.active {
+  background: var(--grad-primary) !important;
+  color: #FFFFFF !important;
+  border-color: transparent !important;
+  box-shadow: 0 3px 10px rgba(226, 99, 75, 0.30) !important;
+}
+
+.filter-select {
+  background: var(--bg-champagne) !important;
+  border: 1px solid var(--border-gold) !important;
+  color: var(--text-main) !important;
+  font-family: var(--font-heading) !important;
+  font-size: 12.5px !important;
+}
+.filter-select:focus {
+  border-color: var(--coral) !important;
+  box-shadow: 0 0 0 3px rgba(226, 99, 75, 0.15) !important;
+}
+
+.filter-date-input {
+  background: var(--bg-champagne) !important;
+  border: 1px solid var(--border-gold) !important;
+  color: var(--text-strong) !important;
+  font-family: var(--font-heading) !important;
+  font-size: 12.5px !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   PREMIUM CARDS — polished finish
+   ══════════════════════════════════════════════════════ */
+.premium-card {
+  background: #FFFFFF !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-md) !important;
+  padding: 22px 24px !important;
+}
+.premium-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Card title size refinement — no wrapping at 1366px */
+.card-title-text {
+  font-family: var(--font-heading) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--text-strong) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 220px;
+}
+.card-subtitle-text {
+  font-size: 11.5px !important;
+  color: var(--text-soft) !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+/* Card header right-side badge — single pill, no wrapping */
+.card-header-row {
+  flex-wrap: nowrap !important;
+  overflow: hidden;
+}
+.card-header-row .badge-status {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  font-size: 10px !important;
+}
+
+/* Card icon chip */
+.card-icon-chip {
+  border-radius: 10px !important;
+  width: 36px !important;
+  height: 36px !important;
+  flex-shrink: 0 !important;
+  font-size: 15px !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   DEFECT #1 FIX: Detection thumbnails — no dark placeholders
+   ══════════════════════════════════════════════════════ */
+#liveDetectionViewerWrap {
+  background: linear-gradient(135deg, #FDE9E4 0%, #F6E7CB 100%) !important;
+  border: 1.5px dashed var(--border-strong) !important;
+}
+#liveDetectionEmpty {
+  background: transparent !important;
+  color: var(--text-soft) !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   DEFECT #2 FIX: Status dots — palette coloured, not black bullets
+   ══════════════════════════════════════════════════════ */
+#liveDetectionBadge,
+.badge-status.status-safe,
+.badge-status.status-compliant {
+  /* Remove the raw "●" character visual and use the CSS ::before dot */
+  letter-spacing: 0.03em;
+}
+/* The raw "● COMPLIANT" text — wrap in a styled span in dashboard.html
+   OR apply a text-transform trick; handled via JS in dashboard.js */
+
+/* ══════════════════════════════════════════════════════
+   DEFECT #5 FIX: Card header layout — prevent wrapping
+   ══════════════════════════════════════════════════════ */
+@media (min-width: 1200px) {
+  .card-header-left {
+    flex-wrap: nowrap !important;
+    overflow: hidden;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   DEFECT #6 FIX: PPE fixed colour classes (Helmet=coral, Vest=gold, etc.)
+   For use in chart legends and pills
+   ══════════════════════════════════════════════════════ */
+.ppe-color-helmet  { background: var(--ppe-helmet)  !important; color: #FFF !important; }
+.ppe-color-vest    { background: var(--ppe-vest)    !important; color: #FFF !important; }
+.ppe-color-goggles { background: var(--ppe-goggles) !important; color: #FFF !important; }
+.ppe-color-gloves  { background: var(--ppe-gloves)  !important; color: #FFF !important; }
+.ppe-color-boots   { background: var(--ppe-boots)   !important; color: var(--text-strong) !important; }
+.ppe-color-mask    { background: var(--ppe-mask)    !important; color: #FFF !important; }
+.ppe-color-with    { background: var(--ppe-with)    !important; color: #FFF !important; }
+.ppe-color-without { background: var(--ppe-without) !important; color: #FFF !important; }
+
+/* ══════════════════════════════════════════════════════
+   DEFECT #7 FIX: Busy charts — refined legend pills
+   ══════════════════════════════════════════════════════ */
+#violationTypePills {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  margin-top: 12px !important;
+}
+#violationTypePills .filter-chip {
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  gap: 5px !important;
+}
+/* Legend dot marker for type pills */
+#violationTypePills .filter-chip::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   SCORE GAUGE — refined emerald ring
+   ══════════════════════════════════════════════════════ */
+.score-card-content {
+  background: var(--emerald-soft) !important;
+  border: 1px solid rgba(31, 157, 110, 0.25) !important;
+  border-radius: 16px !important;
+}
+.score-label {
+  color: var(--text-mint) !important;
+  font-family: var(--font-heading) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.08em !important;
+}
+.score-grade {
+  font-family: var(--font-heading) !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: var(--text-strong) !important;
+}
+.score-inner-val {
+  font-family: var(--font-display) !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  color: var(--text-mint) !important;
+}
+.score-popover-trigger {
+  color: var(--emerald) !important;
+  font-family: var(--font-heading) !important;
+  font-size: 11px !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   RISK HEATMAP — Rosewood palette tones
+   ══════════════════════════════════════════════════════ */
+.risk-zone-item.risk-critical {
+  background: var(--burgundy-soft) !important;
+  border-color: rgba(184, 40, 63, 0.35) !important;
+}
+.risk-zone-item.risk-high {
+  background: var(--pastel-coral) !important;
+  border-color: rgba(226, 99, 75, 0.35) !important;
+}
+.risk-zone-item.risk-medium {
+  background: var(--amber-soft) !important;
+  border-color: rgba(232, 163, 61, 0.35) !important;
+}
+.risk-zone-item.risk-low {
+  background: var(--emerald-soft) !important;
+  border-color: rgba(31, 157, 110, 0.35) !important;
+}
+
+.risk-badge-critical { background: var(--burgundy) !important; color: #FFF !important; }
+.risk-badge-high     { background: var(--coral) !important; color: #FFF !important; }
+.risk-badge-medium   { background: var(--amber) !important; color: var(--text-strong) !important; }
+.risk-badge-low      { background: var(--emerald) !important; color: #FFF !important; }
+
+/* ══════════════════════════════════════════════════════
+   AI INSIGHTS — refined Rosewood tones
+   ══════════════════════════════════════════════════════ */
+.ai-insight-pink   { background: var(--pastel-pink)   !important; border-color: rgba(217, 79, 112, 0.30) !important; }
+.ai-insight-mint   { background: var(--emerald-soft)  !important; border-color: rgba(31, 157, 110, 0.30) !important; }
+.ai-insight-orchid { background: var(--orchid-soft)   !important; border-color: rgba(168, 62, 151, 0.30) !important; }
+.ai-insight-sun    { background: var(--amber-soft)    !important; border-color: rgba(232, 163, 61, 0.30) !important; }
+
+.ai-insight-pink .ai-insight-action-btn   { background: var(--rose)    !important; }
+.ai-insight-mint .ai-insight-action-btn   { background: var(--emerald) !important; }
+.ai-insight-orchid .ai-insight-action-btn { background: var(--orchid)  !important; }
+.ai-insight-sun .ai-insight-action-btn    { background: var(--amber)   !important; color: var(--text-strong) !important; }
+
+/* ══════════════════════════════════════════════════════
+   MODALS — Rosewood & Champagne
+   ══════════════════════════════════════════════════════ */
+.safesight-modal-backdrop {
+  background: rgba(74, 29, 47, 0.42) !important;
+  backdrop-filter: blur(5px) !important;
+}
+.safesight-modal-dialog {
+  border-radius: 24px !important;
+  border: 1px solid var(--border-gold) !important;
+  box-shadow: var(--shadow-xl) !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   DEFECT #10 FIX: Demo banner — refined champagne
+   ══════════════════════════════════════════════════════ */
+.demo-global-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #FDF0D5 0%, #F6E7CB 100%);
+  border-top: 1px solid var(--gold-soft);
+  border-bottom: 1px solid var(--gold-soft);
+  color: var(--text-sun);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.demo-global-ribbon .demo-icon { font-size: 14px; opacity: 0.8; }
+.demo-global-ribbon .demo-link {
+  margin-left: auto;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 11px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════════════
+   PRINT / PDF EXPORT styles — no black
+   ══════════════════════════════════════════════════════ */
+@media print {
+  body { background: #FFFBF5 !important; color: #4A1D2F !important; }
+  .sidebar, .top-bar, .hero-actions, .premium-filter-bar { display: none !important; }
+  .premium-card { box-shadow: none !important; border: 1px solid #F1DED2 !important; break-inside: avoid; }
+  .kpi-card-box { break-inside: avoid; }
+}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE — mobile quality
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .hero-greeting { font-size: 1.3rem !important; }
+  .card-title-text { max-width: 180px; white-space: normal !important; }
+  .card-subtitle-text { max-width: 100%; white-space: normal !important; }
+  .premium-filter-bar { padding: 12px 14px !important; }
+  .premium-card { padding: 16px 18px !important; }
+}

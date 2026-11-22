@@ -55,6 +55,18 @@ PAIRS_TO_CHECK = [
     ("Deep Plum on Coral Accent", "#4A1D2F", "#F07861", 4.5, "Deep plum text on Coral accent badge"),
     ("White on Primary Coral Btn", "#FFFFFF", "#D85338", 3.0, "White text on accessible dark coral button"),
     ("White on Success Mint Btn", "#FFFFFF", "#1E9462", 3.0, "White text on accessible dark mint button"),
+
+    # Rosewood & Champagne Refined System Pairs
+    ("Rosewood Plum on Ivory", "#4A1D2F", "#FFFBF5", 4.5, "Deep plum text on page ivory"),
+    ("Rosewood Main on Ivory", "#6B3A4D", "#FFFBF5", 4.5, "Main text on page ivory"),
+    ("Rosewood Soft on Ivory", "#8A6577", "#FFFBF5", 4.5, "Soft text on page ivory"),
+    ("Peach text (Rosewood)", "#7A4210", "#FFF0DF", 4.5, "Peach text on pastel peach"),
+    ("Rose text (Rosewood)", "#8A2244", "#FDE8EE", 4.5, "Rose text on pastel pink"),
+    ("Mint text (Rosewood)", "#0E5C3E", "#D9F2E6", 4.5, "Mint text on pastel mint"),
+    ("Orchid text (Rosewood)", "#6B1F64", "#F2D9EE", 4.5, "Orchid text on pastel orchid"),
+    ("White on Emerald Btn", "#FFFFFF", "#1F9D6E", 3.0, "White on emerald button"),
+    ("White on Burgundy Badge", "#FFFFFF", "#B8283F", 3.0, "White on burgundy badge"),
+    ("White on Rose Btn", "#FFFFFF", "#D94F70", 3.0, "White on rose button"),
 ]
 
 def run_contrast_check():

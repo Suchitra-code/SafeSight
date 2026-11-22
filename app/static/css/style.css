@@ -349,21 +349,29 @@ a {
   box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
 }
 
-/* Demo Mode Banner */
+/* Demo Mode Banner (Refined Champagne Style) */
 .demo-banner {
-  background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #FDF0D5 0%, #F6E7CB 100%);
+  border-bottom: 1px solid rgba(201, 162, 75, 0.35);
+  color: #7A5000;
   padding: 8px 24px;
+  font-family: var(--font-heading, sans-serif);
   font-size: 12px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  letter-spacing: 0.01em;
 }
 
 .demo-banner a {
+  color: #C9A24B;
   text-decoration: underline;
+  text-underline-offset: 2px;
   font-weight: 700;
+}
+.demo-banner a:hover {
+  color: #8A5A10;
 }
 
 /* Main Content Wrapper */

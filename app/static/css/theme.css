@@ -1,112 +1,182 @@
 /* ==========================================================================
-   SafeSight AI — "Sunrise Garden" Theme System (Milestone 5)
+   SafeSight AI — "Rosewood & Champagne" Premium Design System
+   Phase 2: Visual Polish (2026-11-22)
    
-   STRICT RULES:
+   ARCHITECT'S RULE:
    - NO black or near-black (lightness < 18%)
    - NO blue family (hue 175°–275°, saturation > 12%)
-   - Every colour in this file only. Never hardcode elsewhere.
+   - Shadows: warm-tinted only. Never rgba(0,0,0,x).
+   - Every colour used via variable. Never hardcoded elsewhere.
    ========================================================================== */
 
-:root {
-  /* ── Backgrounds & Neutrals (bright, warm cream & blush) ── */
-  --bg-page:        #FFF9F2;   /* warm cream with faint blush gradient */
-  --bg-page-2:      #FFEAF2;   /* blush pink */
-  --bg-card:        #FFFFFF;
-  --text-strong:    #4A1D2F;   /* primary text: deep plum (~L=20%) */
-  --text-secondary: #7A5563;   /* secondary text */
-  --text-main:      #6B3A4D;
-  --text-soft:      #7A5563;
-  --text-muted:     #7A5563;
-  --text-on-color:  #FFFFFF;
-  --border:         #F3DDD3;   /* warm neutral border */
-  --border-soft:    #F3DDD3;
-  --border-strong:  #E8C4B8;
+/* ── Google Fonts offline fallback: Manrope & Fraunces ── */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: local('Manrope'), local('Manrope-Regular'),
+       url('../fonts/Manrope.woff2') format('woff2');
+  unicode-range: U+0000-00FF;
+}
 
-  /* ── Section 2: 8-Tint Pastel & Accent System ── */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: local('Fraunces'), local('Fraunces-Regular'),
+       url('../fonts/Fraunces.woff2') format('woff2');
+  unicode-range: U+0000-00FF;
+}
+
+:root {
+  /* ══════════════════════════════════════════════════════
+     ROSEWOOD & CHAMPAGNE PALETTE
+     Refined from Sunrise Garden: same energy, more elegant.
+     ══════════════════════════════════════════════════════ */
+
+  /* ── Page & Surface Backgrounds ── */
+  --bg-page:        #FFFBF5;   /* warm ivory */
+  --bg-cream:       #FFF6EA;   /* cream surface */
+  --bg-blush:       #FDE9E4;   /* blush */
+  --bg-champagne:   #F6E7CB;   /* champagne */
+  --bg-card:        #FFFFFF;
+  --bg-card-hover:  #FFFCF8;
+
+  /* ── Gold Accents (use sparingly) ── */
+  --gold:           #C9A24B;
+  --gold-soft:      #E8D3A0;
+  --gold-hairline:  rgba(201, 162, 75, 0.30);
+
+  /* ── Core Brand Colours ── */
+  --coral:          #E2634B;   /* primary actions, coral (refined from FF6B4A) */
+  --coral-hover:    #C9533D;
+  --rose:           #D94F70;   /* secondary, violation highlights */
+  --rose-hover:     #C03E5F;
+  --orchid:         #A83E97;   /* AI, analytics accent */
+  --orchid-soft:    #F2D9EE;
+  --amber:          #E8A33D;   /* warning, pending */
+  --amber-soft:     #FDF0D5;
+
+  /* ── Semantic States ── */
+  --emerald:        #1F9D6E;   /* safe, resolved, success */
+  --emerald-soft:   #D9F2E6;
+  --burgundy:       #B8283F;   /* critical, danger */
+  --burgundy-soft:  #FBE1E5;
+
+  /* ── Legacy Sunrise Garden aliases (backward compat) ── */
+  --mint:           #1F9D6E;
+  --pink:           #D94F70;
+  --magenta:        #A83E97;
+  --berry:          #A83E97;
+  --red:            #B8283F;
+  --danger:         #B8283F;
+  --success:        #1F9D6E;
+  --warning:        #E8A33D;
+  --orange:         #E8A33D;
+  --sun:            #E8A33D;
+  --lime:           #5A9E22;
+
+  /* ── KPI Card 4-Tint System ── */
   /* 1. Peach (Total Inspections) */
   --pastel-peach:   #FFF0DF;
-  --accent-peach:   #F0A45D;
-  --text-peach:     #8A4F14;
+  --accent-peach:   #E2884A;
+  --text-peach:     #7A4210;
 
-  /* 2. Pink (PPE Violations) */
-  --pastel-pink:    #FFE8F0;
-  --accent-pink:    #E76B9A;
-  --text-pink:      #8F2F57;
+  /* 2. Rose/Pink (PPE Violations) */
+  --pastel-pink:    #FDE8EE;
+  --accent-pink:    #D94F70;
+  --text-pink:      #8A2244;
 
-  /* 3. Mint (Resolved Violations / Safe) */
-  --pastel-mint:    #DDF7EA;
-  --accent-mint:    #35B982;
-  --text-mint:      #10603F;
+  /* 3. Emerald/Mint (Resolved) */
+  --pastel-mint:    #D9F2E6;
+  --accent-mint:    #1F9D6E;
+  --text-mint:      #0E5C3E;
 
-  /* 4. Orchid (Compliance Rate / AI) */
-  --pastel-orchid:  #F8E3F4;
-  --accent-orchid:  #C94BB5;
-  --text-orchid:    #7A2570;
+  /* 4. Orchid (Compliance) */
+  --pastel-orchid:  #F2D9EE;
+  --accent-orchid:  #A83E97;
+  --text-orchid:    #6B1F64;
 
-  /* 5. Coral (Primary actions, highlights) */
-  --pastel-coral:   #FFE5DE;
-  --accent-coral:   #F07861;
-  --text-coral:     #8F3425;
+  /* 5. Coral */
+  --pastel-coral:   #FDE0D8;
+  --accent-coral:   #E2634B;
+  --text-coral:     #8A3020;
 
-  /* 6. Sun (Warnings, recent activity) */
-  --pastel-sun:     #FFF4C2;
-  --accent-sun:     #F2B705;
-  --text-sun:       #6B4B00;
+  /* 6. Sun/Amber */
+  --pastel-sun:     #FDF0D5;
+  --accent-sun:     #E8A33D;
+  --text-sun:       #7A5000;
 
-  /* 7. Lime (Department comparison) */
+  /* 7. Lime */
   --pastel-lime:    #EAF6D2;
-  --accent-lime:    #8CC63F;
-  --text-lime:      #445E14;
+  --accent-lime:    #5A9E22;
+  --text-lime:      #3A6210;
 
-  /* 8. Red (Critical / Unsafe infractions only) */
-  --pastel-red:     #FFE1E4;
-  --accent-red:     #E53950;
-  --text-red:       #9B1C2E;
+  /* 8. Burgundy/Red (Critical) */
+  --pastel-red:     #FBE1E5;
+  --accent-red:     #B8283F;
+  --text-red:       #7A1428;
 
-  /* ── Legacy Aliases for Seamless Backward Compatibility ── */
-  --bg-soft-peach:  #FFF0DF;
-  --bg-soft-mint:   #DDF7EA;
-  --bg-soft-sun:    #FFF4C2;
-  --bg-soft-berry:  #F8E3F4;
-  --coral:          #FF6B4A;
-  --orange:         #FF9F1C;
-  --sun:            #FFC93C;
-  --lime:           #8CC63F;
-  --mint:           #22B573;
-  --pink:           #FF4D8D;
-  --magenta:        #D6247F;
-  --berry:          #B5179E;
-  --red:            #E53950;
-  --danger:         #E53950;
-  --success:        #22B573;
-  --warning:        #FF9F1C;
-  --shadow-soft:  0 8px 24px rgba(255, 107, 74, 0.12);
-  --shadow-pop:   0 14px 36px rgba(214, 36, 127, 0.18);
-  --shadow-sm:    0 2px 8px rgba(255, 107, 74, 0.08);
-  --shadow-md:    0 6px 16px rgba(255, 107, 74, 0.10);
-  --shadow-lg:    0 12px 32px rgba(255, 107, 74, 0.14);
+  /* ── Text Hierarchy ── */
+  --text-strong:    #4A1D2F;   /* deepest allowed; deep plum */
+  --text-main:      #6B3A4D;   /* primary body text */
+  --text-secondary: #8A6577;   /* captions, labels */
+  --text-soft:      #8A6577;
+  --text-muted:     #8A6577;
+  --text-on-color:  #FFFFFF;
+
+  /* ── Borders ── */
+  --border:         #F1DED2;
+  --border-soft:    #F1DED2;
+  --border-strong:  #DFC3B4;
+  --border-gold:    rgba(201, 162, 75, 0.30);
+
+  /* ── Warm Layered Shadows (never rgba(0,0,0)) ── */
+  --shadow-xs:  0 1px 3px rgba(74, 29, 47, 0.06);
+  --shadow-sm:  0 2px 8px rgba(74, 29, 47, 0.07);
+  --shadow-md:  0 4px 16px rgba(74, 29, 47, 0.09),
+                0 1px 4px rgba(226, 99, 75, 0.05);
+  --shadow-lg:  0 8px 28px rgba(74, 29, 47, 0.11),
+                0 2px 8px rgba(226, 99, 75, 0.07);
+  --shadow-xl:  0 16px 48px rgba(74, 29, 47, 0.14),
+                0 4px 12px rgba(217, 79, 112, 0.10);
+  --shadow-soft: 0 6px 24px rgba(74, 29, 47, 0.08);
+  --shadow-pop:  0 14px 40px rgba(217, 79, 112, 0.18);
 
   /* ── Gradients ── */
-  --grad-sunrise: linear-gradient(135deg, #FF6B4A 0%, #FF4D8D 55%, #FFC93C 100%);
-  --grad-garden:  linear-gradient(135deg, #22B573 0%, #8CC63F 100%);
-  --grad-berry:   linear-gradient(135deg, #D6247F 0%, #B5179E 100%);
-  --grad-candy:   linear-gradient(135deg, #FFC93C 0%, #FF9F1C 50%, #FF6B4A 100%);
-  --grad-soft:    linear-gradient(135deg, #FFF7EE 0%, #FFEAF2 100%);
-
-  /* ── Layout ── */
-  --sidebar-w:          240px;
-  --sidebar-collapsed-w: 68px;
-  --header-h:           64px;
-  --radius-xl:          20px;
-  --radius-lg:          16px;
-  --radius-md:          12px;
-  --radius-sm:          8px;
-  --radius-pill:        9999px;
+  /* Primary: coral → rose → amber */
+  --grad-primary:  linear-gradient(135deg, #E2634B 0%, #D94F70 55%, #E8A33D 100%);
+  /* Legacy alias kept */
+  --grad-sunrise:  linear-gradient(135deg, #E2634B 0%, #D94F70 55%, #E8A33D 100%);
+  --grad-garden:   linear-gradient(135deg, #1F9D6E 0%, #5A9E22 100%);
+  --grad-berry:    linear-gradient(135deg, #D94F70 0%, #A83E97 100%);
+  --grad-candy:    linear-gradient(135deg, #E8A33D 0%, #E2634B 50%, #D94F70 100%);
+  --grad-soft:     linear-gradient(135deg, #FFFBF5 0%, #FDE9E4 100%);
+  --grad-champagne: linear-gradient(135deg, #FFFBF5 0%, #FFF6EA 50%, #F6E7CB 100%);
+  /* Page background mesh */
+  --grad-page-bg:  radial-gradient(ellipse at 20% 20%, rgba(253, 233, 228, 0.55) 0%, transparent 50%),
+                   radial-gradient(ellipse at 80% 80%, rgba(246, 231, 203, 0.40) 0%, transparent 50%),
+                   radial-gradient(ellipse at 60% 10%, rgba(242, 217, 238, 0.30) 0%, transparent 40%),
+                   #FFFBF5;
 
   /* ── Typography ── */
-  --font-heading: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono:    'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --font-display:  'Fraunces', 'Georgia', 'Playfair Display', serif;
+  --font-heading:  'Manrope', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-body:     'Manrope', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:     'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* ── Layout ── */
+  --sidebar-w:           240px;
+  --sidebar-collapsed-w: 68px;
+  --header-h:            64px;
+  --radius-xl:           24px;
+  --radius-lg:           16px;
+  --radius-md:           12px;
+  --radius-sm:           8px;
+  --radius-xs:           6px;
+  --radius-pill:         9999px;
 
   /* ── Spacing scale (8px grid) ── */
   --sp-1:  4px;
@@ -121,69 +191,95 @@
   --sp-12: 48px;
   --sp-16: 64px;
 
-  /* ── Transitions ── */
-  --transition-fast:  all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition:       all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow:  all 0.4s  cubic-bezier(0.4, 0, 0.2, 1);
+  /* ── Transitions (transform + opacity only for perf) ── */
+  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition:      all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* ── Chart colours (NO blue!) ── */
-  --chart-1: #FF6B4A;  /* coral */
-  --chart-2: #FFC93C;  /* sun */
-  --chart-3: #FF4D8D;  /* pink */
-  --chart-4: #22B573;  /* mint */
-  --chart-5: #FF9F1C;  /* orange */
-  --chart-6: #B5179E;  /* berry */
-  --chart-7: #8CC63F;  /* lime */
-  --chart-8: #D6247F;  /* magenta */
-  --chart-9: #E53950;  /* red */
+  /* ── Chart colours (Rosewood & Champagne; NO blue!) ── */
+  --chart-1: #E2634B;  /* coral */
+  --chart-2: #E8A33D;  /* amber */
+  --chart-3: #D94F70;  /* rose */
+  --chart-4: #1F9D6E;  /* emerald */
+  --chart-5: #C9A24B;  /* gold */
+  --chart-6: #A83E97;  /* orchid */
+  --chart-7: #5A9E22;  /* lime */
+  --chart-8: #E8603A;  /* deep coral */
+  --chart-9: #B8283F;  /* burgundy */
+
+  /* PPE-specific chart palette (fixed, used in every chart) */
+  --ppe-helmet:  #E2634B;  /* coral */
+  --ppe-vest:    #C9A24B;  /* gold */
+  --ppe-goggles: #D94F70;  /* rose */
+  --ppe-gloves:  #A83E97;  /* orchid */
+  --ppe-boots:   #E8A33D;  /* amber */
+  --ppe-mask:    #5A9E22;  /* lime */
+  --ppe-with:    #1F9D6E;  /* emerald = With PPE */
+  --ppe-without: #B8283F;  /* burgundy = Without PPE */
 
   /* ── Form controls ── */
+  color-scheme: light;
   accent-color: var(--coral);
 }
 
-/* ── Selection highlight ── */
+/* ══════════════════════════════════════════════════════
+   GLOBAL BASE STYLES
+   ══════════════════════════════════════════════════════ */
+
+/* Selection highlight */
 ::selection {
-  background: rgba(255, 107, 74, 0.25);
+  background: rgba(226, 99, 75, 0.20);
   color: var(--text-strong);
 }
 
-/* ── Focus ring (never blue!) ── */
+/* Focus ring (never blue!) */
 :focus-visible {
-  outline: 3px solid var(--pink);
+  outline: 3px solid rgba(226, 99, 75, 0.55);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* ── Links (never blue!) ── */
+/* Links (never blue!) */
 a {
   color: var(--coral);
   text-decoration: none;
   transition: var(--transition-fast);
 }
-a:hover {
-  color: var(--magenta);
-}
-a:visited {
-  color: var(--berry);
-}
+a:hover  { color: var(--rose); }
+a:visited { color: var(--orchid); }
 
-/* ── Scrollbar (warm tinted, never grey-black) ── */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-page);
-}
+/* Warm scrollbars */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: var(--bg-cream); border-radius: 4px; }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: var(--radius-pill);
-}
-::-webkit-scrollbar-thumb:hover {
   background: var(--border-strong);
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--bg-cream);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--gold-soft); }
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) var(--bg-cream); }
+
+/* Modal backdrop — warm plum, NOT black */
+.modal-backdrop,
+.drawer-backdrop,
+.safesight-modal-backdrop {
+  background: rgba(74, 29, 47, 0.42) !important;
+  backdrop-filter: blur(4px);
 }
 
-/* ── Modal backdrop (warm translucent plum, NOT black) ── */
-.modal-backdrop,
-.drawer-backdrop {
-  background: rgba(74, 29, 47, 0.35) !important;
+/* Date inputs — override browser defaults (no black calendar icon) */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: light;
+  accent-color: var(--coral);
+}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: sepia(60%) saturate(400%) hue-rotate(-20deg);
+  opacity: 0.75;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }

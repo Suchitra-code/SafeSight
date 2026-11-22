@@ -5,19 +5,35 @@
  * Strictly adheres to the Sunrise Garden palette (0 black, 0 blue).
  */
 
-// Strict Sunrise Garden Palette Constants (0 black, 0 blue)
+// Strict Rosewood & Champagne Palette Constants (0 black, 0 blue)
 const PALETTE = {
-  coral: "#FF6B4A",
-  pink: "#E76B9A",
-  mint: "#35B982",
-  orchid: "#C94BB5",
-  sun: "#F2B705",
-  lime: "#8CC63F",
-  peach: "#F0A45D",
-  red: "#E53950",
+  coral: "#E2634B",
+  pink: "#D94F70",
+  rose: "#D94F70",
+  mint: "#1F9D6E",
+  emerald: "#1F9D6E",
+  orchid: "#A83E97",
+  gold: "#C9A24B",
+  amber: "#E8A33D",
+  sun: "#E8A33D",
+  lime: "#5A9E22",
+  peach: "#E2884A",
+  red: "#B8283F",
+  burgundy: "#B8283F",
   textStrong: "#4A1D2F",
-  textMuted: "#7A5563",
-  border: "#F3DDD3"
+  textMain: "#6B3A4D",
+  textMuted: "#8A6577",
+  border: "#F1DED2",
+  bgCream: "#FFF6EA",
+  bgCard: "#FFFFFF",
+  bgIvory: "#FFFBF5",
+  // Fixed PPE category colors across every chart
+  ppeHelmet: "#E2634B",    // Coral
+  ppeVest: "#C9A24B",      // Gold
+  ppeGoggles: "#D94F70",   // Rose
+  ppeOther: "#A83E97",     // Orchid
+  ppeWith: "#1F9D6E",      // Emerald (With PPE)
+  ppeWithout: "#B8283F"    // Burgundy (Without PPE)
 };
 
 // Global chart instances
@@ -59,19 +75,19 @@ document.addEventListener("DOMContentLoaded", () => {
 function setupChartDefaults() {
   if (!window.Chart) return;
 
-  Chart.defaults.color = PALETTE.textMuted;
-  Chart.defaults.borderColor = "rgba(243, 221, 211, 0.7)";
-  Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+  Chart.defaults.color = PALETTE.textMain;
+  Chart.defaults.borderColor = PALETTE.border;
+  Chart.defaults.font.family = "'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
   Chart.defaults.font.size = 11;
 
   if (Chart.defaults.plugins && Chart.defaults.plugins.tooltip) {
-    Chart.defaults.plugins.tooltip.backgroundColor = PALETTE.textStrong;
-    Chart.defaults.plugins.tooltip.titleColor = "#FFFFFF";
-    Chart.defaults.plugins.tooltip.bodyColor = "#FFF9F2";
-    Chart.defaults.plugins.tooltip.borderColor = PALETTE.coral;
-    Chart.defaults.plugins.tooltip.borderWidth = 1.5;
+    Chart.defaults.plugins.tooltip.backgroundColor = PALETTE.bgIvory;
+    Chart.defaults.plugins.tooltip.titleColor = PALETTE.textStrong;
+    Chart.defaults.plugins.tooltip.bodyColor = PALETTE.textMain;
+    Chart.defaults.plugins.tooltip.borderColor = PALETTE.border;
+    Chart.defaults.plugins.tooltip.borderWidth = 1;
     Chart.defaults.plugins.tooltip.padding = 10;
-    Chart.defaults.plugins.tooltip.cornerRadius = 10;
+    Chart.defaults.plugins.tooltip.cornerRadius = 8;
   }
 }
 
@@ -489,20 +505,21 @@ function renderComplianceTrendChart(data) {
         {
           label: "Achieved Compliance (%)",
           data: compliance,
-          borderColor: PALETTE.mint,
-          backgroundColor: "rgba(53, 185, 130, 0.12)",
+          borderColor: PALETTE.emerald,
+          backgroundColor: "rgba(31, 157, 110, 0.12)",
           fill: true,
           tension: 0.35,
-          borderWidth: 2.5,
-          pointBackgroundColor: PALETTE.mint,
-          pointRadius: 3
+          borderWidth: 2.2,
+          pointBackgroundColor: PALETTE.emerald,
+          pointRadius: 0,
+          pointHoverRadius: 4
         },
         {
           label: "Safety Target (95.0%)",
           data: target,
-          borderColor: PALETTE.coral,
-          borderDash: [5, 5],
-          borderWidth: 2,
+          borderColor: PALETTE.gold,
+          borderDash: [5, 4],
+          borderWidth: 1.8,
           pointRadius: 0,
           fill: false
         }
@@ -517,7 +534,7 @@ function renderComplianceTrendChart(data) {
           position: "top",
           labels: {
             boxWidth: 12,
-            font: { size: 10, weight: "700" },
+            font: { size: 10, weight: "600" },
             color: PALETTE.textStrong
           }
         },
@@ -535,7 +552,7 @@ function renderComplianceTrendChart(data) {
             callback: (v) => `${v}%`,
             font: { size: 10 }
           },
-          grid: { color: "rgba(243, 221, 211, 0.6)" }
+          grid: { color: "rgba(241, 222, 210, 0.6)" }
         },
         x: {
           grid: { display: false },
@@ -565,15 +582,15 @@ function renderViolationsByTypeChart(data) {
   if (totalBadge) totalBadge.innerText = `${data.total || 0} Total`;
 
   const counts = {
-    Helmet: data.helmet || 0,
-    Vest: data.vest || 0,
-    Goggles: data.goggles || 0,
-    Other: data.other || 0
+    "Helmet": data.helmet || 0,
+    "Safety Vest": data.vest || 0,
+    "Goggles": data.goggles || 0,
+    "Other": data.other || 0
   };
 
   const labels = Object.keys(counts);
   const values = Object.values(counts);
-  const colors = [PALETTE.coral, PALETTE.sun, PALETTE.pink, PALETTE.orchid];
+  const colors = [PALETTE.ppeHelmet, PALETTE.ppeVest, PALETTE.ppeGoggles, PALETTE.ppeOther];
 
   if (violationsTypeChartInstance) {
     violationsTypeChartInstance.destroy();
@@ -589,6 +606,8 @@ function renderViolationsByTypeChart(data) {
           backgroundColor: colors,
           borderColor: "#FFFFFF",
           borderWidth: 2,
+          spacing: 3,
+          borderRadius: 4,
           hoverOffset: 6
         }
       ]
@@ -596,7 +615,7 @@ function renderViolationsByTypeChart(data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: "68%",
+      cutout: "72%",
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -608,12 +627,12 @@ function renderViolationsByTypeChart(data) {
     }
   });
 
-  // Render clickable legend pills underneath
+  // Render clickable legend pills underneath (single tidy row, small round markers)
   const pillsWrap = document.getElementById("violationTypePills");
   if (pillsWrap) {
     pillsWrap.innerHTML = labels.map((l, i) => `
-      <div class="filter-chip" style="cursor: pointer; background: var(--bg-page); color: var(--text-strong); border-color: var(--border-soft);" onclick="filterByType('${l}')" title="Filter by ${l}">
-        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${colors[i]};"></span>
+      <div class="filter-chip" style="cursor: pointer; background: var(--bg-cream); color: var(--text-strong); border: 1px solid var(--border-gold); padding: 3px 9px; font-size: 11px; display: inline-flex; align-items: center; gap: 5px;" onclick="filterByType('${l === 'Safety Vest' ? 'vest' : l.toLowerCase()}')" title="Filter by ${l}">
+        <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:${colors[i]}; flex-shrink: 0;"></span>
         <span><b>${l}:</b> ${counts[l]}</span>
       </div>
     `).join("");
@@ -653,19 +672,22 @@ function renderDepartmentPerformanceChart(deptData) {
           label: "Inspections",
           data: insp,
           backgroundColor: PALETTE.peach,
-          borderRadius: 6
+          borderRadius: 6,
+          maxBarThickness: 28
         },
         {
           label: "Violations",
           data: viol,
-          backgroundColor: PALETTE.pink,
-          borderRadius: 6
+          backgroundColor: PALETTE.rose,
+          borderRadius: 6,
+          maxBarThickness: 28
         },
         {
           label: "Resolved",
           data: res,
-          backgroundColor: PALETTE.mint,
-          borderRadius: 6
+          backgroundColor: PALETTE.emerald,
+          borderRadius: 6,
+          maxBarThickness: 28
         }
       ]
     },
@@ -676,18 +698,18 @@ function renderDepartmentPerformanceChart(deptData) {
         legend: {
           display: true,
           position: "top",
-          labels: { boxWidth: 10, font: { size: 10, weight: "700" } }
+          labels: { boxWidth: 10, font: { size: 10, weight: "600" } }
         }
       },
       scales: {
         y: {
           beginAtZero: true,
           ticks: { font: { size: 10 } },
-          grid: { color: "rgba(243, 221, 211, 0.6)" }
+          grid: { color: "rgba(241, 222, 210, 0.6)" }
         },
         x: {
           grid: { display: false },
-          ticks: { font: { size: 10, weight: "700" } }
+          ticks: { font: { size: 10, weight: "600" } }
         }
       }
     }
@@ -795,10 +817,10 @@ function updateDetectionCard(item) {
   if (badge) {
     if (item.is_compliant) {
       badge.className = "badge-status status-safe";
-      badge.innerText = "● COMPLIANT";
+      badge.innerText = "COMPLIANT";
     } else {
       badge.className = "badge-status status-danger";
-      badge.innerText = `● ${item.violations_count || 1} VIOLATIONS`;
+      badge.innerText = `${item.violations_count || 1} VIOLATIONS`;
     }
   }
 
