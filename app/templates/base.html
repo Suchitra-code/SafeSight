@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="light" data-palette="{{ palette_mode|default('vivid') }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,7 +37,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/polish.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/health_chip.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/health_chip.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vivid.css') }}">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -183,6 +184,12 @@
               {{ 'Engine (Demo)' if demo_mode else 'Engine Active' }}
             </span>
           </div>
+
+          <!-- Palette Mode Switcher (Vivid ⇄ Mentor Safe) -->
+          <button id="paletteToggleBtn" class="palette-toggle-pill" onclick="togglePaletteMode()" title="Toggle Vivid / Mentor Safe Mode">
+            <span id="paletteToggleIcon">🎨</span>
+            <span id="paletteToggleText">{% if palette_mode == 'mentor_safe' %}Mentor Safe{% else %}Vivid Mode{% endif %}</span>
+          </button>
 
           <!-- Notification Bell with Dropdown Menu -->
           <div style="position: relative;">
@@ -344,6 +351,33 @@
       if (bellDropdown) bellDropdown.style.display = 'none';
       if (userDropdown) userDropdown.style.display = 'none';
     });
+
+    // Palette Mode Switcher Handler
+    function togglePaletteMode() {
+      const current = document.documentElement.dataset.palette || 'vivid';
+      const target = current === 'vivid' ? 'mentor_safe' : 'vivid';
+      document.documentElement.dataset.palette = target;
+      
+      const txt = document.getElementById('paletteToggleText');
+      if (txt) txt.innerText = target === 'vivid' ? 'Vivid Mode' : 'Mentor Safe';
+
+      // Persist in localStorage and session
+      localStorage.setItem('safesight_palette', target);
+      fetch('/api/palette/' + target, { method: 'POST' }).catch(() => {});
+
+      // Dispatch custom event so Chart.js defaults reload
+      window.dispatchEvent(new CustomEvent('paletteChanged', { detail: { mode: target } }));
+    }
+
+    // Apply stored palette preference if exists
+    (function initStoredPalette() {
+      const stored = localStorage.getItem('safesight_palette');
+      if (stored && (stored === 'vivid' || stored === 'mentor_safe')) {
+        document.documentElement.dataset.palette = stored;
+        const txt = document.getElementById('paletteToggleText');
+        if (txt) txt.innerText = stored === 'vivid' ? 'Vivid Mode' : 'Mentor Safe';
+      }
+    })();
   </script>
 
   {% block scripts %}{% endblock %}

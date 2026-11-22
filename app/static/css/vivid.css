@@ -1,0 +1,350 @@
+/* ==========================================================================
+   SafeSight AI / VisionDesk AI — "Vivid Enterprise" Extra-Bright Palette System
+   Phase 3: High-Impact Visual Styling (2026-11-22)
+   
+   Vibrant Colors: Electric Blue, Royal Blue, Cyan, Purple, Magenta,
+   Emerald Green, Warm Orange, Amber Yellow.
+   Glassmorphic depth, glowing borders, rich colorful gradients.
+   Zero pure black or near-black text.
+   ========================================================================== */
+
+/* ── Vivid Palette Variable Overrides ── */
+:root[data-palette="vivid"],
+:root:not([data-palette="mentor_safe"]) {
+  /* Core Vivid Accents */
+  --royal-blue:     #2F5BEA;
+  --electric-blue:  #3B82F6;
+  --cyan:           #06B6D4;
+  --purple:         #7C4DFF;
+  --magenta:        #EC4899;
+  --emerald:        #10B981;
+  --orange:         #FF8A3D;
+  --amber:          #F59E0B;
+  --red:            #EF4444;
+
+  /* Brand Role Overrides */
+  --coral:          #2F5BEA;   /* Primary action: Royal Blue in Vivid */
+  --coral-hover:    #1D4ED8;
+  --rose:           #EC4899;   /* Secondary: Magenta in Vivid */
+  --rose-hover:     #DB2777;
+  --orchid:         #7C4DFF;   /* AI Accent: Vibrant Purple */
+  --orchid-soft:    #EDE9FE;
+  --amber-soft:     #FEF3C7;
+  --emerald-soft:   #D1FAE5;
+  --burgundy:       #EF4444;   /* Critical alert: Red */
+  --burgundy-soft:  #FEE2E2;
+
+  --mint:           #10B981;
+  --pink:           #EC4899;
+  --danger:         #EF4444;
+  --success:        #10B981;
+  --warning:        #FF8A3D;
+  --sun:            #F59E0B;
+
+  /* Surfaces & Page */
+  --bg-page:        #F4F7FE;   /* Clean modern vivid slate/blue tint */
+  --bg-cream:       #F8FAFC;
+  --bg-blush:       #EFF6FF;
+  --bg-champagne:   #F1F5F9;
+  --bg-card:        rgba(255, 255, 255, 0.88);
+  --bg-card-hover:  #FFFFFF;
+  --bg-surface-alt: #F8FAFC;
+
+  /* Text: Deep Indigo & Slate (NO pure black) */
+  --text-strong:    #1B2559;   /* Deep high-contrast enterprise indigo */
+  --text-main:      #3D4A7A;   /* Slate indigo */
+  --text-muted:     #707EAE;   /* Soft slate */
+  --text-inverted:  #FFFFFF;
+
+  /* Borders & Glowing Shadows */
+  --border-soft:    rgba(59, 130, 246, 0.16);
+  --border-hairline:rgba(59, 130, 246, 0.10);
+  --shadow-sm:      0 2px 8px rgba(47, 91, 234, 0.06);
+  --shadow-md:      0 8px 24px -4px rgba(47, 91, 234, 0.10), 0 4px 12px rgba(124, 77, 255, 0.05);
+  --shadow-lg:      0 16px 36px -6px rgba(47, 91, 234, 0.15), 0 8px 16px rgba(124, 77, 255, 0.08);
+
+  /* Chart Visualization Defaults (Vivid Enterprise) */
+  --chart-grid:             rgba(59, 130, 246, 0.08);
+  --chart-tooltip-bg:       #1B2559;
+  --chart-tooltip-border:   rgba(59, 130, 246, 0.3);
+  --chart-compliance-line:  #2F5BEA;
+  --chart-target-line:      #F59E0B;
+  --chart-ppe-helmet:       #FF8A3D;
+  --chart-ppe-vest:         #2F5BEA;
+  --chart-ppe-shoes:        #10B981;
+  --chart-ppe-goggles:      #7C4DFF;
+  --chart-ppe-other:        #14B8A6;
+  --chart-sev-high:         #EF4444;
+  --chart-sev-med:          #FF8A3D;
+  --chart-sev-low:          #10B981;
+
+  /* Vivid Multi-Color Gradients */
+  --grad-ocean:     linear-gradient(135deg, #2F5BEA 0%, #7C4DFF 100%);
+  --grad-aurora:    linear-gradient(135deg, #06B6D4 0%, #10B981 100%);
+  --grad-sunrise:   linear-gradient(135deg, #FF8A3D 0%, #F59E0B 100%);
+  --grad-berry:     linear-gradient(135deg, #7C4DFF 0%, #EC4899 100%);
+  --grad-danger:    linear-gradient(135deg, #EF4444 0%, #FF8A3D 100%);
+  --grad-cyber:     linear-gradient(135deg, #3B82F6 0%, #06B6D4 100%);
+
+  /* KPI Card Tints in Vivid */
+  --pastel-peach:   #EFF6FF;
+  --accent-peach:   #2F5BEA;
+  --text-peach:     #1E40AF;
+
+  --pastel-pink:    #FDF2F8;
+  --accent-pink:    #EC4899;
+  --text-pink:      #9D174D;
+
+  --pastel-mint:    #ECFDF5;
+  --accent-mint:    #10B981;
+  --text-mint:      #065F46;
+
+  --pastel-orchid:  #F5F3FF;
+  --accent-orchid:  #7C4DFF;
+  --text-orchid:    #5B21B6;
+
+  --pastel-coral:   #FFF7ED;
+  --accent-coral:   #FF8A3D;
+  --text-coral:     #9A3412;
+
+  --pastel-sun:     #FFFBEB;
+  --accent-sun:     #F59E0B;
+  --text-sun:       #92400E;
+
+  --pastel-red:     #FEF2F2;
+  --accent-red:     #EF4444;
+  --text-red:       #991B1B;
+}
+
+/* ── Vivid Body Mesh & Background ── */
+[data-palette="vivid"] body,
+body {
+  background-color: var(--bg-page);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(124, 77, 255, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(6, 182, 212, 0.06) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text-main);
+}
+
+/* ── Glassmorphism Card Enhancements ── */
+[data-palette="vivid"] .card,
+[data-palette="vivid"] .kpi-card-v2,
+[data-palette="vivid"] .action-card,
+[data-palette="vivid"] .filter-bar,
+.card {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(59, 130, 246, 0.14);
+  box-shadow: 0 10px 25px -5px rgba(47, 91, 234, 0.07), 0 4px 10px rgba(124, 77, 255, 0.03);
+  border-radius: 20px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+[data-palette="vivid"] .card:hover,
+[data-palette="vivid"] .kpi-card-v2:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -6px rgba(47, 91, 234, 0.14), 0 8px 16px rgba(124, 77, 255, 0.06);
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+/* ── Top Bar Header Gradient Band ── */
+[data-palette="vivid"] .top-bar {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 20px rgba(47, 91, 234, 0.05);
+}
+
+/* ── Sidebar Vivid Polish ── */
+[data-palette="vivid"] .sidebar {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(59, 130, 246, 0.12);
+}
+
+[data-palette="vivid"] .nav-item.active {
+  background: var(--grad-ocean) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 18px rgba(47, 91, 234, 0.35);
+}
+
+[data-palette="vivid"] .nav-item.active span {
+  color: #FFFFFF !important;
+}
+
+/* ── Vivid KPI Gradient Glows ── */
+[data-palette="vivid"] .kpi-grad-coral {
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(219, 234, 254, 0.7) 100%) !important;
+  border: 1px solid rgba(59, 130, 246, 0.22) !important;
+}
+
+[data-palette="vivid"] .kpi-grad-mint {
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(209, 250, 229, 0.7) 100%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.22) !important;
+}
+
+[data-palette="vivid"] .kpi-grad-red {
+  background: linear-gradient(135deg, rgba(254, 242, 242, 0.95) 0%, rgba(254, 226, 226, 0.7) 100%) !important;
+  border: 1px solid rgba(239, 68, 68, 0.22) !important;
+}
+
+[data-palette="vivid"] .kpi-grad-sun {
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.95) 0%, rgba(254, 243, 199, 0.7) 100%) !important;
+  border: 1px solid rgba(245, 158, 11, 0.22) !important;
+}
+
+[data-palette="vivid"] .kpi-grad-berry {
+  background: linear-gradient(135deg, rgba(245, 243, 255, 0.95) 0%, rgba(237, 233, 254, 0.7) 100%) !important;
+  border: 1px solid rgba(124, 77, 255, 0.22) !important;
+}
+
+[data-palette="vivid"] .kpi-grad-pink {
+  background: linear-gradient(135deg, rgba(253, 242, 248, 0.95) 0%, rgba(252, 231, 243, 0.7) 100%) !important;
+  border: 1px solid rgba(236, 72, 153, 0.22) !important;
+}
+
+/* ── Buttons in Vivid Mode ── */
+[data-palette="vivid"] .btn-primary {
+  background: var(--grad-ocean) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(47, 91, 234, 0.35);
+  font-weight: 700;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-palette="vivid"] .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(47, 91, 234, 0.45);
+}
+
+[data-palette="vivid"] .btn-secondary {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid rgba(59, 130, 246, 0.20) !important;
+  box-shadow: 0 2px 6px rgba(47, 91, 234, 0.05);
+}
+
+[data-palette="vivid"] .btn-secondary:hover {
+  background: #EFF6FF !important;
+  border-color: var(--electric-blue) !important;
+  color: var(--royal-blue) !important;
+}
+
+/* ── Live Detection Viewer Vivid Styling ── */
+.live-detection-viewer {
+  border-radius: 14px;
+  background: linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%);
+  border: 1px solid rgba(59, 130, 246, 0.20);
+  height: 200px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: inset 0 2px 6px rgba(47, 91, 234, 0.06);
+}
+
+.live-detection-viewer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+/* ── Recent Violations Thumbnails ── */
+.violation-row-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.85);
+  border: 1px solid rgba(59, 130, 246, 0.10);
+  transition: all 0.2s ease;
+}
+
+.violation-row-item:hover {
+  background: #FFFFFF;
+  border-color: rgba(59, 130, 246, 0.25);
+  box-shadow: 0 4px 12px rgba(47, 91, 234, 0.08);
+  transform: translateX(2px);
+}
+
+.violation-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(47, 91, 234, 0.15);
+  flex-shrink: 0;
+}
+
+/* ── Badges & Status Pills in Vivid ── */
+[data-palette="vivid"] .badge-status.status-safe {
+  background: rgba(16, 185, 129, 0.14) !important;
+  color: #065F46 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  font-weight: 700;
+}
+
+[data-palette="vivid"] .badge-status.status-danger,
+[data-palette="vivid"] .pill-high {
+  background: rgba(239, 68, 68, 0.14) !important;
+  color: #991B1B !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  font-weight: 700;
+}
+
+[data-palette="vivid"] .pill-medium {
+  background: rgba(255, 138, 61, 0.14) !important;
+  color: #9A3412 !important;
+  border: 1px solid rgba(255, 138, 61, 0.3) !important;
+  font-weight: 700;
+}
+
+[data-palette="vivid"] .pill-low {
+  background: rgba(6, 182, 212, 0.14) !important;
+  color: #0E7490 !important;
+  border: 1px solid rgba(6, 182, 212, 0.3) !important;
+  font-weight: 700;
+}
+
+/* ── Palette Mode Toggle Pill ── */
+.palette-toggle-pill {
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(47, 91, 234, 0.10), rgba(124, 77, 255, 0.12));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--royal-blue);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.palette-toggle-pill:hover {
+  background: var(--grad-ocean);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(47, 91, 234, 0.3);
+}
+
+[data-palette="mentor_safe"] .palette-toggle-pill {
+  background: var(--pastel-coral);
+  border-color: rgba(226, 99, 75, 0.3);
+  color: var(--text-coral);
+}
+
+[data-palette="mentor_safe"] .palette-toggle-pill:hover {
+  background: var(--coral);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(226, 99, 75, 0.3);
+}

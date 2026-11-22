@@ -7,7 +7,7 @@ import os
 import uuid
 import logging
 from datetime import datetime
-from flask import Blueprint, request, jsonify, send_file, current_app, Response
+from flask import Blueprint, request, jsonify, send_file, current_app, Response, session
 
 import config
 from app.db import execute_insert, execute_query
@@ -330,6 +330,14 @@ def get_violations_by_type():
     return jsonify(analytics.get_violations_by_type(date_from, date_to))
 
 
+@api_bp.route("/analytics/violations-by-severity", methods=["GET"])
+def get_violations_by_severity():
+    """Returns violations grouped by severity."""
+    date_from = request.args.get("date_from")
+    date_to = request.args.get("date_to")
+    return jsonify(analytics.get_violations_by_severity(date_from, date_to))
+
+
 @api_bp.route("/analytics/timeseries", methods=["GET"])
 def get_timeseries():
     """Returns timeseries for Chart.js."""
@@ -633,3 +641,13 @@ def seed_demo():
     except Exception as e:
         logger.error(f"Demo seed failed: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route("/palette/<mode>", methods=["POST", "GET"])
+def set_palette(mode):
+    """Sets the active palette mode in session ('vivid' or 'mentor_safe')."""
+    mode = mode.lower().strip()
+    if mode not in ("vivid", "mentor_safe"):
+        mode = "vivid"
+    session["palette_mode"] = mode
+    return jsonify({"success": True, "palette_mode": mode})

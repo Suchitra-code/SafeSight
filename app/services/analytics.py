@@ -188,6 +188,32 @@ def get_violations_by_type(date_from: Optional[str] = None, date_to: Optional[st
     return counts
 
 
+def get_violations_by_severity(date_from: Optional[str] = None, date_to: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Returns counts by severity: HIGH, MEDIUM, LOW, and the total.
+    """
+    where_sql, params = _build_filter_sql(date_from, date_to, None, "v")
+    sql = f"""
+        SELECT severity, COUNT(*) as count
+        FROM violations v
+        WHERE {where_sql}
+        GROUP BY severity
+    """
+    rows = execute_query(sql, params)
+    counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
+    for r in (rows or []):
+        sev = (r.get("severity") or "").upper()
+        if sev in counts:
+            counts[sev] = int(r["count"])
+        elif sev == "CRITICAL":
+            counts["HIGH"] += int(r["count"])
+        else:
+            counts["MEDIUM"] += int(r["count"])
+
+    counts["total"] = sum(counts.values())
+    return counts
+
+
 def get_timeseries(date_from: Optional[str] = None, date_to: Optional[str] = None,
                    camera: Optional[str] = None) -> Dict[str, Any]:
     """

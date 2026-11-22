@@ -93,8 +93,11 @@ def create_app():
     @app.context_processor
     def inject_global_vars():
         """Injects environment flags into all Jinja2 templates."""
+        from flask import session, request
+        palette_mode = request.args.get("palette") or session.get("palette_mode") or getattr(config, "PALETTE_MODE", "vivid")
         return {
             "demo_mode": app.config.get("DEMO_MODE", False),
+            "palette_mode": palette_mode,
             "app_name": "SafeSight AI",
             "app_subtitle": "AI-Powered Visual Data Analytics and Business Intelligence Platform"
         }

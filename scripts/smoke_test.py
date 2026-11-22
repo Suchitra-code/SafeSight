@@ -80,6 +80,8 @@ def run_smoke_test():
         ("/api/copilot/history", "Copilot Runs History (M4)"),
         ("/api/kpis/workplace-safety", "Workplace Safety KPIs (M5)"),
         ("/api/violations?page=1&page_size=5", "Violation Monitoring API (M5)"),
+        ("/api/analytics/violations-by-severity", "Severity Infractions (M5)"),
+        ("/api/palette/vivid", "Palette Mode Endpoint (M5)"),
     ]
 
     for url, desc in apis:

@@ -110,3 +110,6 @@ LANGGRAPH_VERSION = "1.2.20"
 
 # Demo mode flag (True if weights file doesn't exist)
 DEMO_MODE = not os.path.isfile(MODEL_PATH)
+
+# Palette Mode: "vivid" (Extra bright, colorful) or "mentor_safe" (Strict no-black, no-blue)
+PALETTE_MODE = os.getenv("PALETTE_MODE", "vivid").lower().strip()

@@ -163,6 +163,22 @@
 
   /* ── Typography ── */
   --font-display:  'Fraunces', 'Georgia', 'Playfair Display', serif;
+  --font-sans:     'Manrope', 'Inter', -apple-system, sans-serif;
+
+  /* ── Chart Visualization Defaults (Mentor Safe: 0 black, 0 blue) ── */
+  --chart-grid:             rgba(241, 222, 210, 0.6);
+  --chart-tooltip-bg:       #FFFBF5;
+  --chart-tooltip-border:   #F1DED2;
+  --chart-compliance-line:  #1F9D6E;
+  --chart-target-line:      #E8A33D;
+  --chart-ppe-helmet:       #E8A33D;
+  --chart-ppe-vest:         #E2634B;
+  --chart-ppe-shoes:        #1F9D6E;
+  --chart-ppe-goggles:      #D94F70;
+  --chart-ppe-other:        #A83E97;
+  --chart-sev-high:         #B8283F;
+  --chart-sev-med:          #E8A33D;
+  --chart-sev-low:          #1F9D6E;
   --font-heading:  'Manrope', 'Inter', system-ui, -apple-system, sans-serif;
   --font-body:     'Manrope', 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono:     'JetBrains Mono', 'Fira Code', 'Consolas', monospace;

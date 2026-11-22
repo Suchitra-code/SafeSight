@@ -67,25 +67,30 @@ def rgb_to_hsl(r: int, g: int, b: int) -> Tuple[float, float, float]:
     h_val, l_val, s_val = colorsys.rgb_to_hls(r / 255.0, g / 255.0, b / 255.0)
     return (h_val * 360.0, s_val * 100.0, l_val * 100.0)
 
-def is_forbidden_hsl(h: float, s: float, l: float) -> Tuple[bool, str]:
+def is_forbidden_hsl(h: float, s: float, l: float, mode: str = "mentor_safe") -> Tuple[bool, str]:
     """Checks if HSL color violates Section 3.2 rules."""
-    # Near black check: Lightness < 18%
+    # Near black check: Lightness < 18% (forbidden in both modes)
     if l < 18.0:
         return True, f"Too dark/near-black: lightness {l:.1f}% < 18%"
     
-    # Blue/teal/cyan family: Hue between 175° and 275° and Saturation > 12%
-    if 175.0 <= h <= 275.0 and s > 12.0:
-        return True, f"Blue/teal/cyan family: hue {h:.1f}° in [175°, 275°], saturation {s:.1f}% > 12%"
+    # In mentor_safe mode: Blue/teal/cyan family forbidden
+    if mode == "mentor_safe":
+        if 175.0 <= h <= 275.0 and s > 12.0:
+            return True, f"Blue/teal/cyan family: hue {h:.1f}° in [175°, 275°], saturation {s:.1f}% > 12%"
     
     return False, ""
 
-def scan_file_for_colors(file_path: str) -> List[Dict[str, Any]]:
+def scan_file_for_colors(file_path: str, mode: str = "mentor_safe") -> List[Dict[str, Any]]:
     """Scans a file line by line for forbidden colors."""
     violations = []
     
     # Skip vendor assets, database dumps, virtualenv, git, binary files
     rel_path = os.path.relpath(file_path, ROOT_DIR).replace("\\", "/")
     if any(p in rel_path for p in ["vendor/", ".git/", "venv/", "node_modules/", ".pytest_cache/", "__pycache__/", "site_map.json"]):
+        return violations
+
+    # In mentor_safe mode, vivid-specific stylesheet is inactive on the client
+    if mode == "mentor_safe" and "vivid.css" in rel_path:
         return violations
 
     try:
@@ -118,7 +123,7 @@ def scan_file_for_colors(file_path: str) -> List[Dict[str, Any]]:
             if hex_lower in ALLOWED_HEX:
                 continue
             h, s, l = hex_to_hsl(hex_lower)
-            forbidden, reason = is_forbidden_hsl(h, s, l)
+            forbidden, reason = is_forbidden_hsl(h, s, l, mode=mode)
             if forbidden:
                 violations.append({
                     "file": rel_path,
@@ -135,7 +140,7 @@ def scan_file_for_colors(file_path: str) -> List[Dict[str, Any]]:
                 continue # fully transparent is allowed
             r, g, b = int(r_s), int(g_s), int(b_s)
             h, s, l = rgb_to_hsl(r, g, b)
-            forbidden, reason = is_forbidden_hsl(h, s, l)
+            forbidden, reason = is_forbidden_hsl(h, s, l, mode=mode)
             if forbidden:
                 violations.append({
                     "file": rel_path,
@@ -146,24 +151,37 @@ def scan_file_for_colors(file_path: str) -> List[Dict[str, Any]]:
                 })
 
         # 3. Check forbidden named colors (as CSS values)
-        for name in FORBIDDEN_NAMES:
-            # check for : name or : space name or background: name etc.
-            pattern = rf'(?:[:,\s(])\b{name}\b(?:[;\s,)!]|$)'
-            if re.search(pattern, line, re.IGNORECASE):
-                # ignore if it's part of a variable name or js property
-                if f"--{name}" in line or f".{name}" in line:
-                    continue
-                violations.append({
-                    "file": rel_path,
-                    "line": line_idx,
-                    "color": name,
-                    "reason": f"Explicit forbidden CSS named color '{name}'",
-                    "snippet": line_clean[:80]
-                })
+        if mode == "mentor_safe":
+            for name in FORBIDDEN_NAMES:
+                pattern = rf'(?:[:,\s(])\b{name}\b(?:[;\s,)!]|$)'
+                if re.search(pattern, line, re.IGNORECASE):
+                    if f"--{name}" in line or f".{name}" in line:
+                        continue
+                    violations.append({
+                        "file": rel_path,
+                        "line": line_idx,
+                        "color": name,
+                        "reason": f"Explicit forbidden CSS named color '{name}'",
+                        "snippet": line_clean[:80]
+                    })
+        else:
+            # In vivid mode, only pure black is forbidden
+            for name in ["black"]:
+                pattern = rf'(?:[:,\s(])\b{name}\b(?:[;\s,)!]|$)'
+                if re.search(pattern, line, re.IGNORECASE):
+                    if f"--{name}" in line or f".{name}" in line:
+                        continue
+                    violations.append({
+                        "file": rel_path,
+                        "line": line_idx,
+                        "color": name,
+                        "reason": f"Explicit forbidden CSS named color '{name}'",
+                        "snippet": line_clean[:80]
+                    })
 
     return violations
 
-def check_all_colors(dirs_to_scan: List[str] = None) -> List[Dict[str, Any]]:
+def check_all_colors(dirs_to_scan: List[str] = None, mode: str = "mentor_safe") -> List[Dict[str, Any]]:
     if dirs_to_scan is None:
         dirs_to_scan = [
             os.path.join(ROOT_DIR, "app", "static"),
@@ -179,20 +197,27 @@ def check_all_colors(dirs_to_scan: List[str] = None) -> List[Dict[str, Any]]:
                 ext = os.path.splitext(file)[1].lower()
                 if ext in [".css", ".html", ".js", ".svg"]:
                     full_p = os.path.join(root, file)
-                    all_violations.extend(scan_file_for_colors(full_p))
+                    all_violations.extend(scan_file_for_colors(full_p, mode=mode))
                     
     return all_violations
 
 if __name__ == "__main__":
+    mode = "mentor_safe"
+    for arg in sys.argv[1:]:
+        if arg.startswith("--mode="):
+            mode = arg.split("=", 1)[1].lower().strip()
+        elif arg in ["vivid", "mentor_safe"]:
+            mode = arg
+
     print("=" * 80)
-    print("       SAFESIGHT AI - STRICT COLOR SYSTEM VERIFICATION CHECKER")
+    print(f"       SAFESIGHT AI - COLOR SYSTEM CHECKER (MODE: {mode.upper()})")
     print("=" * 80)
-    violations = check_all_colors()
+    violations = check_all_colors(mode=mode)
     if not violations:
-        print("\nSUCCESS: 0 forbidden colors found! The Sunrise Garden theme is strictly compliant.\n")
+        print(f"\nSUCCESS: 0 forbidden colors found in {mode.upper()} mode!\n")
         sys.exit(0)
     else:
-        print(f"\nFOUND {len(violations)} COLOR VIOLATIONS:\n")
+        print(f"\nFOUND {len(violations)} COLOR VIOLATIONS ({mode.upper()} MODE):\n")
         print(f"{'File':<35} | {'Line':<5} | {'Color':<12} | {'Reason'}")
         print("-" * 80)
         for v in violations[:30]:
