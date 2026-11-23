@@ -1,39 +1,44 @@
-# Render deployment configuration for SafeSight AI
+# Render deployment blueprint for SafeSight AI
 # Docs: https://render.com/docs/blueprint-spec
-#
-# This file is optional — you can also configure the service manually
-# in the Render dashboard using the values below.
 
 services:
   - type: web
     name: safesight-ai
     runtime: python
-    # Python version — must match the version you developed against
     pythonVersion: "3.11.0"
 
-    # Install dependencies
-    buildCommand: pip install -r requirements.txt
+    # Exact Render Build Command:
+    # 1. Upgrades pip and installs all production dependencies
+    # 2. Ensures YOLO model weights exist (downloads custom MODEL_URL or YOLOv8 safety base weights)
+    # 3. Pre-initializes database tables and schema migrations
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt && python scripts/prepare_model.py && python database/init_db.py
 
-    # Gunicorn WSGI server:
-    #   -w 2          → 2 worker processes (safe for 512 MB free tier)
-    #   -b 0.0.0.0:$PORT → bind to all interfaces on Render's assigned port
-    #   --timeout 120 → allow up to 120s for slow YOLOv8 model load on first request
-    #   run:app       → import the `app` object from run.py (module-level create_app())
+    # Exact Render Start Command:
+    # Uses Gunicorn WSGI server:
+    #   -w 2            → 2 worker processes (balanced for Render 512MB RAM)
+    #   -b 0.0.0.0:$PORT → binds to Render dynamic port on all network interfaces
+    #   --timeout 120   → prevents worker kill while loading PyTorch/YOLO model
+    #   run:app         → loads Flask app instance from run.py
     startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT --timeout 120 run:app
 
     envVars:
-      # Disable Flask development server features in production
       - key: FLASK_DEBUG
         value: "false"
 
-      # Generate a cryptographically random SECRET_KEY automatically on Render
       - key: SECRET_KEY
         generateValue: true
 
-      # Force CPU inference (Render free tier has no GPU)
       - key: DEVICE
         value: "cpu"
 
-      # Detection confidence threshold (can be tuned without redeploying)
       - key: CONFIDENCE_THRESHOLD
         value: "0.40"
+
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+      - key: YOLO_CONFIG_DIR
+        value: "/tmp/ultralytics"
+
+      - key: MPLCONFIGDIR
+        value: "/tmp/matplotlib"

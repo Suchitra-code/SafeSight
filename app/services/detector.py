@@ -31,6 +31,13 @@ class PPEDetector:
     def _load_model(self):
         """Loads YOLO model once if the weights file exists."""
         if not os.path.exists(self.model_path):
+            try:
+                from scripts.prepare_model import ensure_model
+                ensure_model()
+            except Exception as prep_err:
+                logger.warning(f"Auto-prepare weights encountered: {prep_err}")
+
+        if not os.path.exists(self.model_path):
             logger.warning(
                 f"Weights file not found at '{self.model_path}'. Running detector in DEMO mode."
             )

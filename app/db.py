@@ -15,7 +15,11 @@ logging.basicConfig(level=logging.INFO)
 # Global pool reference
 _pool = None
 _use_sqlite_fallback = False
-_sqlite_db_path = os.path.join(config.BASE_DIR, "database", "safesight_fallback.db")
+_sqlite_db_path = os.getenv("SQLITE_DB_PATH", os.path.join(config.BASE_DIR, "database", "safesight_fallback.db"))
+try:
+    os.makedirs(os.path.dirname(os.path.abspath(_sqlite_db_path)), exist_ok=True)
+except Exception:
+    pass
 
 
 def _get_mysql_pool():

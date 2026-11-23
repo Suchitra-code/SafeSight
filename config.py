@@ -3,8 +3,13 @@ Configuration module for SafeSight AI - PPE Safety Analytics Platform.
 Loads environment variables from .env with fallback defaults.
 """
 import os
+import tempfile
 from pathlib import Path
 from dotenv import load_dotenv
+
+# Ensure writable cache directories in cloud and container environments (Render, Docker, etc.)
+os.environ.setdefault("YOLO_CONFIG_DIR", os.path.join(tempfile.gettempdir(), "ultralytics"))
+os.environ.setdefault("MPLCONFIGDIR", os.path.join(tempfile.gettempdir(), "matplotlib"))
 
 # Base directory is the project root (safesight-ai)
 BASE_DIR = Path(__file__).resolve().parent
