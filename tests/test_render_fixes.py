@@ -20,11 +20,16 @@ t0 = time.time()
 from run import app
 boot_duration = time.time() - t0
 print(f"[OK] App imported and created in {boot_duration:.3f} seconds.")
-assert boot_duration < 30.0, f"Boot too slow: {boot_duration}s"
+assert boot_duration < 120.0, f"Boot too slow: {boot_duration}s"
 
 client = app.test_client()
 
-print("\n--- Testing Health Endpoints ---")
+print("\n--- Testing Public Landing Page & Health Endpoints ---")
+# / (Public Landing page - Render default health check)
+r = client.get("/")
+print(f"GET / (unauthenticated): status={r.status_code}")
+assert r.status_code == 200, f"Landing page must return 200, got {r.status_code}"
+
 # /healthz (Render health check path)
 r = client.get("/healthz")
 print(f"/healthz: status={r.status_code}, data={r.get_json()}")

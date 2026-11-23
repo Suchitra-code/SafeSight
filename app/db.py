@@ -40,6 +40,7 @@ def _get_mysql_pool():
                     port=config.MYSQL_PORT,
                     user=config.MYSQL_USER,
                     password=config.MYSQL_PASSWORD,
+                    connection_timeout=3,
                 )
                 cursor = temp_conn.cursor()
                 cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{config.MYSQL_DATABASE}` CHARACTER SET utf8mb4;")
@@ -59,6 +60,7 @@ def _get_mysql_pool():
                 user=config.MYSQL_USER,
                 password=config.MYSQL_PASSWORD,
                 database=config.MYSQL_DATABASE,
+                connection_timeout=3,
             )
             logger.info("MySQL connection pool established successfully.")
         except Exception:

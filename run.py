@@ -23,10 +23,9 @@ app = create_app()
 application = app
 
 if __name__ == "__main__":
-    # In local development, HOST defaults to 127.0.0.1 (loopback).
-    # On Render / any container, set HOST=0.0.0.0 and PORT=<n> via env vars.
+    # In container and cloud environments, host must bind to 0.0.0.0 so reverse proxies can reach it.
     port = int(os.environ.get("PORT", 5000))
-    host = os.environ.get("HOST", "127.0.0.1")
+    host = os.environ.get("HOST", "0.0.0.0")
     print("\n" + "=" * 65)
     print("  SAFESIGHT AI – PPE Safety Analytics Platform")
     print("  AI-Powered Visual Data Analytics & Business Intelligence")

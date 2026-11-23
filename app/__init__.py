@@ -90,10 +90,16 @@ def create_app():
         """
         Enforce authentication globally:
         If user is not logged in, redirect them to /login.
-        Public endpoints (login, register, health check, static assets) are excluded.
+        Public endpoints (landing page, login, register, health checks, static assets) are excluded.
         """
         from flask import request, redirect, url_for, session
+
+        # Fast-path: root and health checks must always respond 200 without redirect
+        if request.path in ("/", "/healthz", "/health"):
+            return None
+
         allowed_endpoints = {
+            "pages.landing",
             "auth.login",
             "auth.register",
             "health.get_system_health",

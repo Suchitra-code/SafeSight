@@ -36,6 +36,7 @@ reports/*
 # Model weights (large binaries, user should train or download separately)
 *.pt
 models/*.pt
+!models/best.pt
 models/*.onnx
 models/*.engine
 !models/.gitkeep
