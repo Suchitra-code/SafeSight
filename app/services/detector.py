@@ -45,8 +45,27 @@ class PPEDetector:
             return
 
         try:
-            from ultralytics import YOLO
             import torch
+
+            # Compatibility patch for PyTorch 2.6+ default weights_only=True
+            try:
+                _orig_torch_load = torch.load
+                def _safe_torch_load(*args, **kwargs):
+                    if "weights_only" not in kwargs:
+                        kwargs["weights_only"] = False
+                    return _orig_torch_load(*args, **kwargs)
+                torch.load = _safe_torch_load
+            except Exception:
+                pass
+
+            try:
+                if hasattr(torch.serialization, "add_safe_globals"):
+                    import ultralytics.nn.tasks
+                    torch.serialization.add_safe_globals([ultralytics.nn.tasks.DetectionModel])
+            except Exception:
+                pass
+
+            from ultralytics import YOLO
 
             # Determine device: use cuda if available and requested, else cpu
             target_device = "cpu"

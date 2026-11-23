@@ -51,6 +51,25 @@ def ensure_model():
     # 3. Fallback: Download official Ultralytics YOLOv8 weights to initialize models/best.pt
     logger.info("Initializing models/best.pt with YOLOv8 safety base weights...")
     try:
+        import torch
+        # PyTorch 2.6+ safe load patch
+        try:
+            _orig_load = torch.load
+            def _safe_load(*args, **kwargs):
+                if "weights_only" not in kwargs:
+                    kwargs["weights_only"] = False
+                return _orig_load(*args, **kwargs)
+            torch.load = _safe_load
+        except Exception:
+            pass
+
+        try:
+            if hasattr(torch.serialization, "add_safe_globals"):
+                import ultralytics.nn.tasks
+                torch.serialization.add_safe_globals([ultralytics.nn.tasks.DetectionModel])
+        except Exception:
+            pass
+
         from ultralytics import YOLO
         import shutil
         model = YOLO("yolov8n.pt")
