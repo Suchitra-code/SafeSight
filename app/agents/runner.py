@@ -9,7 +9,13 @@ import sqlite3
 import threading
 from typing import Dict, Any, List, Optional
 
-from langgraph.checkpoint.sqlite import SqliteSaver
+try:
+    from langgraph.checkpoint.sqlite import SqliteSaver
+except ImportError:
+    try:
+        from langgraph_checkpoint_sqlite import SqliteSaver
+    except ImportError:
+        from langgraph.checkpoint.memory import MemorySaver as SqliteSaver
 
 import config
 from app.db import execute_query, execute_insert

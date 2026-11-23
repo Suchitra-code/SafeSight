@@ -98,7 +98,13 @@ def get_system_health():
     try:
         import langgraph
         import importlib.metadata
-        from langgraph.checkpoint.sqlite import SqliteSaver
+        try:
+            from langgraph.checkpoint.sqlite import SqliteSaver
+        except ImportError:
+            try:
+                from langgraph_checkpoint_sqlite import SqliteSaver
+            except ImportError:
+                from langgraph.checkpoint.memory import MemorySaver as SqliteSaver
         try:
             lg_ver = importlib.metadata.version("langgraph")
         except Exception:
