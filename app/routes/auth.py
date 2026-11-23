@@ -37,10 +37,10 @@ def login():
         authenticated = False
 
         if username and password:
-            # 1. Check database users table
+            # 1. Check database users table (case-insensitive username check)
             try:
                 user_rows = execute_query(
-                    "SELECT * FROM users WHERE username = %s",
+                    "SELECT * FROM users WHERE LOWER(username) = LOWER(%s)",
                     (username,),
                     fetch=True
                 )
@@ -49,6 +49,7 @@ def login():
                     # Verify password hash
                     if check_password_hash(user_record.get("password_hash", ""), password):
                         authenticated = True
+                        username = user_record.get("username", username)
             except Exception as e:
                 logger.error(f"Error querying users table during login: {e}")
 
@@ -56,7 +57,7 @@ def login():
             if not authenticated:
                 env_user = os.environ.get("LOGIN_USERNAME", "").strip()
                 env_pass = os.environ.get("LOGIN_PASSWORD", "")
-                if env_user and env_pass and username == env_user and password == env_pass:
+                if env_user and env_pass and username.lower() == env_user.lower() and password == env_pass:
                     authenticated = True
 
         if authenticated:

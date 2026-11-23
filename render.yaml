@@ -6,6 +6,7 @@ services:
     name: safesight-ai
     runtime: python
     pythonVersion: "3.11.0"
+    healthCheckPath: /healthz
 
     # Exact Render Build Command:
     # 1. Upgrades pip and installs all production dependencies
@@ -14,15 +15,13 @@ services:
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt && python scripts/prepare_model.py && python database/init_db.py
 
     # Exact Render Start Command:
-    # Uses Gunicorn WSGI server:
-    #   -w 1            → 1 worker process (maintains ~330MB RSS, safely below Render 512MB limit to prevent OOM kills)
-    #   -k gthread      → multi-threaded worker class
-    #   --threads 6     → serves concurrent HTTP requests, assets, and streams without process memory duplication
-    #   -b 0.0.0.0:$PORT → binds to Render dynamic port on all network interfaces
-    #   --timeout 120   → prevents worker kill during deep learning inference and startup
-    #   --keep-alive 5  → optimizes reverse proxy keep-alive connection reuse
-    #   run:app         → loads Flask app instance from run.py
-    startCommand: gunicorn -w 1 -k gthread --threads 6 -b 0.0.0.0:$PORT --timeout 120 --keep-alive 5 run:app
+    # Uses Gunicorn WSGI server configured via gunicorn.conf.py:
+    #   - 1 worker process (~330MB RSS, safely below Render 512MB limit)
+    #   - gthread multi-threading (6 concurrent threads)
+    #   - 300s timeout to prevent boot and deep-learning inference timeouts
+    #   - preload_app=False so port binds immediately
+    #   - /dev/shm for heartbeat tmpfs
+    startCommand: gunicorn --config gunicorn.conf.py run:app
 
     envVars:
       - key: FLASK_DEBUG
@@ -39,6 +38,9 @@ services:
 
       - key: PYTHONUNBUFFERED
         value: "1"
+
+      - key: DISABLE_SENTENCE_TRANSFORMERS
+        value: "true"
 
       - key: YOLO_CONFIG_DIR
         value: "/tmp/ultralytics"

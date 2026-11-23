@@ -45,9 +45,12 @@ def create_app():
         try:
             detector = PPEDetector()
             app.config["DETECTOR"] = detector
-            if detector.is_demo:
-                app.config["DEMO_MODE"] = True
-                logger.warning("SafeSight AI running in DEMO mode (best.pt weights not found or demo active).")
+            model_present = os.path.exists(config.MODEL_PATH)
+            app.config["DEMO_MODE"] = config.DEMO_MODE or (not model_present)
+            if app.config["DEMO_MODE"]:
+                logger.warning("SafeSight AI running in DEMO mode (weights not found or DEMO_MODE=true).")
+            else:
+                logger.info("SafeSight AI configured for PRODUCTION YOLOv8 detection.")
         except Exception as e:
             logger.error(f"Failed to initialize YOLO detector: {e}")
             app.config["DEMO_MODE"] = True

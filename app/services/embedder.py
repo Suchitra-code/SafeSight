@@ -24,15 +24,15 @@ _index = None
 
 
 def get_embedder_status() -> Dict[str, Any]:
-    """Returns the current vector index status and backend."""
+    """Returns the current vector index status and backend without forcing model load."""
     global _mode, _chunks_meta
-    if _mode is None:
-        _init_backend()
     if not _chunks_meta:
         _load_metadata_if_exists()
+    
+    current_mode = _mode or ("tfidf-fallback" if os.getenv("DISABLE_SENTENCE_TRANSFORMERS", "true").lower() in ("true", "1", "yes") else "sentence-transformers")
     return {
-        "backend": _mode,
-        "is_neural": _mode == "sentence-transformers",
+        "backend": current_mode,
+        "is_neural": current_mode == "sentence-transformers",
         "index_file_exists": os.path.exists(config.FAISS_INDEX_PATH),
         "chunk_count": len(_chunks_meta)
     }
@@ -41,6 +41,15 @@ def get_embedder_status() -> Dict[str, Any]:
 def _init_backend():
     """Initializes neural or lightweight mathematical fallback backend."""
     global _model, _faiss, _mode
+    if _mode is not None:
+        return
+
+    # In memory-constrained environments (Render 512MB free tier), skip neural embeddings
+    if os.getenv("DISABLE_SENTENCE_TRANSFORMERS", "true").lower() in ("true", "1", "yes"):
+        logger.info("Using optimized offline TF-IDF vector fallback (neural embeddings disabled for memory conservation).")
+        _mode = "tfidf-fallback"
+        return
+
     try:
         from sentence_transformers import SentenceTransformer
         import faiss
