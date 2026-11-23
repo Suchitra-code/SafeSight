@@ -47,6 +47,13 @@ class PPEDetector:
         try:
             import torch
 
+            # Memory and thread optimization for production cloud containers
+            try:
+                torch.set_grad_enabled(False)
+                torch.set_num_threads(2)
+            except Exception:
+                pass
+
             # Compatibility patch for PyTorch 2.6+ default weights_only=True
             try:
                 _orig_torch_load = torch.load
@@ -104,12 +111,14 @@ class PPEDetector:
             return self._generate_demo_detections(image, conf_threshold)
 
         try:
-            results = self.model.predict(
-                source=image,
-                conf=conf_threshold,
-                device=self.device,
-                verbose=False
-            )
+            import torch
+            with torch.inference_mode():
+                results = self.model.predict(
+                    source=image,
+                    conf=conf_threshold,
+                    device=self.device,
+                    verbose=False
+                )
             detections = []
             if not results:
                 return detections

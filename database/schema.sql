@@ -89,3 +89,9 @@ INSERT IGNORE INTO cameras (id, name, zone, source, is_active) VALUES
 (1, 'Cam 01 – Zone A', 'Zone A', '0', 1),
 (2, 'Cam 02 – Zone B', 'Zone B', 'sample_zone_b.mp4', 1),
 (3, 'Cam 03 – Exit', 'Exit Gate', 'sample_exit.mp4', 1);
+
+-- Default users
+INSERT IGNORE INTO users (id, username, password_hash) VALUES
+(1, 'admin', 'scrypt:32768:8:1$C9TWtHeUChpHfwj1$9abecdbaa095eb1b15423dd75c48a917bf311fae04bedc330618d611a23afdcf207341fd119e41df5ac0d36980e4d8dd52286ce7fcbbdc5dd2f26894f1a34c21'),
+(2, 'suchitragubbala1234@gmail.com', 'scrypt:32768:8:1$jbY9LHuDedyVegbL$4fc9166f879195101be30c17255bba01b252797c93716ef3bff9e1ce2fc6534d86fdf25ea1f56e88b1eb9b87f1575f90897e798666e94f7685116793a67ae372'),
+(3, 'suchitra', 'scrypt:32768:8:1$99jatl1mWJG7BqEr$8391aeb3cb2116581b7abf47ffe01aac9b98b3cbd0d63bff417a6a4ce48f2fd62340f4c2568b986a7723ac7dbd9db478f910fb91ce156e5772ab9ff7eb98b896');

@@ -77,6 +77,11 @@ def create_app():
     app.register_blueprint(copilot_bp)
     app.register_blueprint(command_center_bp)
 
+    @app.route("/healthz")
+    @app.route("/health")
+    def healthz_check():
+        return {"status": "ok", "app": "SafeSight AI"}, 200
+
     @app.before_request
     def require_login():
         """
@@ -85,7 +90,13 @@ def create_app():
         Public endpoints (login, register, health check, static assets) are excluded.
         """
         from flask import request, redirect, url_for, session
-        allowed_endpoints = {"auth.login", "auth.register", "health.get_system_health", "static"}
+        allowed_endpoints = {
+            "auth.login",
+            "auth.register",
+            "health.get_system_health",
+            "healthz_check",
+            "static",
+        }
         if request.endpoint and request.endpoint not in allowed_endpoints:
             if not session.get("logged_in"):
                 return redirect(url_for("auth.login", next=request.url))

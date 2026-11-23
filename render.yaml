@@ -15,11 +15,14 @@ services:
 
     # Exact Render Start Command:
     # Uses Gunicorn WSGI server:
-    #   -w 2            → 2 worker processes (balanced for Render 512MB RAM)
+    #   -w 1            → 1 worker process (maintains ~330MB RSS, safely below Render 512MB limit to prevent OOM kills)
+    #   -k gthread      → multi-threaded worker class
+    #   --threads 6     → serves concurrent HTTP requests, assets, and streams without process memory duplication
     #   -b 0.0.0.0:$PORT → binds to Render dynamic port on all network interfaces
-    #   --timeout 120   → prevents worker kill while loading PyTorch/YOLO model
+    #   --timeout 120   → prevents worker kill during deep learning inference and startup
+    #   --keep-alive 5  → optimizes reverse proxy keep-alive connection reuse
     #   run:app         → loads Flask app instance from run.py
-    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT --timeout 120 run:app
+    startCommand: gunicorn -w 1 -k gthread --threads 6 -b 0.0.0.0:$PORT --timeout 120 --keep-alive 5 run:app
 
     envVars:
       - key: FLASK_DEBUG
