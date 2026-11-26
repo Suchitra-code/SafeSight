@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import config
 from app.db import execute_query
+from app.services.cache import cached_analytics
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ def _build_filter_sql(date_from: Optional[str] = None, date_to: Optional[str] = 
     return " AND ".join(clauses), tuple(params)
 
 
+@cached_analytics(ttl=15.0)
 def get_kpi_summary(date_from: Optional[str] = None, date_to: Optional[str] = None,
                     camera: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -141,9 +143,11 @@ def get_kpi_summary(date_from: Optional[str] = None, date_to: Optional[str] = No
     }
 
 
-def get_safety_score(date_from: Optional[str] = None, date_to: Optional[str] = None) -> Dict[str, Any]:
+@cached_analytics(ttl=15.0)
+def get_safety_score(date_from: Optional[str] = None, date_to: Optional[str] = None,
+                     kpi_summary: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Returns circular safety score percentage and grade status."""
-    kpi = get_kpi_summary(date_from, date_to)
+    kpi = kpi_summary if kpi_summary is not None else get_kpi_summary(date_from, date_to)
     score = kpi["compliance_percent"]
     if score >= 90.0:
         status = "Optimal"
@@ -164,6 +168,7 @@ def get_safety_score(date_from: Optional[str] = None, date_to: Optional[str] = N
     }
 
 
+@cached_analytics(ttl=15.0)
 def get_violations_by_type(date_from: Optional[str] = None, date_to: Optional[str] = None) -> Dict[str, Any]:
     """
     Returns counts by type: helmet, vest, goggles, other, and the total.
@@ -188,6 +193,7 @@ def get_violations_by_type(date_from: Optional[str] = None, date_to: Optional[st
     return counts
 
 
+@cached_analytics(ttl=15.0)
 def get_violations_by_severity(date_from: Optional[str] = None, date_to: Optional[str] = None) -> Dict[str, Any]:
     """
     Returns counts by severity: HIGH, MEDIUM, LOW, and the total.
@@ -214,6 +220,7 @@ def get_violations_by_severity(date_from: Optional[str] = None, date_to: Optiona
     return counts
 
 
+@cached_analytics(ttl=15.0)
 def get_timeseries(date_from: Optional[str] = None, date_to: Optional[str] = None,
                    camera: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -243,26 +250,33 @@ def get_timeseries(date_from: Optional[str] = None, date_to: Optional[str] = Non
             "other": [0] * len(date_list),
         }
 
-    # Use Pandas to pivot data cleanly
-    df = pd.DataFrame(rows)
-    df["event_date"] = pd.to_datetime(df["event_date"]).dt.strftime("%Y-%m-%d")
+    # Efficient pure-Python grouping & pivoting without heavy Pandas DataFrame overhead
+    date_map = {}
+    for r in rows:
+        d_val = r.get("event_date")
+        d_str = str(d_val)[:10] if d_val else ""
+        if not d_str:
+            continue
+        v_type = str(r.get("violation_type") or "other").lower().strip()
+        if d_str not in date_map:
+            date_map[d_str] = {"helmet": 0, "vest": 0, "goggles": 0, "other": 0}
+        cnt = int(r.get("count") or 0)
+        if v_type in date_map[d_str]:
+            date_map[d_str][v_type] += cnt
+        else:
+            date_map[d_str]["other"] += cnt
 
-    # Pivot table with dates as index and violation_type as columns
-    pivot = df.pivot_table(index="event_date", columns="violation_type", values="count", fill_value=0)
-    for col in ["helmet", "vest", "goggles", "other"]:
-        if col not in pivot.columns:
-            pivot[col] = 0
-
-    dates = list(pivot.index)
+    dates = sorted(list(date_map.keys()))
     return {
         "dates": dates,
-        "helmet": [int(x) for x in pivot["helmet"]],
-        "vest": [int(x) for x in pivot["vest"]],
-        "goggles": [int(x) for x in pivot["goggles"]],
-        "other": [int(x) for x in pivot["other"]]
+        "helmet": [date_map[d]["helmet"] for d in dates],
+        "vest": [date_map[d]["vest"] for d in dates],
+        "goggles": [date_map[d]["goggles"] for d in dates],
+        "other": [date_map[d]["other"] for d in dates]
     }
 
 
+@cached_analytics(ttl=15.0)
 def get_heatmap_data(date_from: Optional[str] = None, date_to: Optional[str] = None) -> Dict[str, Any]:
     """
     Generates 7 days x 24 hours density matrix for the Plotly 'Peak Time Period' heatmap.
@@ -306,6 +320,7 @@ def get_heatmap_data(date_from: Optional[str] = None, date_to: Optional[str] = N
     }
 
 
+@cached_analytics(ttl=15.0)
 def get_compliance_trend(date_from: Optional[str] = None, date_to: Optional[str] = None) -> Dict[str, Any]:
     """
     Returns daily compliance rate trend line.
@@ -362,6 +377,7 @@ def get_compliance_trend(date_from: Optional[str] = None, date_to: Optional[str]
     }
 
 
+@cached_analytics(ttl=15.0)
 def get_violations_by_camera(date_from: Optional[str] = None, date_to: Optional[str] = None) -> Dict[str, Any]:
     """
     Returns distribution of violations across cameras/zones.
@@ -384,6 +400,7 @@ def get_violations_by_camera(date_from: Optional[str] = None, date_to: Optional[
     }
 
 
+@cached_analytics(ttl=15.0)
 def get_latest_violation() -> Optional[Dict[str, Any]]:
     """Returns the most recent single violation with asset and metadata."""
     sql = """
@@ -402,6 +419,7 @@ def get_latest_violation() -> Optional[Dict[str, Any]]:
     return item
 
 
+@cached_analytics(ttl=15.0)
 def get_latest_detections(limit: int = 6) -> List[Dict[str, Any]]:
     """Returns the most recent annotated media results with bounding box metadata for carousel display."""
     sql = """
@@ -432,6 +450,7 @@ def get_latest_detections(limit: int = 6) -> List[Dict[str, Any]]:
     return items
 
 
+@cached_analytics(ttl=15.0)
 def get_ppe_detection_summary() -> Dict[str, Any]:
     """Returns total compliant vs non-compliant workers and real category breakdown."""
     d_sql = """
@@ -466,6 +485,7 @@ def get_ppe_detection_summary() -> Dict[str, Any]:
     }
 
 
+@cached_analytics(ttl=15.0)
 def get_compliance_target_trends() -> Dict[str, Any]:
     """Returns achieved compliance rate compared against target threshold."""
     target = getattr(config, "COMPLIANCE_TARGET", 95.0)
@@ -481,6 +501,7 @@ def get_compliance_target_trends() -> Dict[str, Any]:
     }
 
 
+@cached_analytics(ttl=15.0)
 def get_monthly_performance() -> Dict[str, Any]:
     """Returns monthly safety performance. Emits empty state if < 2 months of history."""
     sql = """
@@ -516,6 +537,7 @@ def get_monthly_performance() -> Dict[str, Any]:
 # All computations based strictly on real DB records with parameterised SQL.
 # =============================================================================
 
+@cached_analytics(ttl=15.0)
 def get_filter_options() -> Dict[str, Any]:
     """Returns distinct, real filter options from the database for departments, locations, and gear types."""
     dept_rows = execute_query(
@@ -550,6 +572,7 @@ def get_filter_options() -> Dict[str, Any]:
     }
 
 
+@cached_analytics(ttl=15.0)
 def get_zone_risk_heatmap(date_from: Optional[str] = None, date_to: Optional[str] = None,
                           department: Optional[str] = None) -> List[Dict[str, Any]]:
     """
@@ -645,6 +668,7 @@ def get_zone_risk_heatmap(date_from: Optional[str] = None, date_to: Optional[str
     return zones
 
 
+@cached_analytics(ttl=15.0)
 def get_department_performance(date_from: Optional[str] = None, date_to: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Computes department-wise performance comparison (real grouped metrics):
@@ -700,6 +724,7 @@ def get_department_performance(date_from: Optional[str] = None, date_to: Optiona
     return result
 
 
+@cached_analytics(ttl=15.0)
 def get_critical_alerts() -> List[Dict[str, Any]]:
     """
     Generates rule-based smart safety alerts from real database records:
@@ -757,6 +782,7 @@ def get_critical_alerts() -> List[Dict[str, Any]]:
     return alerts
 
 
+@cached_analytics(ttl=15.0)
 def get_resolution_metrics() -> Dict[str, Any]:
     """Returns violation resolution metrics: total, resolved, open, and average resolution turnaround."""
     tot_sql = "SELECT COUNT(*) as c FROM violations"
@@ -780,15 +806,17 @@ def get_resolution_metrics() -> Dict[str, Any]:
     }
 
 
-def get_safety_performance_score() -> Dict[str, Any]:
+@cached_analytics(ttl=15.0)
+def get_safety_performance_score(kpi_summary: Optional[Dict[str, Any]] = None,
+                                 res_metrics: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Computes the transparent, documented Safety Performance Score:
     Score = (Compliance Rate * 0.50) + (Resolution Rate * 0.30) + (Audit Consistency * 0.20)
     """
-    kpis = get_kpi_summary()
+    kpis = kpi_summary if kpi_summary is not None else get_kpi_summary()
     comp_rate = float(kpis.get("compliance_percent") or 94.5)
-    res_metrics = get_resolution_metrics()
-    res_rate = float(res_metrics.get("resolution_rate") or 85.0)
+    res_m = res_metrics if res_metrics is not None else get_resolution_metrics()
+    res_rate = float(res_m.get("resolution_rate") or 85.0)
     audit_index = 92.0  # Routine automated inspection regularity index
 
     score = round((comp_rate * 0.50) + (res_rate * 0.30) + (audit_index * 0.20), 1)
@@ -821,12 +849,15 @@ def get_safety_performance_score() -> Dict[str, Any]:
     }
 
 
-def get_ai_safety_insights() -> List[Dict[str, Any]]:
+@cached_analytics(ttl=15.0)
+def get_ai_safety_insights(v_types: Optional[Dict[str, Any]] = None,
+                           score_data: Optional[Dict[str, Any]] = None,
+                           zones: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
     """
     Generates 3 to 5 real, deterministic data-driven AI Safety Insights grounded in the actual database.
     Each insight links directly to the AI Safety Assistant for interactive follow-up.
     """
-    v_types = get_violations_by_type()
+    v_types = v_types if v_types is not None else get_violations_by_type()
     tot_v = v_types.get("total", 0)
     top_gear = "Helmet"
     top_gear_count = v_types.get("helmet", 0)
@@ -838,8 +869,8 @@ def get_ai_safety_insights() -> List[Dict[str, Any]]:
 
     top_gear_pct = round((top_gear_count / max(1, tot_v)) * 100.0, 1) if tot_v > 0 else 0
 
-    score_data = get_safety_performance_score()
-    zones = get_zone_risk_heatmap()
+    score_data = score_data if score_data is not None else get_safety_performance_score()
+    zones = zones if zones is not None else get_zone_risk_heatmap()
     top_risk_zone = zones[0]["zone"] if zones else "Main Facility"
 
     insights = [
@@ -883,14 +914,15 @@ def get_ai_safety_insights() -> List[Dict[str, Any]]:
     return insights
 
 
-def get_predictive_safety_forecast() -> Dict[str, Any]:
+@cached_analytics(ttl=15.0)
+def get_predictive_safety_forecast(trend_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Computes honest, simple predictive safety forecast using a 7-day moving average.
     Only shows forecast if at least 14 days of data exist, else provides clean empty state.
     """
-    trend_data = get_compliance_trend()
-    dates = trend_data.get("dates", [])
-    rates = trend_data.get("compliance", [])
+    trend = trend_data if trend_data is not None else get_compliance_trend()
+    dates = trend.get("dates", [])
+    rates = trend.get("compliance", [])
 
     if len(dates) < 14:
         return {
@@ -922,6 +954,7 @@ def get_predictive_safety_forecast() -> Dict[str, Any]:
     }
 
 
+@cached_analytics(ttl=15.0)
 def get_upcoming_inspections() -> List[Dict[str, Any]]:
     """Returns list of scheduled safety inspections from the inspection_schedules table."""
     sql = """

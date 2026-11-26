@@ -1,13 +1,15 @@
 """
 YOLOv8 Detection Service for SafeSight AI.
-Loads the YOLOv8 model as a thread-safe singleton, handles CPU/CUDA selection,
-normalizes class names, and supports non-blocking background initialization
-so Gunicorn workers bind port instantly without timeout.
+Loads the YOLOv8 model as a thread-safe singleton, handles CPU selection,
+normalizes class names, optimizes memory for Render Free Tier (512MB RAM),
+and supports non-blocking background initialization.
 """
 import os
+import gc
 import logging
 import threading
 import time
+import cv2
 import config
 
 logger = logging.getLogger(__name__)
@@ -51,7 +53,7 @@ class PPEDetector:
             self.model_path = model_path or config.MODEL_PATH
             self.model = None
             self.is_demo = True
-            self.device = config.DEVICE
+            self.device = "cpu"  # Keep YOLO inference strictly on CPU
             self._inference_lock = threading.Lock()
             self._ready_event = threading.Event()
             self._loading = False
@@ -93,10 +95,10 @@ class PPEDetector:
         try:
             import torch
 
-            # Optimize PyTorch CPU settings for cloud containers
+            # Memory optimization: set single CPU thread to eliminate redundant tensor pools
             try:
                 torch.set_grad_enabled(False)
-                torch.set_num_threads(2)
+                torch.set_num_threads(1)
             except Exception:
                 pass
 
@@ -120,11 +122,7 @@ class PPEDetector:
 
             from ultralytics import YOLO
 
-            # Determine device: use cuda if available and requested, else cpu
             target_device = "cpu"
-            if torch.cuda.is_available() and self.device.lower() in ("cuda", "gpu", "0"):
-                target_device = "cuda"
-
             logger.info(f"Loading YOLOv8 model from {self.model_path} onto {target_device}...")
             self.model = YOLO(self.model_path)
             self.device = target_device
@@ -152,6 +150,11 @@ class PPEDetector:
     def detect(self, image, conf_threshold=None):
         """
         Runs thread-safe inference on an OpenCV BGR image or numpy array.
+        Optimized for memory efficiency:
+          - Enforces torch.set_num_threads(1) before inference.
+          - Pre-scales input images only when max dimension > 1280 px, preserving aspect ratio.
+          - Maps bounding boxes back to original coordinate system.
+          - Uses torch.inference_mode() with garbage collection cleanup.
         Returns:
             list of dicts: [
                 {"class_name": "Person", "confidence": 0.92, "bbox": [x1, y1, x2, y2]},
@@ -161,26 +164,45 @@ class PPEDetector:
         if conf_threshold is None:
             conf_threshold = config.CONFIDENCE_THRESHOLD
 
-        # If model is still loading in background, wait up to 30s
+        # If model is still loading in background, wait up to 60s
         if not self._ready_event.is_set():
             logger.info("Detector still loading in background, waiting for completion...")
-            self._ready_event.wait(timeout=30)
+            self._ready_event.wait(timeout=60)
 
         # If in demo mode without real weights, return synthetic detections
         if self.is_demo or self.model is None:
             return self._generate_demo_detections(image, conf_threshold)
 
+        if image is None:
+            return []
+
+        orig_h, orig_w = image.shape[:2]
+        max_dim = max(orig_h, orig_w)
+        scale = 1.0
+        inference_img = image
+
+        # Resize only when maximum dimension exceeds 1280 pixels, preserving aspect ratio
+        if max_dim > 1280:
+            scale = 1280.0 / float(max_dim)
+            new_w = max(1, int(round(orig_w * scale)))
+            new_h = max(1, int(round(orig_h * scale)))
+            inference_img = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
         # Thread-safe prediction lock for gthread workers
         with self._inference_lock:
+            results = None
             try:
                 import torch
+                torch.set_num_threads(1)
+
                 with torch.inference_mode():
                     results = self.model.predict(
-                        source=image,
+                        source=inference_img,
                         conf=conf_threshold,
                         device=self.device,
                         verbose=False
                     )
+
                 detections = []
                 if not results:
                     return detections
@@ -196,7 +218,17 @@ class PPEDetector:
                     raw_name = names.get(cls_id, f"Class_{cls_id}")
                     canonical_name = self._normalize_class_name(raw_name)
                     conf = float(box.conf[0].item())
-                    coords = [int(v) for v in box.xyxy[0].tolist()]
+                    raw_coords = box.xyxy[0].tolist()
+
+                    # Map coordinates back to original unscaled image dimensions if resized
+                    if scale != 1.0:
+                        x1 = max(0, min(orig_w, int(round(raw_coords[0] / scale))))
+                        y1 = max(0, min(orig_h, int(round(raw_coords[1] / scale))))
+                        x2 = max(0, min(orig_w, int(round(raw_coords[2] / scale))))
+                        y2 = max(0, min(orig_h, int(round(raw_coords[3] / scale))))
+                        coords = [x1, y1, x2, y2]
+                    else:
+                        coords = [int(v) for v in raw_coords]
 
                     detections.append({
                         "class_name": canonical_name,
@@ -208,6 +240,12 @@ class PPEDetector:
             except Exception as e:
                 logger.error(f"Error during YOLO inference: {e}")
                 return []
+            finally:
+                # Safe cleanup and garbage collection after heavy inference operations
+                del results
+                if scale != 1.0:
+                    del inference_img
+                gc.collect()
 
     def _generate_demo_detections(self, image, conf_threshold):
         """

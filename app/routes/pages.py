@@ -32,7 +32,7 @@ def landing():
 def dashboard():
     """BI Analytics & Safety Score Dashboard page."""
     kpi = analytics.get_kpi_summary()
-    safety_score = analytics.get_safety_score()
+    safety_score = analytics.get_safety_score(kpi_summary=kpi)
     v_by_type = analytics.get_violations_by_type()
     cameras = execute_query("SELECT * FROM cameras WHERE is_active = 1") or []
     latest_v = analytics.get_latest_violation()
@@ -43,8 +43,8 @@ def dashboard():
     dept_perf = analytics.get_department_performance()
     critical_alerts = analytics.get_critical_alerts()
     resolution_metrics = analytics.get_resolution_metrics()
-    perf_score = analytics.get_safety_performance_score()
-    ai_insights = analytics.get_ai_safety_insights()
+    perf_score = analytics.get_safety_performance_score(kpi_summary=kpi, res_metrics=resolution_metrics)
+    ai_insights = analytics.get_ai_safety_insights(v_types=v_by_type, score_data=perf_score, zones=zone_risks)
     forecast = analytics.get_predictive_safety_forecast()
     schedules = analytics.get_upcoming_inspections()
     user_name = session.get("username") or session.get("user") or "Safety Lead"

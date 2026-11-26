@@ -10,6 +10,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 from app.db import execute_query, execute_insert
+from app.services.cache import cached_analytics, clear_analytics_cache
 from app.services.violation_mapper import (
     map_status_to_ui,
     map_ui_status_to_db,
@@ -22,6 +23,7 @@ from app.services.violation_mapper import (
 logger = logging.getLogger(__name__)
 
 
+@cached_analytics(ttl=15.0)
 def get_violation_summary_counts() -> Dict[str, int]:
     """
     Returns verified aggregate counts for:
@@ -96,6 +98,7 @@ def create_violation(upload_id: int, detection_id: int, violation_type: str,
                                   confidence, snapshot_path, camera_name, location, status))
     # Automatically index into visual_chunks for Milestone 3 multi-modal search
     if v_id:
+        clear_analytics_cache()
         try:
             from app.rag.visual_indexer import index_violation
             index_violation(v_id)
@@ -385,6 +388,9 @@ def update_violation_status(violation_id: int, status: str,
         VALUES (%s, %s, %s, %s, %s)
     """
     execute_insert(audit_sql, (violation_id, old_status, target_status, actor, notes))
+
+    # Clear cached analytics on status change
+    clear_analytics_cache()
 
     # Return freshly updated item and latest counts
     updated = get_violation_by_id(violation_id)
