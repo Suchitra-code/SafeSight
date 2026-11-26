@@ -591,6 +591,11 @@ function fetchWorkplaceKpis(queryString = "") {
       const descRes = document.getElementById("kpiCardResolved_desc");
       if (descRes) descRes.innerText = `${d.resolved_violations} of ${d.total_violations} total violations resolved`;
 
+      // Update extended 4 Core Safety Indicators
+      if (typeof window.renderExtendedWorkplaceKpis === "function") {
+        window.renderExtendedWorkplaceKpis(d);
+      }
+
       // Update Hero Summary
       const heroSum = document.getElementById("heroSummaryLine");
       if (heroSum) {

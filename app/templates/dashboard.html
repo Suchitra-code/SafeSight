@@ -6,6 +6,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/kpi_card.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/kpi_indicators.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_polish.css') }}">
 {% endblock %}
@@ -212,17 +213,59 @@
       is_demo=False
     ) }}
 
-    <!-- Card 5: Corrective Actions = SUN -->
+    <!-- Card 5: Open Incidents = CORAL -->
     {{ render_kpi_card(
-      card_id="kpiCardCorrective",
-      title="Corrective Actions",
-      value="31/33",
+      card_id="kpiCardOpenIncidents",
+      title="Open Incidents",
+      value=workplace_kpis.open_incidents if (workplace_kpis and workplace_kpis.open_incidents is not none) else None,
       unit="",
-      icon="clipboard-check",
-      tone="sun",
-      description="Investigation resolution rate (93.9% completed)",
+      icon="flag",
+      tone="coral",
+      description="Active investigations awaiting closure",
       trend=None,
-      state="ready",
+      state="ready" if (workplace_kpis and workplace_kpis.open_incidents is not none) else "unavailable",
+      is_demo=False
+    ) }}
+
+    <!-- Card 6: Reports Generated = SUN -->
+    {{ render_kpi_card(
+      card_id="kpiCardReportsGenerated",
+      title="Reports Generated",
+      value=workplace_kpis.reports_generated if (workplace_kpis and workplace_kpis.reports_generated is not none) else None,
+      unit="",
+      icon="file-text",
+      tone="sun",
+      description="Compiled PDF safety & audit dossiers",
+      trend=None,
+      state="ready" if (workplace_kpis and workplace_kpis.reports_generated is not none) else "unavailable",
+      is_demo=False
+    ) }}
+
+    <!-- Card 7: Active Safety Alerts = RED -->
+    {{ render_kpi_card(
+      card_id="kpiCardActiveAlerts",
+      title="Active Safety Alerts",
+      value=workplace_kpis.active_safety_alerts if (workplace_kpis and workplace_kpis.active_safety_alerts is not none) else None,
+      unit="",
+      icon="bell",
+      tone="red",
+      description="Unacknowledged high-risk & zone alerts",
+      trend=None,
+      state="ready" if (workplace_kpis and workplace_kpis.active_safety_alerts is not none) else "unavailable",
+      is_demo=False
+    ) }}
+
+    <!-- Card 8: Pending Reviews = LIME -->
+    {{ render_kpi_card(
+      card_id="kpiCardPendingReviews",
+      title="Pending Reviews",
+      value=workplace_kpis.pending_reviews if (workplace_kpis and workplace_kpis.pending_reviews is not none) else None,
+      unit="",
+      icon="clock",
+      tone="lime",
+      description="Violations awaiting human supervisor sign-off",
+      trend=None,
+      state="ready" if (workplace_kpis and workplace_kpis.pending_reviews is not none) else "unavailable",
       is_demo=False
     ) }}
   </div>
@@ -1183,6 +1226,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/kpi_indicators.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/kpi_dashboard.js') }}"></script>
 {% endblock %}

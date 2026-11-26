@@ -127,7 +127,8 @@ async function fetchWorkplaceKpis() {
   } catch (err) {
     console.warn("Workplace safety KPI fetch failed:", err);
     // Set all cards to error state with retry buttons
-    ["kpiCardInspections", "kpiCardViolations", "kpiCardResolved", "kpiCardCompliance"].forEach(id => {
+    const allCardIds = ["kpiCardInspections", "kpiCardViolations", "kpiCardResolved", "kpiCardCompliance"].concat(window.EXTENDED_KPI_CARD_IDS || []);
+    allCardIds.forEach(id => {
       setCardState(id, "error");
     });
   } finally {
@@ -192,6 +193,10 @@ function renderWorkplaceKpis(data) {
       c4.classList.add(`kpi-tone-${tone}`);
       c4.setAttribute("aria-label", `Compliance Percentage: ${pct}%`);
     }
+  }
+
+  if (typeof window.renderExtendedWorkplaceKpis === "function") {
+    window.renderExtendedWorkplaceKpis(data);
   }
 }
 
