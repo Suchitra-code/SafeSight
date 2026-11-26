@@ -5,6 +5,7 @@ Matplotlib statistical charts, executive summaries, status distributions,
 and detailed violation audit logs with automatic page numbering.
 """
 import os
+import gc
 import uuid
 import logging
 from datetime import datetime
@@ -129,6 +130,7 @@ def _generate_report_charts(v_by_type: dict, time_series: dict, v_by_status: dic
     chart_path = os.path.join(config.REPORT_FOLDER, chart_filename)
     fig.savefig(chart_path, format="png", bbox_inches="tight")
     plt.close(fig)
+    gc.collect()
 
     return chart_path
 

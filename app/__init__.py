@@ -29,6 +29,7 @@ def create_app():
     app.config["OUTPUT_FOLDER"] = config.OUTPUT_FOLDER
     app.config["REPORT_FOLDER"] = config.REPORT_FOLDER
     app.config["DEMO_MODE"] = config.DEMO_MODE
+    app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400  # 24 hours caching for static assets
 
     # Ensure storage directories exist
     for d in [config.UPLOAD_FOLDER, config.OUTPUT_FOLDER, config.REPORT_FOLDER, config.MODEL_DIR]:
@@ -109,6 +110,14 @@ def create_app():
         if request.endpoint and request.endpoint not in allowed_endpoints:
             if not session.get("logged_in"):
                 return redirect(url_for("auth.login", next=request.url))
+
+    @app.after_request
+    def set_performance_headers(response):
+        """Adds performance and caching headers for static assets."""
+        from flask import request
+        if request.path.startswith("/static/"):
+            response.headers["Cache-Control"] = "public, max-age=86400, stale-while-revalidate=3600"
+        return response
 
     @app.context_processor
     def inject_global_vars():

@@ -5,7 +5,7 @@ services:
   - type: web
     name: safesight-ai
     runtime: python
-    pythonVersion: "3.11.0"
+    pythonVersion: "3.11.11"
     healthCheckPath: /healthz
 
     # Exact Render Build Command:
@@ -16,8 +16,8 @@ services:
 
     # Exact Render Start Command:
     # Uses Gunicorn WSGI server configured via gunicorn.conf.py:
-    #   - 1 worker process (~330MB RSS, safely below Render 512MB limit)
-    #   - gthread multi-threading (6 concurrent threads)
+    #   - 1 worker process (~387MB RSS, safely below Render 512MB limit)
+    #   - gthread multi-threading (4 concurrent threads)
     #   - 300s timeout to prevent boot and deep-learning inference timeouts
     #   - preload_app=False so port binds immediately
     #   - /dev/shm for heartbeat tmpfs

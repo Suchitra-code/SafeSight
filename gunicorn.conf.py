@@ -1,19 +1,16 @@
 """
 Gunicorn configuration for SafeSight AI production deployment on Render.
 
-Key decisions:
-- 1 worker: Render free tier has 512MB RAM. YOLO alone uses ~300MB.
-  Multiple workers would OOM-kill immediately.
-- gthread worker class: allows concurrent requests without forking
-  (no memory duplication), handles SSE + MJPEG streams without blocking.
-- threads=6: 6 concurrent requests per worker. Handles API, assets, and streams.
-- timeout=300: YOLO model loads in ~30-90s on a cold Render boot.
-  300s gives ample headroom for slow cold starts and deep learning inference.
-- graceful_timeout=30: gives in-flight requests 30s to finish during reloads.
-- preload_app=False: CRITICAL. Prevents arbiter boot timeout during model load.
-- max_requests=250: Recycles worker periodically to prevent memory accumulation.
-- worker_tmp_dir='/dev/shm': Uses RAM-backed tmpfs for worker heartbeat
-  files on Linux, preventing disk I/O from causing false timeout kills.
+Render Free Tier Memory Optimization:
+- 1 worker: Stays within Render's 512MB RAM ceiling (~387MB steady RSS).
+  Running multiple workers would duplicate the PyTorch/YOLO process and cause OOM kills.
+- gthread worker class: Multi-threaded request concurrency sharing a single model instance.
+- threads=4: Serves concurrent HTTP requests, assets, and streams with minimal memory overhead.
+- timeout=300: Gives ample headroom for cold starts and deep learning inference.
+- graceful_timeout=30: Allows in-flight requests to finish during worker reloads.
+- preload_app=False: Lets worker load application after binding, preventing arbiter boot timeouts.
+- max_requests=150 (jitter=20): Regularly recycles worker to clear CPython heap fragmentation.
+- worker_tmp_dir='/dev/shm': Uses RAM-backed tmpfs for worker heartbeats on Linux.
 """
 import os
 
@@ -24,7 +21,7 @@ bind = f"0.0.0.0:{port}"
 # Worker processes & threading
 workers = 1
 worker_class = "gthread"
-threads = 6
+threads = 4
 
 # Timeouts (in seconds)
 timeout = 300
@@ -35,8 +32,8 @@ keepalive = 5
 preload_app = False
 
 # Worker recycling
-max_requests = 250
-max_requests_jitter = 25
+max_requests = 150
+max_requests_jitter = 20
 
 # Worker heartbeat directory (safe fallback for non-Linux or read-only /dev/shm)
 if os.path.exists("/dev/shm") and os.access("/dev/shm", os.W_OK):

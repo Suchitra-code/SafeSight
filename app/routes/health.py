@@ -13,6 +13,9 @@ from app.llm.provider import get_llm_client
 
 health_bp = Blueprint("health", __name__, url_prefix="/api")
 
+_cached_copilot_graph_ok = None
+_cached_color_violations_count = None
+
 
 @health_bp.route("/health", methods=["GET"])
 def get_system_health():
@@ -125,9 +128,12 @@ def get_system_health():
 
     # 7. Copilot Graph Compilation & Run Count (Milestone 4)
     try:
-        from app.copilot.graph import build_graph
-        graph = build_graph()
-        graph_ok = graph is not None
+        global _cached_copilot_graph_ok
+        if _cached_copilot_graph_ok is None:
+            from app.copilot.graph import build_graph
+            graph = build_graph()
+            _cached_copilot_graph_ok = graph is not None
+        graph_ok = _cached_copilot_graph_ok
         run_count_res = execute_query(
             "SELECT COUNT(*) as cnt FROM copilot_runs", fetch=True
         )
@@ -146,13 +152,16 @@ def get_system_health():
 
     # 8. Color System Check (Milestone 5)
     try:
-        from tools.check_colors import check_all_colors
-        violations = check_all_colors()
+        global _cached_color_violations_count
+        if _cached_color_violations_count is None:
+            from tools.check_colors import check_all_colors
+            _cached_color_violations_count = len(check_all_colors())
+        violations_cnt = _cached_color_violations_count
         status["components"]["theme_colors"] = {
-            "status": "compliant" if len(violations) == 0 else "violations_found",
-            "violations_count": len(violations),
+            "status": "compliant" if violations_cnt == 0 else "violations_found",
+            "violations_count": violations_cnt,
             "theme": "Sunrise Garden (Strict No-Black No-Blue)",
-            "ok": len(violations) == 0
+            "ok": violations_cnt == 0
         }
     except Exception as e:
         status["components"]["theme_colors"] = {"status": "error", "error": str(e), "ok": False}

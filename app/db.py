@@ -5,6 +5,7 @@ Also provides graceful handling and SQLite fallback if MySQL server is offline.
 """
 import os
 import sqlite3
+import threading
 import logging
 from contextlib import contextmanager
 import config
@@ -16,10 +17,32 @@ logging.basicConfig(level=logging.INFO)
 _pool = None
 _use_sqlite_fallback = False
 _sqlite_db_path = os.getenv("SQLITE_DB_PATH", os.path.join(config.BASE_DIR, "database", "safesight_fallback.db"))
+_local_storage = threading.local()
 try:
     os.makedirs(os.path.dirname(os.path.abspath(_sqlite_db_path)), exist_ok=True)
 except Exception:
     pass
+
+
+def _get_sqlite_connection():
+    """Returns a thread-local SQLite connection configured with WAL mode and PRAGMA settings."""
+    conn = getattr(_local_storage, "sqlite_conn", None)
+    if conn is None:
+        conn = sqlite3.connect(
+            _sqlite_db_path,
+            timeout=15.0,
+            check_same_thread=False
+        )
+        conn.row_factory = sqlite3.Row
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("PRAGMA synchronous=NORMAL;")
+            conn.execute("PRAGMA cache_size=-32000;")
+            conn.execute("PRAGMA temp_store=MEMORY;")
+        except Exception:
+            pass
+        _local_storage.sqlite_conn = conn
+    return conn
 
 
 def _get_mysql_pool():
@@ -115,10 +138,12 @@ def get_db_cursor(commit=False, dictionary=True):
                 except Exception:
                     pass
     else:
-        # SQLite fallback connection
-        conn = sqlite3.connect(_sqlite_db_path)
+        # SQLite fallback connection (thread-local with WAL and memory cache)
+        conn = _get_sqlite_connection()
         if dictionary:
             conn.row_factory = sqlite3.Row
+        else:
+            conn.row_factory = None
         cursor = conn.cursor()
         try:
             yield cursor
@@ -126,12 +151,18 @@ def get_db_cursor(commit=False, dictionary=True):
                 conn.commit()
         except Exception as e:
             if commit:
-                conn.rollback()
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
             logger.error(f"SQLite fallback error: {e}")
             raise e
         finally:
-            cursor.close()
-            conn.close()
+            if cursor:
+                try:
+                    cursor.close()
+                except Exception:
+                    pass
 
 
 def execute_query(query, params=None, fetch=True, commit=False):
@@ -292,6 +323,8 @@ def init_db():
         init_db_violation_monitoring()
         # Auto-run Premium Dashboard schema migrations
         init_db_premium_dashboard()
+        # Auto-run Performance Indexes
+        init_db_indexes()
         return True
     except Exception as e:
         logger.error(f"Failed to initialize SQLite fallback: {e}")
@@ -801,5 +834,55 @@ def init_db_premium_dashboard():
     except Exception as e:
         logger.error(f"Failed to initialize SQLite Premium Dashboard tables: {e}")
         return False
+
+
+def init_db_indexes():
+    """
+    Creates performance indexes on frequently filtered, sorted, and grouped columns.
+    Optimizes query performance significantly on Render deployment.
+    """
+    indexes = [
+        "CREATE INDEX IF NOT EXISTS idx_violations_detected_at ON violations(detected_at)",
+        "CREATE INDEX IF NOT EXISTS idx_violations_status ON violations(status)",
+        "CREATE INDEX IF NOT EXISTS idx_violations_severity ON violations(severity)",
+        "CREATE INDEX IF NOT EXISTS idx_violations_type ON violations(violation_type)",
+        "CREATE INDEX IF NOT EXISTS idx_violations_camera ON violations(camera_name)",
+        "CREATE INDEX IF NOT EXISTS idx_violations_loc ON violations(location)",
+        "CREATE INDEX IF NOT EXISTS idx_violations_dept ON violations(department)",
+        "CREATE INDEX IF NOT EXISTS idx_violations_upload ON violations(upload_id)",
+        "CREATE INDEX IF NOT EXISTS idx_violations_composite ON violations(status, detected_at)",
+        "CREATE INDEX IF NOT EXISTS idx_uploads_uploaded_at ON uploads(uploaded_at)",
+        "CREATE INDEX IF NOT EXISTS idx_uploads_status ON uploads(status)",
+        "CREATE INDEX IF NOT EXISTS idx_uploads_dept ON uploads(department)",
+        "CREATE INDEX IF NOT EXISTS idx_uploads_loc ON uploads(location)",
+        "CREATE INDEX IF NOT EXISTS idx_uploads_out ON uploads(output_path)",
+        "CREATE INDEX IF NOT EXISTS idx_detections_upload ON detections(upload_id)",
+        "CREATE INDEX IF NOT EXISTS idx_detections_created_at ON detections(created_at)",
+        "CREATE INDEX IF NOT EXISTS idx_vsh_violation_id ON violation_status_history(violation_id)",
+        "CREATE INDEX IF NOT EXISTS idx_doc_chunks_doc_id ON doc_chunks(document_id)",
+        "CREATE INDEX IF NOT EXISTS idx_doc_chunks_repo_id ON doc_chunks(repository_id)",
+        "CREATE INDEX IF NOT EXISTS idx_is_status ON inspection_schedules(status)",
+        "CREATE INDEX IF NOT EXISTS idx_is_date ON inspection_schedules(scheduled_date)",
+    ]
+    try:
+        conn = _get_sqlite_connection()
+        cur = conn.cursor()
+        for idx in indexes:
+            try:
+                cur.execute(idx)
+            except Exception:
+                pass
+        try:
+            cur.execute("ANALYZE")
+        except Exception:
+            pass
+        conn.commit()
+        cur.close()
+        logger.info("SQLite performance indexes verified and applied.")
+        return True
+    except Exception as e:
+        logger.warning(f"Notice on SQLite index creation: {e}")
+        return False
+
 
 
