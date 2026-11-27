@@ -5,6 +5,7 @@ services:
   - type: web
     name: safesight-ai
     runtime: python
+    plan: free
     healthCheckPath: /healthz
 
     # Exact Render Build Command:
